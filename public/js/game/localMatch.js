@@ -1,4 +1,4 @@
-import { buildStarterDeckList, getCard } from "/shared/engine/cardDb.js";
+import { getCard } from "/shared/engine/cardDb.js";
 import { makeRng } from "/shared/engine/rng.js";
 import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer } from "/shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "/shared/engine/turn.js";
@@ -15,13 +15,11 @@ function isPlayerish(cardId) {
   return t === "Player" || t === "StarPlayer";
 }
 
-export async function startLocalMatch({ deckAName, deckBName, vsBot }) {
+export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice = "random" }) {
   const rng = makeRng((Date.now() % 1e9) + Math.floor(Math.random() * 1e6));
-  const deckA = buildStarterDeckList(deckAName);
-  const deckB = buildStarterDeckList(deckBName);
   const state = initializeGame({
-    playerADef: { id: "A", name: deckAName, ...deckA },
-    playerBDef: { id: "B", name: deckBName, ...deckB },
+    playerADef: { id: "A", name: deckA.name || "Player 1", ...deckA },
+    playerBDef: { id: "B", name: deckB.name || "Player 2", ...deckB },
     rng,
   });
 
@@ -36,9 +34,17 @@ export async function startLocalMatch({ deckAName, deckBName, vsBot }) {
   drawScoreCards(state, 0);
   drawScoreCards(state, 1);
 
-  const roll = rollForFirstPick(rng);
-  setFirstPlayer(state, roll.winnerIndex);
-  toast(`${roll.winnerIndex === 0 ? "You" : "Opponent"} won the die roll (${roll.playerARoll} vs ${roll.playerBRoll}) and goes first.`);
+  if (firstPlayerChoice === "me") {
+    setFirstPlayer(state, G.humanIndex);
+    toast("You go first.");
+  } else if (firstPlayerChoice === "opponent") {
+    setFirstPlayer(state, G.humanIndex === 0 ? 1 : 0);
+    toast("Opponent goes first.");
+  } else {
+    const roll = rollForFirstPick(rng);
+    setFirstPlayer(state, roll.winnerIndex);
+    toast(`${roll.winnerIndex === 0 ? "You" : "Opponent"} won the die roll (${roll.playerARoll} vs ${roll.playerBRoll}) and goes first.`);
+  }
 
   for (const p of [0, 1]) {
     await pickOpeningCard(p);

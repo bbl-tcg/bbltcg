@@ -1,14 +1,98 @@
 import { el, showScreen } from "../screens.js";
 
+const TRIGGER_DOCS = [
+  ["YOUR TURN", "Usable any time during your own Main Phase."],
+  ["OPPONENT'S TURN", "Usable any time during your opponent's turn - a general reaction window."],
+  ["WHILE ATTACKING", "Usable by a card while it is the one attacking (or, for reactive cards, while it's being attacked), right as that attack is declared."],
+  ["ON OPPONENT'S ATTACK", "A reaction usable specifically when your opponent declares an attack."],
+  ["ON PLAY", "Usable immediately when the card is played from your hand to the field."],
+  ["ON KO", "Usable the moment the card is KOed, before it's removed from the field."],
+  ["SACRIFICE", "A defensive ability, usually letting a player card intercept/redirect an attack meant for a different one of your players."],
+  ["No trigger listed", "The effect is always active/passive - there's nothing to choose to activate, it's just always true."],
+];
+
+const PHASES = [
+  ["1. Recover", "All PLAYERSCORE UP! attached to players or rested return to the bottom-center sector, active. All your players return to full Health."],
+  ["2. Draw", "Draw 1 card from your deck."],
+  ["3. PLAYERSCORE UP! Draw", "Draw 2 PLAYERSCORE UP! from your PS Deck to the active position (only 1 if your PS Deck has exactly 1 left; skipped if it's empty)."],
+  ["4. Main Phase", "Play cards, attack, and use effects in any order you like."],
+  ["5. End Phase", "Your turn ends. If you have 0 players on your field right now, draw 1 card from your Score (lose if you have none left)."],
+];
+
 export function renderRulebook() {
   const root = document.getElementById("rulebook-screen");
   root.innerHTML = "";
   root.className = "screen rulebook-screen";
-  root.appendChild(
-    el("div", { class: "rulebook-content" }, [
-      el("div", { class: "rulebook-back" }, [el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu")]),
-      el("h1", {}, "Rulebook (full version coming soon)"),
-      el("p", {}, "A complete illustrated rulebook is being finished in a later build step."),
-    ])
+
+  const content = el("div", { class: "rulebook-content" }, [
+    el("div", { class: "rulebook-back" }, [el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu")]),
+    el("h1", {}, "Big Ball League TCG - Rulebook"),
+
+    el("h2", {}, "The 6 Card Types"),
+    cardTypeTable(),
+
+    el("h2", {}, "Anatomy of a Player Card"),
+    el("img", { class: "rulebook-diagram", src: "/assets/branding/card-diagram.png", alt: "Diagram of a Player card's parts" }),
+    el("p", {}, "Cost is what you pay (in rested PLAYERSCORE UP!) to play the card. Health (shown in a green marker) is how much damage it can take before being KOed. Attack (shown in a red marker) is how much damage it deals. Tier is mostly cosmetic. Speed is Slow, Midspeed, or Fast."),
+
+    el("h2", {}, "Speed Triangle"),
+    el("p", {}, "Fast beats Midspeed, Midspeed beats Slow, and Slow beats Fast. Winning the matchup gives the attacker +1 extra damage."),
+
+    el("h2", {}, "Triggers"),
+    triggerTable(),
+
+    el("h2", {}, "Setup"),
+    el("ol", {}, [
+      el("li", {}, "Each player's deck is exactly 60 cards (not counting the Head Coach or PLAYERSCORE UP!), plus 1 Head Coach and 5 PLAYERSCORE UP!."),
+      el("li", {}, "Both players roll a die; the higher roll decides who goes first (reroll ties)."),
+      el("li", {}, "Draw 5 cards. You may mulligan once (shuffle your hand back and redraw 5). Every kept hand must contain at least 1 Player or Star Player."),
+      el("li", {}, "Take the next 2 cards off the top of your deck as your face-down Score."),
+      el("li", {}, "Each player plays 1 Player or Star Player from their hand to the field for free."),
+    ]),
+
+    el("h2", {}, "Turn Phases"),
+    phaseTable(),
+    el("p", {}, "The player going first cannot attack on their first turn and only draws 1 PLAYERSCORE UP! that turn. The player going second also cannot attack on their own first turn, but draws PLAYERSCORE UP! normally."),
+
+    el("h2", {}, "Winning and Losing"),
+    el("p", {}, "Whenever one of your Player or Star Player cards is KOed (not simply discarded), draw a card from your own Score. If you have no Score cards left when this happens, you lose. You also draw from your Score (and can lose the same way) if you end your turn with 0 players on your field."),
+
+    el("h2", {}, "The Field"),
+    el(
+      "p",
+      {},
+      "Each side has a 3x3 grid of sectors: Score (top-left) - 3 Player slots (top-center) - empty (top-right) - empty (middle-left) - Head Coach + Assistant Coach (middle-center) - your Deck (middle-right) - PS Deck (bottom-left) - 8 PLAYERSCORE UP! slots (bottom-center) - Discard Pile (bottom-right)."
+    ),
+  ]);
+  root.appendChild(content);
+}
+
+function cardTypeTable() {
+  const rows = [
+    ["Player", "Cost, Health, Attack, Speed, Tier, an effect/trigger. Up to 3 on the field. Can't attack the turn it's played unless its effect says otherwise."],
+    ["Star Player", "Same as a Player, plus a Star Power. Cannot attack during its 2 \"Power Up Turns\" (the turn played and the next one) - but its effects still work. Only 1 Star Player on the field at a time."],
+    ["Head Coach", "Free, played at the start of the game, never leaves the field. Doesn't take a player slot. Only 1 per deck."],
+    ["Assistant Coach", "Played from your deck like a Player, for its Cost. Attaches to your Head Coach. Only 1 on the field at a time, and you can't play a new one while you have one."],
+    ["Event", "Played for its Cost, resolves, then is discarded. Only usable when its trigger allows."],
+    ["PLAYERSCORE UP!", "Your resource. Rest them to pay costs. Attach active ones to a (non-Star) Player on your turn for +1 Attack each."],
+  ];
+  return el(
+    "table",
+    {},
+    [el("tr", {}, [el("th", {}, "Type"), el("th", {}, "What it does")]), ...rows.map(([a, b]) => el("tr", {}, [el("td", {}, a), el("td", {}, b)]))]
   );
+}
+
+function triggerTable() {
+  return el("table", {}, [
+    el("tr", {}, [el("th", {}, "Trigger"), el("th", {}, "When you can use it")]),
+    ...TRIGGER_DOCS.map(([a, b]) => el("tr", {}, [el("td", {}, a), el("td", {}, b)])),
+  ]);
+}
+
+function phaseTable() {
+  return el("table", {}, [
+    el("tr", {}, [el("th", {}, "Phase"), el("th", {}, "What happens")]),
+    ...PHASES.map(([a, b]) => el("tr", {}, [el("td", {}, a), el("td", {}, b)])),
+  ]);
 }

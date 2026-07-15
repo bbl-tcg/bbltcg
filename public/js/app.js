@@ -1,9 +1,11 @@
 import { loadCardDb } from "./loadCardDb.js";
 import { showScreen } from "./screens.js";
 import { renderMenu } from "./screens/menu.js";
+import { ensureFirstRunBonus } from "./storage.js";
 
 async function boot() {
   await loadCardDb();
+  ensureFirstRunBonus();
   renderMenu();
   showScreen("menu-screen");
 }

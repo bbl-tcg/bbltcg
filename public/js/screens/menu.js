@@ -2,6 +2,8 @@ import { el, showScreen } from "../screens.js";
 import { renderRulebook } from "./rulebook.js";
 import { renderPlaySetup } from "./playSetup.js";
 import { renderDeckbuilder } from "./deckbuilder.js";
+import { toast } from "../ui.js";
+import { getPackPoints } from "../storage.js";
 
 export function renderMenu() {
   const root = document.getElementById("menu-screen");
@@ -23,14 +25,14 @@ export function renderMenu() {
   root.appendChild(buttons);
 
   const footer = el("div", { class: "menu-footer" }, [
-    el("div", { class: "pack-points-pill" }, "Pack Points: 5"),
+    el("div", { class: "pack-points-pill" }, `Pack Points: ${getPackPoints()}`),
     el("a", { class: "bbl-btn coffee-btn", href: "https://buymeacoffee.com/bbltcg", target: "_blank", rel: "noopener" }, "Buy me a coffee"),
   ]);
   root.appendChild(footer);
 }
 
 function notReady(name) {
-  alert(`${name} is coming soon in a later build.`);
+  toast(`${name} is coming soon in a later build.`);
 }
 
 /** Ensure a screen container exists (some screens are created lazily, not hardcoded in index.html). */
