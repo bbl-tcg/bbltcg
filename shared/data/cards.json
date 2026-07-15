@@ -1,0 +1,2618 @@
+[
+  {
+    "id": "001-001",
+    "number": 7,
+    "name": "Deck Sphera",
+    "type": "Player",
+    "months": [
+      "January"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-001.png",
+    "cost": 4,
+    "health": 6,
+    "attack": 1,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a Skuba Doo player in your hand, you may rest 1 PLAYERSCORE UP! and add 1 Skuba Doo to your field."
+  },
+  {
+    "id": "001-002",
+    "number": 8,
+    "name": "Eliezer Edwards",
+    "type": "Player",
+    "months": [
+      "January"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-002.png",
+    "cost": 5,
+    "health": 5,
+    "attack": 2,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "If your opponent has a Head Coach with [February], [October], or [December] team, this player gains +2 Health and +3 Attack."
+  },
+  {
+    "id": "001-003",
+    "number": 11,
+    "name": "Chef Luis",
+    "type": "Player",
+    "months": [
+      "January"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-003.png",
+    "cost": 6,
+    "health": 5,
+    "attack": 4,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects."
+  },
+  {
+    "id": "001-004",
+    "number": 15,
+    "name": "Banned",
+    "type": "Player",
+    "months": [
+      "January"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-004.png",
+    "cost": 1,
+    "health": 5,
+    "attack": 1,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-005",
+    "number": 27,
+    "name": "Nerf Miner",
+    "type": "Player",
+    "months": [
+      "January"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-005.png",
+    "cost": 2,
+    "health": 4,
+    "attack": 2,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "ON_PLAY",
+    "effect": "Choose 1 Skuba Doo player already on your field. The chosen player gains +1 Health until your opponent's next End Phase."
+  },
+  {
+    "id": "001-006",
+    "number": 30,
+    "name": "Skuba Doo",
+    "type": "StarPlayer",
+    "months": [
+      "January"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-006.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 7,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may put up to 2 PLAYERSCORE UP! cards back in your PS Deck. For each PLAYERSCORE UP! you remove from the field in this way, draw 1 card from your deck to your hand.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "PUMMEL DOWN: If a different player on your field has already attacked on this turn, this player gains +3 Attack."
+    }
+  },
+  {
+    "id": "001-007",
+    "number": null,
+    "name": "Coach Schmaxel",
+    "type": "HeadCoach",
+    "months": [
+      "January"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-007.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a Banned on your field, discard it and move 1 PLAYERSCORE UP! from your PS Deck to your field. If there are no PLAYERSCORE UP! in your PS Deck, move one rested PLAYERSCORE UP! into the active position instead.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-008",
+    "number": null,
+    "name": "Coach Jan 15",
+    "type": "AssistantCoach",
+    "months": [
+      "January"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-008.png",
+    "cost": 6,
+    "trigger": "YOUR_TURN",
+    "effect": "You may discard up to 2 cards from your hand. If you do, search your Discard Pile for as many Banned players as cards you discarded and add them to your field.",
+    "specialty": null
+  },
+  {
+    "id": "001-009",
+    "number": 4,
+    "name": "Rafael Murray",
+    "type": "Player",
+    "months": [
+      "February"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-009.png",
+    "cost": 4,
+    "health": 7,
+    "attack": 1,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-010",
+    "number": 11,
+    "name": "Tank Edwards",
+    "type": "Player",
+    "months": [
+      "February"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-010.png",
+    "cost": 6,
+    "health": 6,
+    "attack": 4,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-011",
+    "number": 12,
+    "name": "Alexa",
+    "type": "Player",
+    "months": [
+      "February"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-011.png",
+    "cost": 3,
+    "health": 2,
+    "attack": 0,
+    "tier": 3,
+    "speed": "FAST",
+    "trigger": "ON_PLAY",
+    "effect": "Discard this card from your field, and play a Tier 2 player from your hand in its place."
+  },
+  {
+    "id": "001-012",
+    "number": 14,
+    "name": "Matt Stats",
+    "type": "Player",
+    "months": [
+      "February"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-012.png",
+    "cost": 1,
+    "health": 4,
+    "attack": 1,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "WHILE_ATTACKING",
+    "effect": "Your opponent discards 1 card from the top of their deck."
+  },
+  {
+    "id": "001-013",
+    "number": 29,
+    "name": "Medusa",
+    "type": "Player",
+    "months": [
+      "February"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-013.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 6,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "WHILE_ATTACKING",
+    "effect": "You may discard up to 3 cards from your hand. For each card you discard, your opponent must discard the same number of cards from their hand."
+  },
+  {
+    "id": "001-014",
+    "number": 7,
+    "name": "Silvia Snipes",
+    "type": "StarPlayer",
+    "months": [
+      "February"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-014.png",
+    "cost": 7,
+    "health": 6,
+    "attack": 6,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, this player gains [SACRIFICE] until your opponent's End Phase.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "CLUTCH: If this player is the only player on your field, it can attack twice."
+    }
+  },
+  {
+    "id": "001-015",
+    "number": null,
+    "name": "Coach Le Finn",
+    "type": "HeadCoach",
+    "months": [
+      "February"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-015.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 1 card from your deck.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-016",
+    "number": null,
+    "name": "Coach Rocky",
+    "type": "AssistantCoach",
+    "months": [
+      "February"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-016.png",
+    "cost": 7,
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 5 cards from your deck. Then, discard 3 cards from your hand.",
+    "specialty": null
+  },
+  {
+    "id": "001-017",
+    "number": 3,
+    "name": "Kade Kadington",
+    "type": "Player",
+    "months": [
+      "March"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-017.png",
+    "cost": 5,
+    "health": 5,
+    "attack": 4,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-018",
+    "number": 7,
+    "name": "Dwayne",
+    "type": "Player",
+    "months": [
+      "March"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-018.png",
+    "cost": 7,
+    "health": 5,
+    "attack": 2,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "Set one of your rested PLAYERSCORE UP! to the active position."
+  },
+  {
+    "id": "001-019",
+    "number": 20,
+    "name": "Yen Durmont",
+    "type": "Player",
+    "months": [
+      "March"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-019.png",
+    "cost": 2,
+    "health": 5,
+    "attack": 1,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "ON_PLAY",
+    "effect": "Draw 3 cards from your deck. Put 1 in your hand, and discard the rest."
+  },
+  {
+    "id": "001-020",
+    "number": 22,
+    "name": "Mr. Irrelevant",
+    "type": "Player",
+    "months": [
+      "March"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-020.png",
+    "cost": 7,
+    "health": 6,
+    "attack": 2,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 1 card. You may discard 1 card from your hand, and if you do, set 1 of your rested PLAYERSCORE UP! into the active position."
+  },
+  {
+    "id": "001-021",
+    "number": 23,
+    "name": "Mal",
+    "type": "Player",
+    "months": [
+      "March"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-021.png",
+    "cost": 1,
+    "health": 7,
+    "attack": 0,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-022",
+    "number": 31,
+    "name": "Joao",
+    "type": "StarPlayer",
+    "months": [
+      "March"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-022.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 4,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "You may attach PLAYERSCORE UP! cards to this player.",
+    "starPower": {
+      "trigger": "YOUR_TURN",
+      "effect": "THE RIGHT WAY: If 1 PLAYERSCORE UP! is attached to this Joao, you may attach 2 rested PLAYERSCORE UP! to another player on your field."
+    }
+  },
+  {
+    "id": "001-023",
+    "number": null,
+    "name": "Coach Rares",
+    "type": "HeadCoach",
+    "months": [
+      "March"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-023.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Attach 1 rested PLAYERSCORE UP! to a player on your field.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-024",
+    "number": null,
+    "name": "Coach LeMarch",
+    "type": "AssistantCoach",
+    "months": [
+      "March"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-024.png",
+    "cost": 8,
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 1 card.",
+    "specialty": null
+  },
+  {
+    "id": "001-025",
+    "number": 6,
+    "name": "Martin Samuel",
+    "type": "Player",
+    "months": [
+      "April"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-025.png",
+    "cost": 3,
+    "health": 5,
+    "attack": 1,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": "ON_PLAY",
+    "effect": "Attach 1 active PLAYERSCORE UP! to a STAR Player on your field."
+  },
+  {
+    "id": "001-026",
+    "number": 16,
+    "name": "Sting Ray",
+    "type": "Player",
+    "months": [
+      "April"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-026.png",
+    "cost": 4,
+    "health": 5,
+    "attack": 2,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-027",
+    "number": 20,
+    "name": "Nia Snow",
+    "type": "Player",
+    "months": [
+      "April"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-027.png",
+    "cost": 1,
+    "health": 4,
+    "attack": 2,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-028",
+    "number": 25,
+    "name": "Earl Towns",
+    "type": "Player",
+    "months": [
+      "April"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-028.png",
+    "cost": 6,
+    "health": 6,
+    "attack": 4,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "WHILE_ATTACKING",
+    "effect": "If a STAR Player on your field has already attacked during this turn, this Earl Towns gains +1 Attack until your End Phase."
+  },
+  {
+    "id": "001-029",
+    "number": 30,
+    "name": "Santiago Rivera",
+    "type": "Player",
+    "months": [
+      "April"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-029.png",
+    "cost": 7,
+    "health": 6,
+    "attack": 0,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If a STAR Player on your field is being attacked by an opponent's player, negate the attack completely (including effects). If you activate this effect, discard this card and 1 card from your hand."
+  },
+  {
+    "id": "001-030",
+    "number": 1,
+    "name": "Simon Chapman",
+    "type": "StarPlayer",
+    "months": [
+      "April"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-030.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 9,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, pick a card from your opponent's hand without seeing the front of their cards. Your opponent must discard this card and draw 1 card from their deck.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "PRESSURE POINT: Select one of your opponent's active PLAYERSCORE UP! and set it in the rested position."
+    }
+  },
+  {
+    "id": "001-031",
+    "number": null,
+    "name": "Coach Blossom",
+    "type": "HeadCoach",
+    "months": [
+      "April"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-031.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a Simon Chapman on your field, you may attach 1 rested PLAYERSCORE UP! to it.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-032",
+    "number": null,
+    "name": "Coach April 49",
+    "type": "AssistantCoach",
+    "months": [
+      "April"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-032.png",
+    "cost": 5,
+    "trigger": "YOUR_TURN",
+    "effect": "Discard 1 card from your hand. Set 1 rested PLAYERSCORE UP! to the active position.",
+    "specialty": null
+  },
+  {
+    "id": "001-033",
+    "number": 4,
+    "name": "Kevin Nguyen",
+    "type": "Player",
+    "months": [
+      "May"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-033.png",
+    "cost": 8,
+    "health": 4,
+    "attack": 6,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": "WHILE_ATTACKING",
+    "effect": "Choose 1 of your opponent's players with a Cost of 0 or less. Your opponent may discard it, and both you and your opponent draw 1 card."
+  },
+  {
+    "id": "001-034",
+    "number": 5,
+    "name": "Franklin Atkins",
+    "type": "Player",
+    "months": [
+      "May"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-034.png",
+    "cost": 7,
+    "health": 8,
+    "attack": 3,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "Until your End Phase, all the players on your opponent's field have -1 Cost."
+  },
+  {
+    "id": "001-035",
+    "number": 6,
+    "name": "Bucky",
+    "type": "Player",
+    "months": [
+      "May"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-035.png",
+    "cost": 3,
+    "health": 4,
+    "attack": 2,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-036",
+    "number": 17,
+    "name": "King Scar",
+    "type": "Player",
+    "months": [
+      "May"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-036.png",
+    "cost": 2,
+    "health": 5,
+    "attack": 1,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "ON_PLAY",
+    "effect": "Choose 1 of the players on your opponent's field with a Cost of 1 or less. Your opponent must put this player at the bottom of their deck."
+  },
+  {
+    "id": "001-037",
+    "number": 23,
+    "name": "Gragas",
+    "type": "Player",
+    "months": [
+      "May"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-037.png",
+    "cost": 5,
+    "health": 4,
+    "attack": 1,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "ON_PLAY",
+    "effect": "Choose 1 of the players on your opponent's field. This player cannot attack until your opponent's next End Phase."
+  },
+  {
+    "id": "001-038",
+    "number": 28,
+    "name": "Ricky Covey, Jr.",
+    "type": "StarPlayer",
+    "months": [
+      "May"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-038.png",
+    "cost": 8,
+    "health": 8,
+    "attack": 4,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "If this player has not yet attacked in this game, it cannot be attacked by players with a Cost of 3 or less.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "GREATER GOOD: Choose 1 of the players on your field, and attack it instead. If it falls to 0 Health, it is discarded instead of KOed. If it is discarded as a result of this attack, choose 1 player on your opponent's field to be put at the bottom of their deck."
+    }
+  },
+  {
+    "id": "001-039",
+    "number": null,
+    "name": "Coach BetaBros",
+    "type": "HeadCoach",
+    "months": [
+      "May"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-039.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have played an event during this turn, your opponent must discard a player from their field.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-040",
+    "number": null,
+    "name": "Coach May Fanpage",
+    "type": "AssistantCoach",
+    "months": [
+      "May"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-040.png",
+    "cost": 7,
+    "trigger": "OPPONENTS_TURN",
+    "effect": "Until your opponent's End Phase, all the players on their field have -1 Cost.",
+    "specialty": null
+  },
+  {
+    "id": "001-041",
+    "number": 3,
+    "name": "Scottie",
+    "type": "Player",
+    "months": [
+      "June"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-041.png",
+    "cost": 4,
+    "health": 6,
+    "attack": 0,
+    "tier": 3,
+    "speed": "FAST",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If your opponent is using an effect directed at only 1 of the players on your field, redirect the effect to this player. If this player is still on the field after the effect, discard this player."
+  },
+  {
+    "id": "001-042",
+    "number": 10,
+    "name": "Sainz",
+    "type": "Player",
+    "months": [
+      "June"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-042.png",
+    "cost": 7,
+    "health": 4,
+    "attack": 5,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "WHILE_ATTACKING",
+    "effect": "Your opponent may discard 2 cards from their hand. If they do, this attack does nothing."
+  },
+  {
+    "id": "001-043",
+    "number": 13,
+    "name": "Kimi Raikonnen",
+    "type": "Player",
+    "months": [
+      "June"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-043.png",
+    "cost": 2,
+    "health": 5,
+    "attack": 1,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "Choose one of the players on your field. The chosen player has no effect until your End Phase."
+  },
+  {
+    "id": "001-044",
+    "number": 23,
+    "name": "Peter Crouch",
+    "type": "Player",
+    "months": [
+      "June"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-044.png",
+    "cost": 6,
+    "health": 6,
+    "attack": 2,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If your opponent uses a Rebound, nullify its effects. If you do, discard this player."
+  },
+  {
+    "id": "001-045",
+    "number": 30,
+    "name": "Jordan Riki",
+    "type": "Player",
+    "months": [
+      "June"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-045.png",
+    "cost": 3,
+    "health": 5,
+    "attack": 1,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-046",
+    "number": 9,
+    "name": "Miguel Borja, Jr.",
+    "type": "StarPlayer",
+    "months": [
+      "June"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-046.png",
+    "cost": 8,
+    "health": 8,
+    "attack": 5,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, choose one of the players on your opponent's field and give it -1 Health until your End Phase.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "DISRUPTION: Your opponent must choose 1 card from their hand and discard it."
+    }
+  },
+  {
+    "id": "001-047",
+    "number": null,
+    "name": "Coach Mourinho",
+    "type": "HeadCoach",
+    "months": [
+      "June"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-047.png",
+    "trigger": null,
+    "effect": "Players on your field cannot be removed from the field by effects from your opponent's players.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-048",
+    "number": null,
+    "name": "Coach June Fanpage",
+    "type": "AssistantCoach",
+    "months": [
+      "June"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-048.png",
+    "cost": 8,
+    "trigger": "ON_PLAY",
+    "effect": "Your opponent must discard all cards in their hand, then draw 5 cards from the top of their deck.",
+    "specialty": null
+  },
+  {
+    "id": "001-049",
+    "number": 6,
+    "name": "Jake Bullet",
+    "type": "Player",
+    "months": [
+      "July"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-049.png",
+    "cost": 4,
+    "health": 5,
+    "attack": 2,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If your opponent is attacking with a STAR Player, negate the attacking player's effects until your opponent's End Phase."
+  },
+  {
+    "id": "001-050",
+    "number": 14,
+    "name": "Daisy Hart",
+    "type": "Player",
+    "months": [
+      "July"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-050.png",
+    "cost": 1,
+    "health": 4,
+    "attack": 1,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "You may discard this card from your field. If you do, discard a Tier 2 player from your hand or field, and draw 1 card from your deck."
+  },
+  {
+    "id": "001-051",
+    "number": 17,
+    "name": "Alistair Frost",
+    "type": "Player",
+    "months": [
+      "July"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-051.png",
+    "cost": 6,
+    "health": 8,
+    "attack": 3,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects."
+  },
+  {
+    "id": "001-052",
+    "number": 19,
+    "name": "Himmy Neutron",
+    "type": "Player",
+    "months": [
+      "July"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-052.png",
+    "cost": 7,
+    "health": 4,
+    "attack": 5,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If this Himmy Neutron has already attacked this turn, you may discard this card from your field. If you do, inflict 2 more damage onto the player you attacked with this Himmy Neutron."
+  },
+  {
+    "id": "001-053",
+    "number": 21,
+    "name": "Xander Diamond",
+    "type": "Player",
+    "months": [
+      "July"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-053.png",
+    "cost": 4,
+    "health": 5,
+    "attack": 2,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-054",
+    "number": 30,
+    "name": "JanJan",
+    "type": "StarPlayer",
+    "months": [
+      "July"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-054.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 6,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, draw 5 cards from the top of your deck. If you find a Xander Diamond, add it to your field and put the other 4 cards at the bottom of your deck.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "CLUTCH: If this player is the only player on your field, it can attack twice."
+    }
+  },
+  {
+    "id": "001-055",
+    "number": null,
+    "name": "Coach Romano",
+    "type": "HeadCoach",
+    "months": [
+      "July"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-055.png",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If a JanJan on your field did not attack on your last turn, you may attach 1 rested PLAYERSCORE UP! to the JanJan on your field. JanJan gains +1 Health for each PLAYERSCORE UP! attached in this way.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-056",
+    "number": null,
+    "name": "Coach Tall",
+    "type": "AssistantCoach",
+    "months": [
+      "July"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-056.png",
+    "cost": 6,
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If a JanJan on your field did not attack on your last turn, you may attach 1 rested PLAYERSCORE UP! to the JanJan on your field. JanJan gains +1 Health for each PLAYERSCORE UP! attached in this way.",
+    "specialty": null
+  },
+  {
+    "id": "001-057",
+    "number": 8,
+    "name": "Penelope Stark",
+    "type": "Player",
+    "months": [
+      "August"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-057.png",
+    "cost": 4,
+    "health": 5,
+    "attack": 2,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "If at least 1 Alex Ramirez is on your field, this player gains +1 Health."
+  },
+  {
+    "id": "001-058",
+    "number": 10,
+    "name": "Cyclops",
+    "type": "Player",
+    "months": [
+      "August"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-058.png",
+    "cost": 2,
+    "health": 4,
+    "attack": 1,
+    "tier": 3,
+    "speed": "FAST",
+    "trigger": "ON_KO",
+    "effect": "Inflict the same amount of damage as the last attack used on this Cyclops to one of the players on your opponent's field."
+  },
+  {
+    "id": "001-059",
+    "number": 14,
+    "name": "Duke Perrier",
+    "type": "Player",
+    "months": [
+      "August"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-059.png",
+    "cost": 5,
+    "health": 6,
+    "attack": 1,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects."
+  },
+  {
+    "id": "001-060",
+    "number": 20,
+    "name": "Viktor Krill",
+    "type": "Player",
+    "months": [
+      "August"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-060.png",
+    "cost": 4,
+    "health": 3,
+    "attack": 4,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-061",
+    "number": 24,
+    "name": "Alex Ramirez",
+    "type": "Player",
+    "months": [
+      "August"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-061.png",
+    "cost": 8,
+    "health": 7,
+    "attack": 4,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": null,
+    "effect": "If there are 2 other Fast players on your field, this player gains +1 Attack."
+  },
+  {
+    "id": "001-062",
+    "number": 31,
+    "name": "Ballex Pereira",
+    "type": "StarPlayer",
+    "months": [
+      "August"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-062.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 2,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "If this player has not yet attacked in this game, and it is being attacked by a player on your opponent's field, swap this player's current Health with a player on your opponent's field until your opponent's End Phase.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "SYNERGY: If Duke Perrier is on your field, search your discard pile for an Event and add it to your hand."
+    }
+  },
+  {
+    "id": "001-063",
+    "number": null,
+    "name": "Coach Ale",
+    "type": "HeadCoach",
+    "months": [
+      "August"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-063.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Choose 2 non-STAR players on your field and swap their Attack until your End Phase.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-064",
+    "number": null,
+    "name": "Coach Cap",
+    "type": "AssistantCoach",
+    "months": [
+      "August"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-064.png",
+    "cost": 6,
+    "trigger": "YOUR_TURN",
+    "effect": "Choose 2 non-STAR players on your field and swap their Health until your opponent's next End Phase.",
+    "specialty": null
+  },
+  {
+    "id": "001-065",
+    "number": 7,
+    "name": "Sepastian Bond",
+    "type": "Player",
+    "months": [
+      "September"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-065.png",
+    "cost": 5,
+    "health": 5,
+    "attack": 1,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-066",
+    "number": 8,
+    "name": "Dr. Doof",
+    "type": "Player",
+    "months": [
+      "September"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-066.png",
+    "cost": 4,
+    "health": 3,
+    "attack": 2,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": "YOUR_TURN",
+    "effect": "Until your End Phase, all players on your field and in your hand have +1 Cost."
+  },
+  {
+    "id": "001-067",
+    "number": 13,
+    "name": "Agent P",
+    "type": "Player",
+    "months": [
+      "September"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-067.png",
+    "cost": 2,
+    "health": 4,
+    "attack": 2,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": "ON_PLAY",
+    "effect": "Draw 1 card from your deck."
+  },
+  {
+    "id": "001-068",
+    "number": 24,
+    "name": "Mushu",
+    "type": "Player",
+    "months": [
+      "September"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-068.png",
+    "cost": 7,
+    "health": 8,
+    "attack": 3,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-069",
+    "number": 30,
+    "name": "Chris P. Bacon",
+    "type": "Player",
+    "months": [
+      "September"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-069.png",
+    "cost": 8,
+    "health": 1,
+    "attack": 1,
+    "tier": 3,
+    "speed": "FAST",
+    "trigger": null,
+    "effect": "This player cannot be removed from the field by any of your opponent's player, coach, or event effects, and it cannot be attacked or KOed. If it is the only player on your field at the start of your turn, move this player from your field to your Score face-up (gain 1 life). Only one Chris P. Bacon can be on the field at a time."
+  },
+  {
+    "id": "001-070",
+    "number": 6,
+    "name": "Ragnar",
+    "type": "StarPlayer",
+    "months": [
+      "September"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-070.png",
+    "cost": 7,
+    "health": 8,
+    "attack": 3,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "If this player has not yet attacked in this game, it has +1 Health until it attacks for the first time.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "PUMMEL DOWN: If a different player on your field has already attacked on this turn, this player gains +3 Attack."
+    }
+  },
+  {
+    "id": "001-071",
+    "number": null,
+    "name": "Coach JC",
+    "type": "HeadCoach",
+    "months": [
+      "September"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-071.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If a Chris P. Bacon player is on your field, discard it and draw 2 cards from your deck.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-072",
+    "number": null,
+    "name": "Coach Times",
+    "type": "AssistantCoach",
+    "months": [
+      "September"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-072.png",
+    "cost": 8,
+    "trigger": "ON_PLAY",
+    "effect": "If you have 3 players with a Cost of 8 or more on your field, add 1 Event from your hand to your Score.",
+    "specialty": null
+  },
+  {
+    "id": "001-073",
+    "number": 3,
+    "name": "LeBall James",
+    "type": "Player",
+    "months": [
+      "October"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-073.png",
+    "cost": 6,
+    "health": 5,
+    "attack": 2,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "If one of your players is KOed, search your discard pile for any card and add it to your hand."
+  },
+  {
+    "id": "001-074",
+    "number": 6,
+    "name": "Tessa Sparks",
+    "type": "Player",
+    "months": [
+      "October"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-074.png",
+    "cost": 4,
+    "health": 5,
+    "attack": 1,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-075",
+    "number": 10,
+    "name": "Max Balloway",
+    "type": "Player",
+    "months": [
+      "October"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-075.png",
+    "cost": 1,
+    "health": 4,
+    "attack": 2,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-076",
+    "number": 18,
+    "name": "Argo Riggs",
+    "type": "Player",
+    "months": [
+      "October"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-076.png",
+    "cost": 3,
+    "health": 4,
+    "attack": 2,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 1 card from the top of your discard pile."
+  },
+  {
+    "id": "001-077",
+    "number": 25,
+    "name": "Hawk",
+    "type": "Player",
+    "months": [
+      "October"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-077.png",
+    "cost": 8,
+    "health": 5,
+    "attack": 6,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects."
+  },
+  {
+    "id": "001-078",
+    "number": 31,
+    "name": "Justin Wells",
+    "type": "StarPlayer",
+    "months": [
+      "October"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-078.png",
+    "cost": 8,
+    "health": 7,
+    "attack": 6,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 Event from your hand. If you do, search your discard pile for 1 player and add it to your hand.",
+    "starPower": {
+      "trigger": "YOUR_TURN",
+      "effect": "SYNERGY: If Tessa Sparks is on your field, search your discard pile for an Event and add it to your hand."
+    }
+  },
+  {
+    "id": "001-079",
+    "number": null,
+    "name": "Coach Belichick",
+    "type": "HeadCoach",
+    "months": [
+      "October"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-079.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Look at the top 3 cards of your deck. Pick 1 to put at the bottom of your deck, and discard the other 2.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-080",
+    "number": null,
+    "name": "Coach Stark",
+    "type": "AssistantCoach",
+    "months": [
+      "October"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-080.png",
+    "cost": 6,
+    "trigger": null,
+    "effect": "While this card is on your field, you cannot use your Coach Belichick effect. Every player on your field gains +1 Attack.",
+    "specialty": null
+  },
+  {
+    "id": "001-081",
+    "number": 4,
+    "name": "Jaylen Andersen",
+    "type": "Player",
+    "months": [
+      "November"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-081.png",
+    "cost": 7,
+    "health": 5,
+    "attack": 3,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "If your opponent has a Head Coach with [January], [March], or [June] team, this player gains and +2 Attack."
+  },
+  {
+    "id": "001-082",
+    "number": 11,
+    "name": "Sean Peterson",
+    "type": "Player",
+    "months": [
+      "November"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-082.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 5,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-083",
+    "number": 15,
+    "name": "Nova Leer",
+    "type": "Player",
+    "months": [
+      "November"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-083.png",
+    "cost": 3,
+    "health": 4,
+    "attack": 1,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-084",
+    "number": 18,
+    "name": "Raven Storm",
+    "type": "Player",
+    "months": [
+      "November"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-084.png",
+    "cost": 6,
+    "health": 4,
+    "attack": 2,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "ON_PLAY",
+    "effect": "Attach 1 active PLAYERSCORE UP! to a STAR Player already on your field. That STAR Player gains +1 Health and +1 Attack for each PLAYERSCORE UP! attached in this way."
+  },
+  {
+    "id": "001-085",
+    "number": 30,
+    "name": "Lalo",
+    "type": "Player",
+    "months": [
+      "November"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-085.png",
+    "cost": 1,
+    "health": 4,
+    "attack": 1,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects."
+  },
+  {
+    "id": "001-086",
+    "number": 20,
+    "name": "Hal Lewis",
+    "type": "StarPlayer",
+    "months": [
+      "November"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-086.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 4,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, there are 2 5-Cost players on the field, and Goodbye, R1P1... is played, you win.",
+    "starPower": {
+      "trigger": "ON_KO",
+      "effect": "AFTERMATH: If, after this Hal Lewis is KOed, you have fewer Score cards remaining than your opponent, your opponent may discard 2 cards from their hand. If they don't, choose 1 of the players on their field to KO."
+    }
+  },
+  {
+    "id": "001-087",
+    "number": null,
+    "name": "Coach Buffalo",
+    "type": "HeadCoach",
+    "months": [
+      "November"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-087.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a STAR Player on your field, all non-STAR players on your field gain +1 Attack.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-088",
+    "number": null,
+    "name": "Coach Alex",
+    "type": "AssistantCoach",
+    "months": [
+      "November"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-088.png",
+    "cost": 7,
+    "trigger": null,
+    "effect": "All your players have -1 Cost when you play them from your hand to the field. They return to their normal cost when played.",
+    "specialty": null
+  },
+  {
+    "id": "001-089",
+    "number": 11,
+    "name": "Doc McQueen",
+    "type": "Player",
+    "months": [
+      "December"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-089.png",
+    "cost": 3,
+    "health": 5,
+    "attack": 2,
+    "tier": 3,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If this Doc McQueen has already attacked this turn, you may discard this card from your field. If you do, inflict 2 more damage onto the player you attacked with this Doc McQueen."
+  },
+  {
+    "id": "001-090",
+    "number": 17,
+    "name": "Vin Zero",
+    "type": "Player",
+    "months": [
+      "December"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-090.png",
+    "cost": 1,
+    "health": 4,
+    "attack": 1,
+    "tier": 3,
+    "speed": "SLOW",
+    "trigger": "ON_PLAY",
+    "effect": "Draw 3 cards from your deck, then discard 2 cards from your hand."
+  },
+  {
+    "id": "001-091",
+    "number": 22,
+    "name": "Mustafa Khan",
+    "type": "Player",
+    "months": [
+      "December"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-091.png",
+    "cost": 7,
+    "health": 7,
+    "attack": 5,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "NONE"
+  },
+  {
+    "id": "001-092",
+    "number": 25,
+    "name": "Skib Bidi",
+    "type": "Player",
+    "months": [
+      "December"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-092.png",
+    "cost": 5,
+    "health": 6,
+    "attack": 2,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
+    "id": "001-093",
+    "number": 31,
+    "name": "Michael Shelby",
+    "type": "Player",
+    "months": [
+      "December"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-093.png",
+    "cost": 6,
+    "health": 6,
+    "attack": 1,
+    "tier": 2,
+    "speed": "MIDSPEED",
+    "trigger": "ON_PLAY",
+    "effect": "Draw 5 cards from your deck, then discard 3 cards from your hand."
+  },
+  {
+    "id": "001-094",
+    "number": 6,
+    "name": "Leo Haze",
+    "type": "StarPlayer",
+    "months": [
+      "December"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-094.png",
+    "cost": 8,
+    "health": 8,
+    "attack": 4,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "FALLEN FORCE: For every 4 cards in your discard pile, this player gains +1 Attack."
+    }
+  },
+  {
+    "id": "001-095",
+    "number": null,
+    "name": "Coach Snowball",
+    "type": "HeadCoach",
+    "months": [
+      "December"
+    ],
+    "rarity": "Rare",
+    "image": "assets/cards/001-095.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Discard the top card from your deck.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-096",
+    "number": null,
+    "name": "Coach Harry",
+    "type": "AssistantCoach",
+    "months": [
+      "December"
+    ],
+    "rarity": "Common",
+    "image": "assets/cards/001-096.png",
+    "cost": 5,
+    "trigger": "YOUR_TURN",
+    "effect": "Discard 1 card from your hand.",
+    "specialty": null
+  },
+  {
+    "id": "001-097",
+    "number": null,
+    "name": "Save",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-097.png",
+    "cost": 2,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "Give one of your players +2 Health until your opponent's End Phase."
+  },
+  {
+    "id": "001-098",
+    "number": null,
+    "name": "Rebound",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-098.png",
+    "cost": 1,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "Give one of your players +1 Health until your opponent's End Phase."
+  },
+  {
+    "id": "001-099",
+    "number": null,
+    "name": "Stun",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-099.png",
+    "cost": 1,
+    "trigger": "WHILE_ATTACKING",
+    "effect": "Give one of your opponent's players -2 Health during one of your players' attack. If the chosen opponent player is not KOed from this attack, it regains any Health lost as a result of this event."
+  },
+  {
+    "id": "001-100",
+    "number": null,
+    "name": "Assist",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-100.png",
+    "cost": 6,
+    "trigger": "WHILE_ATTACKING",
+    "effect": "Choose a player on your field that is not the player attacking. Add the chosen player's Attack value to the attacking player's Attack value during this attack."
+  },
+  {
+    "id": "001-101",
+    "number": null,
+    "name": "TKO",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-101.png",
+    "cost": 3,
+    "trigger": "YOUR_TURN",
+    "effect": "You may draw 1 card from your Score and discard a player from your field. If you do, choose 2 players from your opponent's field. The chosen players are discarded."
+  },
+  {
+    "id": "001-102",
+    "number": null,
+    "name": "Saved... Just In Time!!!",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-102.png",
+    "cost": 4,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "If a player on your field is about to be KOed from an attack, choose another player on your field and discard, not KO, that player instead."
+  },
+  {
+    "id": "001-103",
+    "number": null,
+    "name": "Mysterious Commissioner Plot Armor",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-103.png",
+    "cost": 3,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "A player on your field gains +1 Health that lasts until the player is removed from the field. This event cannot be used on a STAR Player."
+  },
+  {
+    "id": "001-104",
+    "number": null,
+    "name": "Starting Lineup",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-104.png",
+    "cost": 7,
+    "trigger": "YOUR_TURN",
+    "effect": "Search your deck for a STAR Player and add it to your hand. Then, shuffle your deck."
+  },
+  {
+    "id": "001-105",
+    "number": null,
+    "name": "Coach Schmaxel Ego Death",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-105.png",
+    "cost": 3,
+    "trigger": "YOUR_TURN",
+    "effect": "Choose 1 of the players on your opponent's field with a cost of 2 or less to send back to your opponent's hand."
+  },
+  {
+    "id": "001-106",
+    "number": null,
+    "name": "Silvia Snipes: Rookie (?) of the Year",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-106.png",
+    "cost": 3,
+    "trigger": "YOUR_TURN",
+    "effect": "Look at the top 3 cards in your deck. Add 1 to your hand, and then discard the rest."
+  },
+  {
+    "id": "001-107",
+    "number": null,
+    "name": "Dwayne's Trade Value Skyrockets!!!",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-107.png",
+    "cost": 3,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "Attach 1 active PLAYERSCORE UP! to a player on your field. That player gains +2 Health for each PLAYERSCORE UP! attached in this way."
+  },
+  {
+    "id": "001-108",
+    "number": null,
+    "name": "YURRRRRR",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-108.png",
+    "cost": 4,
+    "trigger": "YOUR_TURN",
+    "effect": "A STAR Player on your field gains +2 Attack until your End Phase."
+  },
+  {
+    "id": "001-109",
+    "number": null,
+    "name": "Winning Record and STILL Miss Playoffs???",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-109.png",
+    "cost": 3,
+    "trigger": "YOUR_TURN",
+    "effect": "If a STAR Player on your field is Tier 2, draw 1 card from your deck."
+  },
+  {
+    "id": "001-110",
+    "number": null,
+    "name": "Peter Crouch Has the Best Stats on the Team???",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-110.png",
+    "cost": 3,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "Attach 1 active PLAYERSCORE UP! to a player on your field. That player gains +1 Health and an additional +1 Attack for each PLAYERSCORE UP! attached in this way."
+  },
+  {
+    "id": "001-111",
+    "number": null,
+    "name": "7 Saves in 1 Game by... Xander Diamond???",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-111.png",
+    "cost": 4,
+    "trigger": "YOUR_TURN",
+    "effect": "Choose one of the players on your field. this player gains [SACRIFICE] until your opponent's End Phase."
+  },
+  {
+    "id": "001-112",
+    "number": null,
+    "name": "Viktor Krill Will Never Play on August Again!!!",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-112.png",
+    "cost": 5,
+    "trigger": "YOUR_TURN",
+    "effect": "Choose one of the players on your field. Until your opponent's next End Phase, this player's base Attack and Health values are switched."
+  },
+  {
+    "id": "001-113",
+    "number": null,
+    "name": "Look out Rangar... This is Mushu's Day!!!",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-113.png",
+    "cost": 4,
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "Choose one of the players on your field that is not a STAR PLAYER. This player gains +3 Health until your opponent's End Phase."
+  },
+  {
+    "id": "001-114",
+    "number": null,
+    "name": "From 1-5 to Champions, We Are the Ghouls!!!",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-114.png",
+    "cost": 4,
+    "trigger": "YOUR_TURN",
+    "effect": "Rest up to 2 active PLAYERSCORE UP! For each PLAYERSCORE UP! you rest, draw 1 card from the top of your Discard Pile."
+  },
+  {
+    "id": "001-115",
+    "number": null,
+    "name": "Goodbye, R1P1...",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-115.png",
+    "cost": 6,
+    "trigger": "YOUR_TURN",
+    "effect": "Discard all the cards in your hand, then draw 3 cards from your deck."
+  },
+  {
+    "id": "001-116",
+    "number": null,
+    "name": "Greatest Roster Ever!!! How Can We Lose?",
+    "type": "Event",
+    "months": [],
+    "rarity": "Common",
+    "image": "assets/cards/001-116.png",
+    "cost": 5,
+    "trigger": "YOUR_TURN",
+    "effect": "Search your Discard Pile for a Tier 3 player and add it to your hand."
+  },
+  {
+    "id": "001-117",
+    "number": 30,
+    "name": "Skuba Doo",
+    "type": "StarPlayer",
+    "months": [
+      "January"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-117.png",
+    "cost": 8,
+    "health": 5,
+    "attack": 7,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may put up to 2 PLAYERSCORE UP! cards back in your PS Deck. For each PLAYERSCORE UP! you remove from the field in this way, draw 1 card from your deck to your hand.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "PUMMEL DOWN: If a different player on your field has already attacked on this turn, this player gains +3 Attack."
+    }
+  },
+  {
+    "id": "001-118",
+    "number": null,
+    "name": "Coach Schmaxel",
+    "type": "HeadCoach",
+    "months": [
+      "January"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-118.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a Banned on your field, discard it and move 1 PLAYERSCORE UP! from your PS Deck to your field. If there are no PLAYERSCORE UP! in your PS Deck, move one rested PLAYERSCORE UP! into the active position instead.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-119",
+    "number": null,
+    "name": "Coach Jan 15",
+    "type": "AssistantCoach",
+    "months": [
+      "January"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-119.png",
+    "cost": 4,
+    "trigger": "YOUR_TURN",
+    "effect": "You may discard up to 2 cards from your hand. If you do, search your Discard Pile for as many Banned players as cards you discarded and add them to your field.",
+    "specialty": null
+  },
+  {
+    "id": "001-120",
+    "number": 7,
+    "name": "Silvia Snipes",
+    "type": "StarPlayer",
+    "months": [
+      "February"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-120.png",
+    "cost": 7,
+    "health": 6,
+    "attack": 6,
+    "tier": 1,
+    "speed": "FAST",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, this player gains [SACRIFICE] until your opponent's End Phase.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "CLUTCH: If this player is the only player on your field, it can attack twice."
+    }
+  },
+  {
+    "id": "001-121",
+    "number": null,
+    "name": "Coach Le Finn",
+    "type": "HeadCoach",
+    "months": [
+      "February"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-121.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 1 card from your deck.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-122",
+    "number": null,
+    "name": "Coach Rocky",
+    "type": "AssistantCoach",
+    "months": [
+      "February"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-122.png",
+    "cost": 7,
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 5 cards from your deck. Then, discard 3 cards from your hand.",
+    "specialty": null
+  },
+  {
+    "id": "001-123",
+    "number": 31,
+    "name": "Joao",
+    "type": "StarPlayer",
+    "months": [
+      "March"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-123.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 4,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "You may attach PLAYERSCORE UP! cards to this player.",
+    "starPower": {
+      "trigger": "YOUR_TURN",
+      "effect": "THE RIGHT WAY: If 1 PLAYERSCORE UP! is attached to this Joao, you may attach 2 rested PLAYERSCORE UP! to another player on your field."
+    }
+  },
+  {
+    "id": "001-124",
+    "number": null,
+    "name": "Coach Rares",
+    "type": "HeadCoach",
+    "months": [
+      "March"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-124.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Attach 1 rested PLAYERSCORE UP! to a player on your field.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-125",
+    "number": null,
+    "name": "Coach LeMarch",
+    "type": "AssistantCoach",
+    "months": [
+      "March"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-125.png",
+    "cost": 8,
+    "trigger": "YOUR_TURN",
+    "effect": "Draw 1 card.",
+    "specialty": null
+  },
+  {
+    "id": "001-126",
+    "number": 1,
+    "name": "Simon Chapman",
+    "type": "StarPlayer",
+    "months": [
+      "April"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-126.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 9,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, pick a card from your opponent's hand without seeing the front of their cards. Your opponent must discard this card and draw 1 card from their deck.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "PRESSURE POINT: Select one of your opponent's active PLAYERSCORE UP! and set it in the rested position."
+    }
+  },
+  {
+    "id": "001-127",
+    "number": null,
+    "name": "Coach Blossom",
+    "type": "HeadCoach",
+    "months": [
+      "April"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-127.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a Simon Chapman on your field, you may attach 1 rested PLAYERSCORE UP! to it.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-128",
+    "number": null,
+    "name": "Coach April 49",
+    "type": "AssistantCoach",
+    "months": [
+      "April"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-128.png",
+    "cost": 5,
+    "trigger": "YOUR_TURN",
+    "effect": "Discard 1 card from your hand. Set 1 rested PLAYERSCORE UP! to the active position.",
+    "specialty": null
+  },
+  {
+    "id": "001-129",
+    "number": 28,
+    "name": "Ricky Covey, Jr.",
+    "type": "StarPlayer",
+    "months": [
+      "May"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-129.png",
+    "cost": 8,
+    "health": 8,
+    "attack": 4,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "If this player has not yet attacked in this game, it cannot be attacked by players with a Cost of 3 or less.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "GREATER GOOD: Choose 1 of the players on your field, and attack it instead. If it falls to 0 Health, it is discarded instead of KOed. If it is discarded as a result of this attack, choose 1 player on your opponent's field to be put at the bottom of their deck."
+    }
+  },
+  {
+    "id": "001-130",
+    "number": null,
+    "name": "Coach BetaBros",
+    "type": "HeadCoach",
+    "months": [
+      "May"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-130.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have played an event during this turn, your opponent must discard a player from their field.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-131",
+    "number": null,
+    "name": "Coach May Fanpage",
+    "type": "AssistantCoach",
+    "months": [
+      "May"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-131.png",
+    "cost": 7,
+    "trigger": "OPPONENTS_TURN",
+    "effect": "Until your opponent's End Phase, all the players on their field have -1 Cost.",
+    "specialty": null
+  },
+  {
+    "id": "001-132",
+    "number": 9,
+    "name": "Miguel Borja, Jr.",
+    "type": "StarPlayer",
+    "months": [
+      "June"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-132.png",
+    "cost": 8,
+    "health": 8,
+    "attack": 5,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, choose one of the players on your opponent's field and give it -1 Health until your End Phase.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "DISRUPTION: Your opponent must choose 1 card from their hand and discard it."
+    }
+  },
+  {
+    "id": "001-133",
+    "number": null,
+    "name": "Coach Mourinho",
+    "type": "HeadCoach",
+    "months": [
+      "June"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-133.png",
+    "trigger": null,
+    "effect": "Players on your field cannot be removed from the field by effects from your opponent's players.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-134",
+    "number": null,
+    "name": "Coach June Fanpage",
+    "type": "AssistantCoach",
+    "months": [
+      "June"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-134.png",
+    "cost": 8,
+    "trigger": "ON_PLAY",
+    "effect": "Your opponent must discard all cards in their hand, then draw 5 cards from the top of their deck.",
+    "specialty": null
+  },
+  {
+    "id": "001-135",
+    "number": 30,
+    "name": "JanJan",
+    "type": "StarPlayer",
+    "months": [
+      "July"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-135.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 6,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, draw 5 cards from the top of your deck. If you find a Xander Diamond, add it to your field.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "CLUTCH: If this player is the only player on your field, it can attack twice."
+    }
+  },
+  {
+    "id": "001-136",
+    "number": null,
+    "name": "Coach Romano",
+    "type": "HeadCoach",
+    "months": [
+      "July"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-136.png",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If a JanJan on your field did not attack on your last turn, you may attach 1 rested PLAYERSCORE UP! to the JanJan on your field. JanJan gains +1 Health for each PLAYERSCORE UP! attached in this way.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-137",
+    "number": null,
+    "name": "Coach Tall",
+    "type": "AssistantCoach",
+    "months": [
+      "July"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-137.png",
+    "cost": 6,
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If a JanJan on your field did not attack on your last turn, you may attach 1 rested PLAYERSCORE UP! to the JanJan on your field. JanJan gains +1 Health for each PLAYERSCORE UP! attached in this way.",
+    "specialty": null
+  },
+  {
+    "id": "001-138",
+    "number": 31,
+    "name": "Ballex Pereira",
+    "type": "StarPlayer",
+    "months": [
+      "August"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-138.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 2,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "ON_OPPONENTS_ATTACK",
+    "effect": "If this player has not yet attacked in this game, and it is being attacked by a player on your opponent's field, swap this player's current Health with a player on your opponent's field until your opponent's End Phase.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "SYNERGY: If Duke Perrier is on your field, search your discard pile for an Event and add it to your hand."
+    }
+  },
+  {
+    "id": "001-139",
+    "number": null,
+    "name": "Coach Ale",
+    "type": "HeadCoach",
+    "months": [
+      "August"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-139.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Choose 2 non-STAR players on your field and swap their Attack until your End Phase.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-140",
+    "number": null,
+    "name": "Coach Cap",
+    "type": "AssistantCoach",
+    "months": [
+      "August"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-140.png",
+    "cost": 6,
+    "trigger": "YOUR_TURN",
+    "effect": "Choose 2 non-STAR players on your field and swap their Health until your opponent's next End Phase.",
+    "specialty": null
+  },
+  {
+    "id": "001-141",
+    "number": 6,
+    "name": "Ragnar",
+    "type": "StarPlayer",
+    "months": [
+      "September"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-141.png",
+    "cost": 7,
+    "health": 8,
+    "attack": 3,
+    "tier": 2,
+    "speed": "SLOW",
+    "trigger": null,
+    "effect": "If this player has not yet attacked in this game, it has +1 Health until it attacks for the first time.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "PUMMEL DOWN: If a different player on your field has already attacked on this turn, this player gains +3 Attack."
+    }
+  },
+  {
+    "id": "001-142",
+    "number": null,
+    "name": "Coach JC",
+    "type": "HeadCoach",
+    "months": [
+      "September"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-142.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If a Chris P. Bacon player is on your field, discard it and draw 2 cards from your deck.",
+    "specialty": "Defense"
+  },
+  {
+    "id": "001-143",
+    "number": null,
+    "name": "Coach Times",
+    "type": "AssistantCoach",
+    "months": [
+      "September"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-143.png",
+    "cost": 8,
+    "trigger": "ON_PLAY",
+    "effect": "If you have 3 players with a Cost of 8 or more on your field, add 1 Event from your hand to your Score.",
+    "specialty": null
+  },
+  {
+    "id": "001-144",
+    "number": 31,
+    "name": "Justin Wells",
+    "type": "StarPlayer",
+    "months": [
+      "October"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-144.png",
+    "cost": 8,
+    "health": 7,
+    "attack": 6,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 Event from your hand. If you do, search your discard pile for 1 player and add it to your hand.",
+    "starPower": {
+      "trigger": "YOUR_TURN",
+      "effect": "SYNERGY: If Tessa Sparks is on your field, search your discard pile for an Event and add it to your hand."
+    }
+  },
+  {
+    "id": "001-145",
+    "number": null,
+    "name": "Coach Belichick",
+    "type": "HeadCoach",
+    "months": [
+      "October"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-145.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Look at the top 3 cards of your deck. Pick 1 to put at the bottom of your deck, and discard the other 2.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-146",
+    "number": null,
+    "name": "Coach Stark",
+    "type": "AssistantCoach",
+    "months": [
+      "October"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-146.png",
+    "cost": 6,
+    "trigger": null,
+    "effect": "While this card is on your field, you cannot use your Coach Belichick effect. Every player on your field gains +1 Attack.",
+    "specialty": null
+  },
+  {
+    "id": "001-147",
+    "number": 20,
+    "name": "Hal Lewis",
+    "type": "StarPlayer",
+    "months": [
+      "November"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-147.png",
+    "cost": 8,
+    "health": 6,
+    "attack": 4,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, there are 2 5-Cost players on the field, and Goodbye, R1P1... is played, you win.",
+    "starPower": {
+      "trigger": "ON_KO",
+      "effect": "AFTERMATH: If, after this Hal Lewis is KOed, you have fewer Score cards remaining than your opponent, your opponent may discard 2 cards from their hand. If they don't, choose 1 of the players on their field to KO."
+    }
+  },
+  {
+    "id": "001-148",
+    "number": null,
+    "name": "Coach Buffalo",
+    "type": "HeadCoach",
+    "months": [
+      "November"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-148.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a STAR Player on your field, all non-STAR players on your field gain +1 Attack.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-149",
+    "number": null,
+    "name": "Coach Alex",
+    "type": "AssistantCoach",
+    "months": [
+      "November"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-149.png",
+    "cost": 7,
+    "trigger": null,
+    "effect": "All your players have -1 Cost when you play them from your hand to the field. They return to their normal cost when played.",
+    "specialty": null
+  },
+  {
+    "id": "001-150",
+    "number": 6,
+    "name": "Leo Haze",
+    "type": "StarPlayer",
+    "months": [
+      "December"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-150.png",
+    "cost": 8,
+    "health": 8,
+    "attack": 4,
+    "tier": 1,
+    "speed": "MIDSPEED",
+    "trigger": null,
+    "effect": "This player's attacks are not affected by your opponent's player or coach effects.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "FALLEN FORCE: For every 4 cards in your discard pile, this player gains +1 Attack."
+    }
+  },
+  {
+    "id": "001-151",
+    "number": null,
+    "name": "Coach Snowball",
+    "type": "HeadCoach",
+    "months": [
+      "December"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-151.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Discard the top card from your deck.",
+    "specialty": "Roster Building"
+  },
+  {
+    "id": "001-152",
+    "number": null,
+    "name": "Coach Harry",
+    "type": "AssistantCoach",
+    "months": [
+      "December"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/001-152.png",
+    "cost": 5,
+    "trigger": "YOUR_TURN",
+    "effect": "Discard 1 card from your hand.",
+    "specialty": null
+  },
+  {
+    "id": "001-153",
+    "number": 30,
+    "name": "JanJan",
+    "type": "StarPlayer",
+    "months": [
+      "July"
+    ],
+    "rarity": "Secret Rare",
+    "image": "assets/cards/001-153.png",
+    "cost": 8,
+    "health": 9,
+    "attack": 6,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, draw 5 cards from the top of your deck. If you find a Xander Diamond, add it to your field.",
+    "starPower": {
+      "trigger": "WHILE_ATTACKING",
+      "effect": "CLUTCH: If this player is the only player on your field, it can attack twice."
+    }
+  },
+  {
+    "id": "001-154",
+    "number": 31,
+    "name": "Justin Wells",
+    "type": "StarPlayer",
+    "months": [
+      "October"
+    ],
+    "rarity": "Secret Rare",
+    "image": "assets/cards/001-154.png",
+    "cost": 8,
+    "health": 7,
+    "attack": 6,
+    "tier": 1,
+    "speed": "SLOW",
+    "trigger": "YOUR_TURN",
+    "effect": "If this player has not yet attacked in this game, you may discard 1 Event from your hand. If you do, search your discard pile for 1 player and add it to your hand.",
+    "starPower": {
+      "trigger": "YOUR_TURN",
+      "effect": "SYNERGY: If Tessa Sparks is on your field, search your discard pile for an Event and add it to your hand."
+    }
+  },
+  {
+    "id": "001-155",
+    "number": null,
+    "name": "Coach Schmaxel",
+    "type": "HeadCoach",
+    "months": [
+      "January"
+    ],
+    "rarity": "Secret Rare",
+    "image": "assets/cards/001-155.png",
+    "trigger": "YOUR_TURN",
+    "effect": "If you have a Banned on your field, discard it and move 1 PLAYERSCORE UP! from your PS Deck to your field. If there are no PLAYERSCORE UP! in your PS Deck, move one rested PLAYERSCORE UP! into the active position instead.",
+    "specialty": "Offense"
+  },
+  {
+    "id": "001-156",
+    "number": null,
+    "name": "Coach Belichick",
+    "type": "HeadCoach",
+    "months": [
+      "October"
+    ],
+    "rarity": "Secret Rare",
+    "image": "assets/cards/001-156.png",
+    "trigger": "YOUR_TURN",
+    "effect": "Look at the top 3 cards of your deck. Pick 1 to put at the bottom of your deck, and discard the other 2.",
+    "specialty": "Roster Building"
+  }
+]

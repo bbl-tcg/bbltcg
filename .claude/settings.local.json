@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"C:\\\\Users\\\\smith\\\\Downloads\\\\bbltcg attachments\\\\\" 2>&1; echo \"---\"; unzip -l \"C:\\\\Users\\\\smith\\\\Downloads\\\\bbltcg attachments\\\\BBLTCG-001 Images.zip\" 2>&1 | head -100)",
+      "PowerShell(Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\(\"C:\\\\Users\\\\smith\\\\Downloads\\\\bbltcg attachments\\\\BBLTCG-001 Images.zip\"\\); $zip.Entries | Select-Object -First 400 FullName, Length | Format-Table -AutoSize | Out-String -Width 200)",
+      "Bash(pandoc -t markdown \"BBLTCG-001 Starter Decks.docx\" -o \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\starter_decks.md\")",
+      "Bash(pandoc -t markdown \"BBLTCG-001 Setlist.docx\" -o \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\setlist.md\")",
+      "PowerShell(Get-Command python -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command soffice -ErrorAction SilentlyContinue)",
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(python -c \"import docx; print\\('python-docx ok'\\)\" 2>&1)",
+      "PowerShell(Get-Command node -ErrorAction SilentlyContinue)",
+      "PowerShell(node --version 2>&1)",
+      "Bash(npm --version)",
+      "Bash(mkdir -p \"/c/Users/smith/AppData/Local/Temp/claude/C--Users-smith-Downloads-bbltcgsim/ffc9066a-9179-41a7-ae77-c278298e3e1b/scratchpad/setlist_x\")",
+      "Read(//c/Users/smith/AppData/Local/Temp/claude/C--Users-smith-Downloads-bbltcgsim/ffc9066a-9179-41a7-ae77-c278298e3e1b/scratchpad/**)",
+      "Bash(unzip -oq \"C:/Users/smith/Downloads/bbltcg attachments/BBLTCG-001 Setlist.docx\" -d .)",
+      "Bash(cd \"/c/Users/smith/AppData/Local/Temp/claude/C--Users-smith-Downloads-bbltcgsim/ffc9066a-9179-41a7-ae77-c278298e3e1b/scratchpad/setlist_x\" *)",
+      "PowerShell(& \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\parse_setlist.ps1\" -XmlPath \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\setlist_x\\\\word\\\\document.xml\" -OutPath \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\setlist_parsed.txt\")",
+      "Bash(cd \"/c/Users/smith/AppData/Local/Temp/claude/C--Users-smith-Downloads-bbltcgsim/ffc9066a-9179-41a7-ae77-c278298e3e1b/scratchpad\" *)",
+      "Bash(mkdir -p \"/c/Users/smith/AppData/Local/Temp/claude/C--Users-smith-Downloads-bbltcgsim/ffc9066a-9179-41a7-ae77-c278298e3e1b/scratchpad/starter_x\")",
+      "Bash(unzip -oq \"C:/Users/smith/Downloads/bbltcg attachments/BBLTCG-001 Starter Decks.docx\" -d .)",
+      "PowerShell(& \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\parse_docx_paras.ps1\" -XmlPath \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\starter_x\\\\word\\\\document.xml\" -OutPath \"C:\\\\Users\\\\smith\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-smith-Downloads-bbltcgsim\\\\ffc9066a-9179-41a7-ae77-c278298e3e1b\\\\scratchpad\\\\starter_decks.txt\")",
+      "Bash(mkdir -p \"/c/Users/smith/AppData/Local/Temp/claude/C--Users-smith-Downloads-bbltcgsim/ffc9066a-9179-41a7-ae77-c278298e3e1b/scratchpad/imgs\")",
+      "Bash(unzip -oq \"C:/Users/smith/Downloads/bbltcg attachments/BBLTCG-001 Images.zip\" \"BBLTCG-001 Images/DiagramPartsofaCard1.png\" \"BBLTCG-001 Images/001-001.png\" \"BBLTCG-001 Images/PLAYERSCORE UP!.png\" \"BBLTCG-001 Images/Card Back.png\" \"BBLTCG-001 Images/BBLTCG Logo.png\" \"BBLTCG-001 Images/BBLTCG-001 Booster Pack.png\" \"BBLTCG-001 Images/001-006.png\" \"BBLTCG-001 Images/001-007.png\" \"BBLTCG-001 Images/001-008.png\")",
+      "PowerShell(Get-Command winget -ErrorAction SilentlyContinue)",
+      "PowerShell(winget --version 2>&1)"
+    ]
+  }
+}
