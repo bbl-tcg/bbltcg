@@ -1,6 +1,7 @@
 // Side-effect imports: each file calls registerEffect()/registerStarPlayerEffect() for its
 // card id. Import this module once (before any game logic runs) to populate the registry.
-// New cards get one line here as their effect file is written.
+// New cards get one line here as their effect file is written. aliases.js MUST be last -
+// it points reprint ids at the primary id's already-registered EffectDef.
 
 import "./001-001.js";
 import "./001-002.js";
@@ -55,6 +56,44 @@ import "./001-053.js";
 import "./001-054.js";
 import "./001-055.js";
 import "./001-056.js";
+import "./001-057.js";
+import "./001-058.js";
+import "./001-059.js";
+import "./001-060.js";
+import "./001-061.js";
+import "./001-062.js";
+import "./001-063.js";
+import "./001-064.js";
+import "./001-065.js";
+import "./001-066.js";
+import "./001-067.js";
+import "./001-069.js";
+import "./001-070.js";
+import "./001-071.js";
+import "./001-072.js";
+import "./001-073.js";
+import "./001-074.js";
+import "./001-076.js";
+import "./001-077.js";
+import "./001-078.js";
+import "./001-079.js";
+import "./001-080.js";
+import "./001-081.js";
+import "./001-083.js";
+import "./001-084.js";
+import "./001-085.js";
+import "./001-086.js";
+import "./001-087.js";
+import "./001-088.js";
+import "./001-089.js";
+import "./001-090.js";
+import "./001-092.js";
+import "./001-093.js";
+import "./001-094.js";
+import "./001-095.js";
+import "./001-096.js";
 import "./001-097.js";
 import "./001-098.js";
 import "./001-099.js";
+
+import "./aliases.js";

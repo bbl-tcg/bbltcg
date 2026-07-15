@@ -17,6 +17,7 @@ export function createFieldInstance(cardId, turnNumber) {
     grantedEffects: [], // { id, effectDef, expires: { endOfTurn: N } | 'permanent' } - temporarily-gained abilities (e.g. "gains [SACRIFICE]")
     extraAttacksGrantedThisTurn: 0,
     lastAttack: null, // { targetPlayerIndex, targetInstanceId, turnNumber } - set by combat.declareAttack, read by follow-up effects like Himmy Neutron
+    lastDamageTaken: 0, // set whenever this instance takes attack damage; read by ON_KO effects like Cyclops
   };
 }
 
@@ -187,6 +188,9 @@ export function playCardToField(state, playerIndex, handIndex, slotIndex, turnNu
   player.hand.splice(handIndex, 1);
   const inst = createFieldInstance(cardId, turnNumber);
   player.playerSlots[slotIndex] = inst;
+  // Static max-Health modifiers (e.g. Ragnar's conditional +1) should apply from the
+  // moment a card enters the field, not just from its owner's next Recover phase.
+  inst.currentHealth = effectiveMaxHealth(state, playerIndex, inst);
   log(state, { type: "PLAY_TO_FIELD", playerIndex, cardId, instanceId: inst.instanceId, slotIndex });
   return inst;
 }

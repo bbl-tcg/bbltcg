@@ -42,6 +42,11 @@ export function staticFlags(flags) {
  * list (e.g. cost <= N); returns the chosen instance id.
  */
 export function* chooseOpponentPlayerTarget(ctx, { prompt, eligible }) {
+  // Individually-immune cards (e.g. Chris P. Bacon: "cannot be removed from the field by
+  // any of your opponent's player, coach, or event effects") are never valid targets here,
+  // regardless of whatever cost/other filter the caller already applied.
+  eligible = eligible.filter((s) => getStaticFlag(s, "cannotBeRemovedByOpponentEffects") !== true);
+
   if (eligible.length === 1) {
     const shield = ctx.player(ctx.opponent).playerSlots.find((s) => s && s.instanceId !== eligible[0].instanceId && getStaticFlag(s, "interceptsSingleTargetOpponentEffects"));
     if (shield) {
@@ -51,8 +56,9 @@ export function* chooseOpponentPlayerTarget(ctx, { prompt, eligible }) {
         return shield.instanceId;
       }
     }
-    return eligible[0].instanceId;
+    return eligible[0]?.instanceId ?? null;
   }
+  if (eligible.length === 0) return null;
   const options = eligible.map((s) => s.instanceId);
   return yield { type: "CHOOSE_OPPONENT_PLAYER", prompt, options };
 }
@@ -96,6 +102,79 @@ export function janJanPsUpBoostEffect() {
       const psUpId = options.length === 1 ? options[0] : yield { type: "CHOOSE_PS_UP", prompt: "Attach which rested PLAYERSCORE UP! to JanJan?", options };
       ctx.attachPsUpForced(ctx.self, psUpId, janJan.instanceId);
       ctx.addBuff(janJan.instanceId, { source: "janJanPsUpBoost", health: 1, expires: "permanent" });
+    },
+  };
+}
+
+/**
+ * "SYNERGY: If <teammateName> is on your field, search your discard pile for an Event
+ * and add it to your hand." Shared by Ballex Pereira and Justin Wells's star powers
+ * (different trigger windows, identical body).
+ */
+export function synergySearchEventEffect(trigger, teammateName) {
+  return {
+    trigger,
+    canActivate(ctx) {
+      const hasTeammate = ctx.player().playerSlots.some((s) => s && ctx.card(s.cardId).name === teammateName);
+      return hasTeammate && ctx.searchZone(ctx.self, "discard", (c) => c.type === "Event").length > 0;
+    },
+    *resolve(ctx) {
+      const events = ctx.searchZone(ctx.self, "discard", (c) => c.type === "Event");
+      const chosen = events.length === 1 ? events[0] : yield { type: "CHOOSE_DISCARD_CARD", prompt: "Add which Event from your discard pile to your hand?", options: events };
+      const player = ctx.player();
+      const idx = player.discard.indexOf(chosen.cardId);
+      if (idx !== -1) {
+        player.discard.splice(idx, 1);
+        player.hand.push(chosen.cardId);
+      }
+    },
+  };
+}
+
+/**
+ * "If this [card] has already attacked this turn, you may discard this card from your
+ * field. If you do, inflict 2 more damage onto the player you attacked with this [card]."
+ * Shared by Himmy Neutron (001-052) and Doc McQueen (001-089) - identical text.
+ */
+export function extraDamageOnDiscardEffect() {
+  function lastAttackTargetSlot(ctx) {
+    const self = ctx.findInstance(ctx.source.instanceId);
+    const lastAttack = self?.instance.lastAttack;
+    if (!lastAttack || lastAttack.turnNumber !== ctx.state.turnNumber) return null;
+    const targetPlayer = ctx.player(lastAttack.targetPlayerIndex);
+    const slot = targetPlayer.playerSlots.findIndex((s) => s && s.instanceId === lastAttack.targetInstanceId);
+    return slot === -1 ? null : { targetPlayerIndex: lastAttack.targetPlayerIndex, slot };
+  }
+  return {
+    trigger: TRIGGER.YOUR_TURN,
+    canActivate(ctx) {
+      const self = ctx.findInstance(ctx.source.instanceId);
+      return !!self?.instance.hasAttackedThisTurn && !!lastAttackTargetSlot(ctx);
+    },
+    *resolve(ctx) {
+      const target = lastAttackTargetSlot(ctx);
+      ctx.discardFieldSlot(ctx.self, ctx.source.slot);
+      if (target) ctx.dealDamage(target.targetPlayerIndex, target.slot, 2);
+    },
+  };
+}
+
+/** "Draw N cards from your deck[, then] discard M cards from your hand." Shared by Coach
+ * Rocky, Vin Zero, Michael Shelby, and any future card with the same shape. */
+export function drawThenDiscardEffect(trigger, drawCount, discardCount) {
+  return {
+    trigger,
+    canActivate(ctx) {
+      return ctx.player().deck.length > 0;
+    },
+    *resolve(ctx) {
+      ctx.draw(ctx.self, drawCount);
+      const handSize = ctx.player().hand.length;
+      const count = Math.min(discardCount, handSize);
+      if (count === 0) return;
+      const options = ctx.player().hand.map((cardId, handIndex) => ({ cardId, handIndex }));
+      const chosen = yield { type: "CHOOSE_CARDS", prompt: `Discard ${count} card(s) from your hand`, options, min: count, max: count };
+      for (const c of chosen || []) ctx.discardFromHandById(ctx.self, c.cardId ?? c);
     },
   };
 }

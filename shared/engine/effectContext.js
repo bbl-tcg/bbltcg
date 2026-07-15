@@ -15,6 +15,7 @@ import {
 } from "./primitives.js";
 import { dealDamage } from "./combat.js";
 import { shuffle } from "./rng.js";
+import { effectiveMaxHealth } from "./stats.js";
 
 /**
  * Build the helper object passed to an effect's canActivate()/resolve(). `controllerIndex`
@@ -36,6 +37,16 @@ export function makeEffectContext(state, { controllerIndex, source }) {
     draw: (playerIndex, count = 1) => drawCard(state, playerIndex, count),
 
     discardFromHandAt: (playerIndex, handIndex) => discardFromHand(state, playerIndex, handIndex),
+    /** "Add 1 [card] from your hand to your Score" (Coach Times) - gains an extra life. */
+    addHandCardToScore: (playerIndex, cardId) => {
+      const player = state.players[playerIndex];
+      const idx = player.hand.indexOf(cardId);
+      if (idx === -1) return false;
+      player.hand.splice(idx, 1);
+      player.score.push(cardId);
+      log(state, { type: "HAND_CARD_TO_SCORE", playerIndex, cardId });
+      return true;
+    },
     discardFromHandById: (playerIndex, cardId) => {
       const hand = state.players[playerIndex].hand;
       const idx = hand.indexOf(cardId);
@@ -107,6 +118,7 @@ export function makeEffectContext(state, { controllerIndex, source }) {
       zoneArr.splice(idx, 1);
       const inst = createFieldInstance(cardId, state.turnNumber);
       player.playerSlots[slotIndex] = inst;
+      inst.currentHealth = effectiveMaxHealth(state, playerIndex, inst);
       log(state, { type: "PLAY_TO_FIELD", playerIndex, cardId, instanceId: inst.instanceId, slotIndex, free: true, fromZone });
       return inst;
     },
@@ -117,6 +129,7 @@ export function makeEffectContext(state, { controllerIndex, source }) {
       if (player.playerSlots[slotIndex]) return null;
       const inst = createFieldInstance(cardId, state.turnNumber);
       player.playerSlots[slotIndex] = inst;
+      inst.currentHealth = effectiveMaxHealth(state, playerIndex, inst);
       log(state, { type: "PLAY_TO_FIELD", playerIndex, cardId, instanceId: inst.instanceId, slotIndex, free: true, fromZone: "reveal" });
       return inst;
     },
@@ -150,6 +163,11 @@ export function makeEffectContext(state, { controllerIndex, source }) {
      * "if this player is still on the field after the [redirected] effect, discard it"). */
     schedulePostEffectHook: (hook) => {
       state.pendingPostEffectHooks.push(hook);
+    },
+
+    /** "+/-N Cost" affecting cards still in a player's hand (e.g. Dr. Doof). */
+    addHandCostModifier: (playerIndex, delta, expires) => {
+      state.handCostModifiers.push({ playerIndex, delta, expires });
     },
 
     addBuff: (instanceId, buff) => {

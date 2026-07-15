@@ -12,7 +12,7 @@ import {
   moveFieldInstanceToBottomOfDeck,
 } from "./primitives.js";
 import { declareAttack } from "./combat.js";
-import { canAttack, getStaticFlag, isSilenced } from "./stats.js";
+import { canAttack, getStaticFlag, isSilenced, effectiveHandCost } from "./stats.js";
 import { getEffect } from "./effectRegistry.js";
 import { makeEffectContext } from "./effectContext.js";
 import { runEffect } from "./effectRunner.js";
@@ -62,7 +62,7 @@ function effectSources(state, controllerIndex) {
     if (card.type !== CARD_TYPE.EVENT) return;
     const effectDef = getEffect(cardId);
     if (!effectDef) return;
-    sources.push({ cardId, zone: "HAND", handIndex, effectDef, label: "main", cost: card.cost });
+    sources.push({ cardId, zone: "HAND", handIndex, effectDef, label: "main", cost: card.cost, card });
   });
 
   return sources;
@@ -73,7 +73,7 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
   const player = state.players[controllerIndex];
   return effectSources(state, controllerIndex).filter((src) => {
     if (src.effectDef.trigger !== triggerType) return false;
-    if (src.zone === "HAND" && !canAffordCost(player, src.cost)) return false;
+    if (src.zone === "HAND" && !canAffordCost(player, effectiveHandCost(state, controllerIndex, src.card))) return false;
     // WHILE_ATTACKING is specifically "while *this* card is attacking" (e.g. Skuba Doo's
     // PUMMEL DOWN, Silvia Snipes' CLUTCH) - not any teammate's attack, even though the
     // window is opened once per attack across the whole team's sources.
@@ -96,7 +96,7 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
 /** Runs one chosen source's effect: pays cost + discards from hand first for Events, then resolves. */
 async function activateSource(state, controllerIndex, source, windowCtx, resolveChoice) {
   if (source.zone === "HAND") {
-    payCost(state, controllerIndex, source.cost);
+    payCost(state, controllerIndex, effectiveHandCost(state, controllerIndex, source.card));
     playEvent(state, controllerIndex, source.handIndex);
     state.turnFlags.eventsPlayedThisTurnBy.push(controllerIndex);
   }
@@ -169,8 +169,9 @@ export function canPlayCard(state, playerIndex, handIndex) {
   if (card.type === CARD_TYPE.ASSISTANT_COACH && player.assistantCoach) {
     return { ok: false, reason: "ASSISTANT_COACH_SLOT_OCCUPIED" };
   }
-  if (!canAffordCost(player, card.cost)) return { ok: false, reason: "CANNOT_AFFORD" };
-  return { ok: true, card };
+  const cost = effectiveHandCost(state, playerIndex, card);
+  if (!canAffordCost(player, cost)) return { ok: false, reason: "CANNOT_AFFORD" };
+  return { ok: true, card, cost };
 }
 
 /**
@@ -183,17 +184,22 @@ export function canPlayCard(state, playerIndex, handIndex) {
 export async function playCard(state, playerIndex, handIndex, { replaceSlot = null } = {}, resolveChoice) {
   const check = canPlayCard(state, playerIndex, handIndex);
   if (!check.ok) return check;
-  const { card } = check;
+  const { card, cost } = check;
   const player = state.players[playerIndex];
   if (card.type === CARD_TYPE.EVENT) return { ok: false, reason: "EVENTS_PLAYED_VIA_ACTIVATE_EFFECT" };
 
-  if (!payCost(state, playerIndex, card.cost)) return { ok: false, reason: "CANNOT_AFFORD" };
+  if (!payCost(state, playerIndex, cost)) return { ok: false, reason: "CANNOT_AFFORD" };
 
   let instance = null;
   let instanceSlot = null;
   if (card.type === CARD_TYPE.PLAYER || card.type === CARD_TYPE.STAR_PLAYER) {
     if (card.type === CARD_TYPE.STAR_PLAYER && player.playerSlots.some((s) => s && s.isStarPlayer)) {
       return { ok: false, reason: "STAR_PLAYER_ALREADY_ON_FIELD" };
+    }
+    // "Only one Chris P. Bacon can be on the field at a time" and any future card with the
+    // same restriction.
+    if (getStaticFlag({ cardId: card.id, buffs: [] }, "uniqueOnField") === true && player.playerSlots.some((s) => s && s.cardId === card.id)) {
+      return { ok: false, reason: "UNIQUE_CARD_ALREADY_ON_FIELD" };
     }
     let slot = findEmptySlot(player);
     if (slot === -1) {
@@ -287,7 +293,7 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
     return { ok: true, negated: true };
   }
 
-  const result = declareAttack(
+  const result = await declareAttack(
     state,
     {
       attackerPlayerIndex,
@@ -295,7 +301,7 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
       targetPlayerIndex: windowCtx.targetPlayerIndex,
       targetSlot: windowCtx.targetSlot,
     },
-    { suppressScoreDrawOnZeroHealth: !!windowCtx.suppressScoreDrawOnZeroHealth }
+    { suppressScoreDrawOnZeroHealth: !!windowCtx.suppressScoreDrawOnZeroHealth, resolveChoice }
   );
 
   processPendingRestores(state);

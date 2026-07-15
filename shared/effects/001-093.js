@@ -2,6 +2,6 @@ import { registerEffect } from "../engine/effectRegistry.js";
 import { TRIGGER } from "../engine/constants.js";
 import { drawThenDiscardEffect } from "./_helpers.js";
 
-// Coach Rocky (Assistant Coach): "Draw 5 cards from your deck. Then, discard 3 cards
+// Michael Shelby (Player, ON_PLAY): "Draw 5 cards from your deck, then discard 3 cards
 // from your hand."
-registerEffect("001-016", drawThenDiscardEffect(TRIGGER.YOUR_TURN, 5, 3));
+registerEffect("001-093", drawThenDiscardEffect(TRIGGER.ON_PLAY, 5, 3));

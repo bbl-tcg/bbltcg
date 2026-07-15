@@ -44,3 +44,22 @@ any of these to me if I guessed wrong and I'll change it — nothing here is fin
    illegal (the play is blocked) rather than auto-replacing the existing Star Player,
    since the "only 1 Star Player on the field" rule is worded differently from the
    generic 3-slot overflow-replace rule and doesn't mention a replacement mechanism.
+
+8. **Cards with `trigger: null` that describe a reactive action, not a passive stat.**
+   A few cards (e.g. LeBall James: "If one of your players is KOed, search your discard
+   pile for any card and add it to your hand") have no trigger in the Setlist doc, but
+   their text clearly describes something that *happens* in reaction to a game event,
+   not a continuously-computed stat modifier like Chef Luis's attack immunity. These are
+   implemented as automatic ON_KO-style effects internally (engine-only distinction, not
+   shown to players any differently) rather than left inert, since a null trigger with an
+   action verb ("search," "discard," "move") can't sensibly be a no-op.
+
+9. **Cross-turn/cross-Recover Health and stat changes rely on natural Recover resets
+   instead of explicit "undo" bookkeeping** wherever the stated expiry point (the current
+   turn's End Phase, or a specific player's next End Phase) is guaranteed to land at or
+   before that player's own next Recover phase — which unconditionally resets their field
+   to full Health regardless. This is called out inline in the affected effect files
+   (Save/Rebound/Stun/Miguel Borja/Ballex Pereira) rather than repeated here card-by-card.
+   The one case where the expiry genuinely outlives the next Recover on either side (Coach
+   Cap's Health swap, "until your opponent's next End Phase") does use explicit reversal
+   bookkeeping (`healthReversion` on the buff, applied by turn.js's end-of-turn sweep).

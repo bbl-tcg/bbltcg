@@ -39,6 +39,18 @@ function hookCtx(state, playerIndex, instance, card) {
   };
 }
 
+function teamStaticHooks(state, playerIndex) {
+  const player = state.players[playerIndex];
+  const sources = [player.headCoach.cardId, player.assistantCoach?.cardId].filter(Boolean);
+  const hooks = [];
+  for (const cardId of sources) {
+    const def = getEffect(cardId);
+    if (!def) continue;
+    if (def.trigger === null && def.staticEffect) hooks.push(def.staticEffect);
+  }
+  return hooks;
+}
+
 export function effectiveAttack(state, playerIndex, instance) {
   const card = getCard(instance.cardId);
   let attack = card.attack + instance.attachedPsUp.length; // +1 attack per attached PLAYERSCORE UP!
@@ -49,6 +61,12 @@ export function effectiveAttack(state, playerIndex, instance) {
     if (hook.staticEffect.modifyOwnAttack) {
       attack = hook.staticEffect.modifyOwnAttack(ctx, attack);
     }
+  }
+  // Team-wide static boosts from the controller's Head Coach / Assistant Coach (e.g.
+  // Coach Stark: "Every player on your field gains +1 Attack") - a silenced *player*
+  // loses its own printed effect, but that doesn't block buffs coming from elsewhere.
+  for (const staticEffect of teamStaticHooks(state, playerIndex)) {
+    if (staticEffect.modifyAllOwnAttack) attack = staticEffect.modifyAllOwnAttack(ctx, attack);
   }
   return Math.max(0, attack);
 }
@@ -84,6 +102,23 @@ export function effectiveCost(instance) {
   const card = getCard(instance.cardId);
   const delta = instance.buffs.reduce((sum, b) => sum + (b.cost || 0), 0);
   return card.cost + delta;
+}
+
+/** Cost to actually play a card still sitting in hand, as modified by temporary "+/-N
+ * Cost" effects like Dr. Doof's "all players... in your hand have +1 Cost," and by
+ * standing Assistant Coach effects like Coach Alex's "-1 Cost when you play them." Both
+ * only apply to Player/Star Player cards (not Events/Assistant Coaches), hence needing to
+ * know the card being played rather than just its base cost. */
+export function effectiveHandCost(state, playerIndex, card) {
+  let cost = card.cost;
+  const isPlayerish = card.type === "Player" || card.type === "StarPlayer";
+  if (isPlayerish) {
+    cost += state.handCostModifiers.filter((m) => m.playerIndex === playerIndex).reduce((sum, m) => sum + m.delta, 0);
+    for (const staticEffect of teamStaticHooks(state, playerIndex)) {
+      if (staticEffect.modifyHandCost) cost = staticEffect.modifyHandCost({ state, playerIndex, card }, cost);
+    }
+  }
+  return Math.max(0, cost);
 }
 
 // A "cannot attack" buff's removal timing is entirely handled by the normal buff-expiry

@@ -25,6 +25,23 @@ export function registerStarPlayerEffect(cardId, mainDef, starPowerDef) {
   registry.set(cardId, { main: mainDef, starPower: starPowerDef });
 }
 
+/**
+ * The BBLTCG-001 set reprints ~40 cards as Alternative Art / Secret Rare variants of an
+ * earlier Common/Rare printing, with byte-identical (or near-identical) rules text - same
+ * name, same trigger, same effect. Register the earlier id's EffectDef once, then alias
+ * every reprint id to it instead of copy-pasting a new file per variant.
+ */
+export function aliasEffect(newCardId, existingCardId) {
+  const existing = registry.get(existingCardId);
+  if (!existing) {
+    throw new Error(`Cannot alias ${newCardId} -> ${existingCardId}: ${existingCardId} is not registered yet`);
+  }
+  if (registry.has(newCardId)) {
+    throw new Error(`Duplicate effect registration for ${newCardId}`);
+  }
+  registry.set(newCardId, existing);
+}
+
 export function getEffect(cardId) {
   return registry.get(cardId) || null;
 }
