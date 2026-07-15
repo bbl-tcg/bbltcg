@@ -1,7 +1,17 @@
+let currentScreenId = null;
+
 export function showScreen(id) {
   document.querySelectorAll(".screen").forEach((el) => el.classList.remove("active"));
   const el = document.getElementById(id);
   if (el) el.classList.add("active");
+  currentScreenId = id;
+}
+
+/** Used by the pack-point heartbeat to know whether the deckbuilder/game bonus applies. */
+export function currentScreenKind() {
+  if (currentScreenId === "deckbuilder-screen") return "deckbuilder";
+  if (currentScreenId === "game-screen") return "game";
+  return "other";
 }
 
 export function el(tag, attrs = {}, children = []) {

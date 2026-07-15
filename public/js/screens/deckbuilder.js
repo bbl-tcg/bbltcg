@@ -4,9 +4,11 @@ import { validateDeck } from "/shared/engine/deckLegality.js";
 import { MAX_COPIES_PER_NAME, MAIN_DECK_SIZE } from "/shared/engine/constants.js";
 import { loadCustomDecks, saveCustomDeck, deleteCustomDeck } from "../storage.js";
 import { toast, confirmDialog } from "../ui.js";
+import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck } from "../api.js";
 
-let deck = null; // { name, headCoachId, mainDeck: string[] }
+let deck = null; // { id?, name, headCoachId, mainDeck: string[] }
 let filterText = "";
+let savedDecksCache = [];
 
 function headCoaches() {
   return allCards().filter((c) => c.type === "HeadCoach");
@@ -16,12 +18,32 @@ function newDeck(headCoachId) {
   return { name: "New Deck", headCoachId, mainDeck: [] };
 }
 
-export function renderDeckbuilder() {
+/** Server-backed decks when logged in (synced across devices); localStorage otherwise. */
+async function loadSavedDecks() {
+  if (isLoggedIn()) return listServerDecks();
+  return loadCustomDecks();
+}
+
+async function persistDeck(d) {
+  if (isLoggedIn()) return saveServerDeck(d);
+  saveCustomDeck(d);
+}
+
+async function removeSavedDeck(d) {
+  if (isLoggedIn()) return deleteServerDeck(d.id);
+  deleteCustomDeck(d.name);
+}
+
+export async function renderDeckbuilder() {
+  if (!deck) deck = newDeck(headCoaches()[0]?.id);
+  savedDecksCache = await loadSavedDecks().catch(() => []);
+  renderAll();
+}
+
+function renderAll() {
   const root = document.getElementById("deckbuilder-screen");
   root.innerHTML = "";
   root.className = "screen deckbuilder-screen";
-
-  if (!deck) deck = newDeck(headCoaches()[0]?.id);
 
   root.appendChild(renderTopbar());
   const body = el("div", { class: "db-body" });
@@ -36,7 +58,7 @@ function renderTopbar() {
     {
       onchange: (e) => {
         deck = newDeck(e.target.value);
-        renderDeckbuilder();
+        renderAll();
       },
     },
     headCoaches().map((hc) => el("option", { value: hc.id, selected: hc.id === deck.headCoachId ? "selected" : undefined }, `${hc.name} (${hc.months.join("/")})`))
@@ -57,7 +79,7 @@ function renderTopbar() {
     value: filterText,
     oninput: (e) => {
       filterText = e.target.value;
-      renderDeckbuilder();
+      renderAll();
     },
   });
 
@@ -69,21 +91,28 @@ function renderTopbar() {
     filterInput,
     el("button", { class: "bbl-btn", onclick: onSaveDeck }, "Save Deck"),
     el("button", { class: "bbl-btn secondary", onclick: onClearDeck }, "Clear"),
+    ...(isLoggedIn() ? [] : [el("span", { style: "color:var(--bbl-red);font-weight:700;font-size:0.85rem;" }, "Not logged in - decks save to this browser only")]),
   ]);
   return topbar;
 }
 
-function onSaveDeck() {
+async function onSaveDeck() {
   const result = validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: 5 });
-  saveCustomDeck({ ...deck });
+  try {
+    await persistDeck(deck);
+  } catch (err) {
+    toast("Couldn't save: " + err.message);
+    return;
+  }
   toast(result.legal ? `"${deck.name}" saved!` : `"${deck.name}" saved as a draft (not yet legal - see the status panel).`);
-  renderDeckbuilder();
+  savedDecksCache = await loadSavedDecks().catch(() => []);
+  renderAll();
 }
 
 async function onClearDeck() {
   if (!(await confirmDialog("Clear the current deck?"))) return;
   deck = newDeck(deck.headCoachId);
-  renderDeckbuilder();
+  renderAll();
 }
 
 function eligibleCards() {
@@ -124,13 +153,13 @@ function addCard(card) {
     return;
   }
   deck.mainDeck.push(card.id);
-  renderDeckbuilder();
+  renderAll();
 }
 
 function removeCard(cardId) {
   const idx = deck.mainDeck.indexOf(cardId);
   if (idx !== -1) deck.mainDeck.splice(idx, 1);
-  renderDeckbuilder();
+  renderAll();
 }
 
 function renderDeckPanel() {
@@ -170,10 +199,22 @@ function renderDeckPanel() {
   const saved = el(
     "div",
     { class: "db-saved-decks" },
-    loadCustomDecks().map((d) =>
+    savedDecksCache.map((d) =>
       el("div", { class: "db-deck-row" }, [
-        el("span", { style: "cursor:pointer;", onclick: () => { deck = { ...d }; renderDeckbuilder(); } }, d.name),
-        el("button", { class: "bbl-btn secondary", style: "padding:2px 8px;font-size:0.75rem;", onclick: () => { deleteCustomDeck(d.name); renderDeckbuilder(); } }, "Delete"),
+        el("span", { style: "cursor:pointer;", onclick: () => { deck = { ...d }; renderAll(); } }, d.name),
+        el(
+          "button",
+          {
+            class: "bbl-btn secondary",
+            style: "padding:2px 8px;font-size:0.75rem;",
+            onclick: async () => {
+              await removeSavedDeck(d);
+              savedDecksCache = await loadSavedDecks().catch(() => []);
+              renderAll();
+            },
+          },
+          "Delete"
+        ),
       ])
     )
   );

@@ -2,8 +2,14 @@ import { el, showScreen } from "../screens.js";
 import { renderRulebook } from "./rulebook.js";
 import { renderPlaySetup } from "./playSetup.js";
 import { renderDeckbuilder } from "./deckbuilder.js";
+import { renderLogin } from "./login.js";
+import { renderCollection } from "./collection.js";
+import { renderPacks } from "./packs.js";
+import { renderMultiplayerSetup } from "./multiplayerSetup.js";
+import { renderTrade } from "./trade.js";
 import { toast } from "../ui.js";
 import { getPackPoints } from "../storage.js";
+import { currentUser, isLoggedIn, logout } from "../api.js";
 
 export function renderMenu() {
   const root = document.getElementById("menu-screen");
@@ -12,27 +18,39 @@ export function renderMenu() {
 
   root.appendChild(el("img", { class: "menu-logo", src: "/assets/branding/logo.png", alt: "Big Ball League TCG" }));
   root.appendChild(el("div", { class: "menu-title" }, "Big Ball League TCG"));
+  if (isLoggedIn()) {
+    root.appendChild(el("div", { style: "color:var(--bbl-blue);font-weight:700;" }, `Welcome, ${currentUser().username}`));
+  }
 
   const buttons = el("div", { class: "menu-buttons" }, [
     el("button", { class: "bbl-btn", onclick: () => { renderPlaySetup(); showScreen("game-setup-screen"); } }, "Play"),
     el("button", { class: "bbl-btn", onclick: () => { renderDeckbuilder(); showScreen("deckbuilder-screen"); } }, "Deckbuilder"),
-    el("button", { class: "bbl-btn ghost", onclick: () => notReady("Collection") }, "Collection"),
-    el("button", { class: "bbl-btn ghost", onclick: () => notReady("Open a Pack") }, "Open a Pack!"),
-    el("button", { class: "bbl-btn ghost", onclick: () => notReady("Multiplayer / Trade") }, "Online Multiplayer"),
+    el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderCollection(); showScreen("collection-screen"); }) }, "Collection"),
+    el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderPacks(); showScreen("packs-screen"); }) }, "Open a Pack!"),
+    el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderMultiplayerSetup(); showScreen("game-setup-screen"); }) }, "Online Multiplayer"),
+    el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderTrade(); showScreen("trade-screen"); }) }, "Trade Cards"),
     el("button", { class: "bbl-btn", onclick: () => { renderRulebook(); showScreen("rulebook-screen"); } }, "Rulebook"),
-    el("button", { class: "bbl-btn ghost", onclick: () => notReady("Login") }, "Login"),
+    isLoggedIn()
+      ? el("button", { class: "bbl-btn ghost", onclick: async () => { await logout(); renderMenu(); } }, "Log Out")
+      : el("button", { class: "bbl-btn ghost", onclick: () => { renderLogin(); showScreen("login-screen"); } }, "Login"),
   ]);
   root.appendChild(buttons);
 
   const footer = el("div", { class: "menu-footer" }, [
-    el("div", { class: "pack-points-pill" }, `Pack Points: ${getPackPoints()}`),
+    el("div", { class: "pack-points-pill" }, `Pack Points: ${isLoggedIn() ? currentUser().packPoints : getPackPoints()}`),
     el("a", { class: "bbl-btn coffee-btn", href: "https://buymeacoffee.com/bbltcg", target: "_blank", rel: "noopener" }, "Buy me a coffee"),
   ]);
   root.appendChild(footer);
 }
 
-function notReady(name) {
-  toast(`${name} is coming soon in a later build.`);
+function guardLogin(fn) {
+  if (!isLoggedIn()) {
+    toast("Log in first to use this feature - your collection lives on your account.");
+    renderLogin();
+    showScreen("login-screen");
+    return;
+  }
+  fn();
 }
 
 /** Ensure a screen container exists (some screens are created lazily, not hardcoded in index.html). */

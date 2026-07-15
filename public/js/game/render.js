@@ -28,13 +28,16 @@ export function renderBoard(container, state, viewerIndex, handlers) {
 
 function renderOpponentArea(state, playerIndex, handlers) {
   const area = el("div", { class: "opponent-area" });
-  const hand = state.players[playerIndex].hand;
+  const player = state.players[playerIndex];
+  // Multiplayer sends a redacted view of the opponent (hand contents hidden, just a
+  // count) - `handCount` is present there; local/bot play always has the real array.
+  const handCount = player.handCount ?? player.hand.length;
   const fan = el("div", { class: "opponent-hand-fan" });
-  for (let i = 0; i < hand.length; i++) {
+  for (let i = 0; i < handCount; i++) {
     fan.appendChild(el("div", { class: "mini-card-back", style: `background-image:url(${CARD_BACK});` }));
   }
   area.appendChild(fan);
-  area.appendChild(countBadge(hand.length, { position: "absolute", top: "2px", left: "50%", transform: "translateX(60px)" }));
+  area.appendChild(countBadge(handCount, { position: "absolute", top: "2px", left: "50%", transform: "translateX(60px)" }));
   area.appendChild(renderFieldGrid(state, playerIndex, handlers, true));
   return area;
 }
@@ -57,11 +60,12 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
 
   // Top-left: Score
   const scoreSector = el("div", { class: "sector sector-score" });
-  const scoreCount = Math.min(player.score.length, 2);
+  const totalScore = player.scoreCount ?? player.score.length;
+  const scoreCount = Math.min(totalScore, 2);
   for (let i = 0; i < scoreCount; i++) {
     scoreSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
   }
-  if (player.score.length > 2) scoreSector.appendChild(countBadge(player.score.length));
+  if (totalScore > 2) scoreSector.appendChild(countBadge(totalScore));
   grid.appendChild(scoreSector);
 
   // Top-center: 3 player slots
@@ -102,9 +106,10 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
 
   // Middle-right: Deck
   const deckSector = el("div", { class: "sector sector-deck" });
-  if (player.deck.length > 0) {
+  const deckCount = player.deckCount ?? player.deck.length;
+  if (deckCount > 0) {
     deckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
-    deckSector.appendChild(countBadge(player.deck.length));
+    deckSector.appendChild(countBadge(deckCount));
   }
   grid.appendChild(deckSector);
 

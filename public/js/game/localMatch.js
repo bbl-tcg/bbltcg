@@ -7,6 +7,7 @@ import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
 import { runBotTurn, autoResolveForBot, chooseBotReaction } from "../bot/ai.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
+import { isLoggedIn, reportGameResult } from "../api.js";
 
 let G = null;
 
@@ -374,6 +375,9 @@ function showGameOver() {
   G.gameOverShown = true;
   const viewerIndex = G.vsBot ? G.humanIndex : 0;
   const youWon = G.state.winner === viewerIndex;
+  // Hot-seat has no single "you" to credit (it's typically one account playing both
+  // sides locally), so only vs-bot games report a Pack Points result.
+  if (G.vsBot && isLoggedIn()) reportGameResult(youWon ? "win" : "loss").catch(() => {});
   const overlay = document.createElement("div");
   overlay.className = "card-zoom-overlay";
   overlay.innerHTML = `

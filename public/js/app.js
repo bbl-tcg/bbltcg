@@ -1,13 +1,21 @@
 import { loadCardDb } from "./loadCardDb.js";
-import { showScreen } from "./screens.js";
+import { showScreen, currentScreenKind } from "./screens.js";
 import { renderMenu } from "./screens/menu.js";
 import { ensureFirstRunBonus } from "./storage.js";
+import { fetchMe, sendHeartbeat, isLoggedIn } from "./api.js";
+
+const HEARTBEAT_INTERVAL_MS = 30 * 1000;
 
 async function boot() {
   await loadCardDb();
   ensureFirstRunBonus();
+  await fetchMe(); // silently no-ops if not logged in
   renderMenu();
   showScreen("menu-screen");
+
+  setInterval(() => {
+    if (isLoggedIn()) sendHeartbeat(currentScreenKind());
+  }, HEARTBEAT_INTERVAL_MS);
 }
 
 boot().catch((err) => {

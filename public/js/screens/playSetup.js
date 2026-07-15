@@ -1,25 +1,18 @@
 import { el, showScreen } from "../screens.js";
-import { starterDeckNames, buildStarterDeckList } from "/shared/engine/cardDb.js";
 import { startLocalMatch } from "../game/localMatch.js";
-import { loadCustomDecks } from "../storage.js";
+import { allDeckOptions } from "../deckOptions.js";
 import { toast } from "../ui.js";
 
-function allDeckOptions() {
-  const starters = starterDeckNames().map((name) => ({ key: `starter:${name}`, label: `${name} (starter)`, resolve: () => ({ ...buildStarterDeckList(name), name }) }));
-  const custom = loadCustomDecks().map((d) => ({
-    key: `custom:${d.name}`,
-    label: `${d.name} (custom)`,
-    resolve: () => ({ headCoachId: d.headCoachId, mainDeck: d.mainDeck, psDeckCount: 5, name: d.name }),
-  }));
-  return [...starters, ...custom];
-}
-
-export function renderPlaySetup() {
+export async function renderPlaySetup() {
   const root = document.getElementById("game-setup-screen");
   root.innerHTML = "";
   root.className = "screen menu-screen";
+  root.style.display = "flex";
+  root.style.alignItems = "center";
+  root.style.justifyContent = "center";
+  root.appendChild(el("div", { style: "color:white;" }, "Loading decks..."));
 
-  const options = allDeckOptions();
+  const options = await allDeckOptions();
   const RANDOM_KEY = "__random__";
 
   const deckASelect = el(
@@ -47,6 +40,7 @@ export function renderPlaySetup() {
     firstPlayerRow.style.display = opponentTypeSelect.value === "bot" ? "flex" : "none";
   });
 
+  root.innerHTML = "";
   root.appendChild(
     el("div", { class: "bbl-panel", style: "padding:24px;max-width:420px;width:92vw;display:flex;flex-direction:column;gap:14px;" }, [
       el("div", { class: "menu-title", style: "font-size:1.2rem;" }, "Start a Match"),
@@ -86,9 +80,6 @@ export function renderPlaySetup() {
       el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "Cancel"),
     ])
   );
-  root.style.display = "flex";
-  root.style.alignItems = "center";
-  root.style.justifyContent = "center";
 }
 
 function labeledRow(label, control) {
