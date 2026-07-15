@@ -36,6 +36,8 @@ async function removeSavedDeck(d) {
 
 export async function renderDeckbuilder() {
   if (!deck) deck = newDeck(headCoaches()[0]?.id);
+  const root = document.getElementById("deckbuilder-screen");
+  root.className = "screen deckbuilder-screen";
   savedDecksCache = await loadSavedDecks().catch(() => []);
   renderAll();
 }
@@ -43,7 +45,6 @@ export async function renderDeckbuilder() {
 function renderAll() {
   const root = document.getElementById("deckbuilder-screen");
   root.innerHTML = "";
-  root.className = "screen deckbuilder-screen";
 
   root.appendChild(renderTopbar());
   const body = el("div", { class: "db-body" });
