@@ -1,0 +1,216 @@
+import { el } from "../screens.js";
+import { getCard } from "/shared/engine/cardDb.js";
+import { effectiveAttack, effectiveHealth, isStarPlayerInPowerUpTurns } from "/shared/engine/stats.js";
+
+const CARD_BACK = "/assets/cards/back.png";
+const PS_UP_FRONT = "/assets/cards/playerscoreup.png";
+
+function cardImg(cardId) {
+  return `/${getCard(cardId).image}`;
+}
+
+/**
+ * Renders both fields + hands into `container` for `state`, from `viewerIndex`'s
+ * perspective (viewer's own field/hand on the bottom, opponent mirrored on top).
+ * `handlers` = { onHandCardClick(handIndex), onFieldCardClick(playerIndex, slot),
+ * onDiscardClick(playerIndex), onDeckClick(playerIndex) }.
+ */
+export function renderBoard(container, state, viewerIndex, handlers) {
+  container.innerHTML = "";
+  const opponentIndex = viewerIndex === 0 ? 1 : 0;
+
+  const fieldsWrap = el("div", { class: "fields-wrap" });
+  fieldsWrap.appendChild(renderOpponentArea(state, opponentIndex, handlers));
+  fieldsWrap.appendChild(renderPlayerArea(state, viewerIndex, opponentIndex, handlers));
+  container.appendChild(fieldsWrap);
+  container.appendChild(renderHandBar(state, viewerIndex, handlers));
+}
+
+function renderOpponentArea(state, playerIndex, handlers) {
+  const area = el("div", { class: "opponent-area" });
+  const hand = state.players[playerIndex].hand;
+  const fan = el("div", { class: "opponent-hand-fan" });
+  for (let i = 0; i < hand.length; i++) {
+    fan.appendChild(el("div", { class: "mini-card-back", style: `background-image:url(${CARD_BACK});` }));
+  }
+  area.appendChild(fan);
+  area.appendChild(countBadge(hand.length, { position: "absolute", top: "2px", left: "50%", transform: "translateX(60px)" }));
+  area.appendChild(renderFieldGrid(state, playerIndex, handlers, true));
+  return area;
+}
+
+function renderPlayerArea(state, playerIndex, opponentIndex, handlers) {
+  const area = el("div", { class: "player-area" });
+  area.appendChild(renderFieldGrid(state, playerIndex, handlers, false));
+  return area;
+}
+
+function countBadge(count, styleObj = {}) {
+  const badge = el("div", { class: "bbl-badge" }, String(count));
+  Object.assign(badge.style, { position: "relative", ...styleObj });
+  return badge;
+}
+
+function renderFieldGrid(state, playerIndex, handlers, mirrored) {
+  const player = state.players[playerIndex];
+  const grid = el("div", { class: `field-grid${mirrored ? " mirrored" : ""}` });
+
+  // Top-left: Score
+  const scoreSector = el("div", { class: "sector sector-score" });
+  const scoreCount = Math.min(player.score.length, 2);
+  for (let i = 0; i < scoreCount; i++) {
+    scoreSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
+  }
+  if (player.score.length > 2) scoreSector.appendChild(countBadge(player.score.length));
+  grid.appendChild(scoreSector);
+
+  // Top-center: 3 player slots
+  const playersSector = el("div", { class: "sector sector-players" });
+  player.playerSlots.forEach((inst, slot) => {
+    playersSector.appendChild(renderFieldCardSlot(state, playerIndex, slot, inst, handlers));
+  });
+  grid.appendChild(playersSector);
+
+  grid.appendChild(el("div", { class: "sector empty-sector sector-topright" }));
+  grid.appendChild(el("div", { class: "sector empty-sector sector-midleft" }));
+
+  // Middle-center: Head Coach + Assistant Coach
+  const coachSector = el("div", { class: "sector sector-coaches" });
+  coachSector.appendChild(
+    el("div", { class: "slot" }, [
+      el("div", {
+        class: "card-face",
+        style: `background-image:url(${cardImg(player.headCoach.cardId)});`,
+        onclick: () => handlers.onZoom?.(player.headCoach.cardId),
+      }),
+    ])
+  );
+  if (player.assistantCoach) {
+    coachSector.appendChild(
+      el("div", { class: "slot" }, [
+        el("div", {
+          class: "card-face",
+          style: `background-image:url(${cardImg(player.assistantCoach.cardId)});`,
+          onclick: () => handlers.onZoom?.(player.assistantCoach.cardId),
+        }),
+      ])
+    );
+  } else {
+    coachSector.appendChild(el("div", { class: "slot" }));
+  }
+  grid.appendChild(coachSector);
+
+  // Middle-right: Deck
+  const deckSector = el("div", { class: "sector sector-deck" });
+  if (player.deck.length > 0) {
+    deckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
+    deckSector.appendChild(countBadge(player.deck.length));
+  }
+  grid.appendChild(deckSector);
+
+  // Bottom-left: PS Deck
+  const psDeckSector = el("div", { class: "sector sector-psdeck" });
+  if (player.psDeckCount > 0) {
+    psDeckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
+    psDeckSector.appendChild(countBadge(player.psDeckCount));
+  }
+  grid.appendChild(psDeckSector);
+
+  // Bottom-center: PS Field (8 slots)
+  const psFieldSector = el("div", { class: "sector sector-psfield" });
+  for (const psUp of player.psField) {
+    if (psUp.attachedTo) continue; // shown under its owner instead
+    psFieldSector.appendChild(
+      el("div", { class: `ps-up-slot${psUp.isActive ? "" : " rested"}` }, [
+        el("div", { class: "card-face", style: `background-image:url(${PS_UP_FRONT});cursor:default;` }),
+      ])
+    );
+  }
+  grid.appendChild(psFieldSector);
+
+  // Bottom-right: Discard
+  const discardSector = el("div", { class: "sector sector-discard" });
+  if (player.discard.length > 0) {
+    const topCardId = player.discard[player.discard.length - 1];
+    discardSector.appendChild(
+      el("div", { class: "slot" }, [
+        el("div", {
+          class: "card-face",
+          style: `background-image:url(${cardImg(topCardId)});`,
+          onclick: () => handlers.onDiscardClick?.(playerIndex),
+        }),
+      ])
+    );
+    discardSector.appendChild(countBadge(player.discard.length));
+  }
+  grid.appendChild(discardSector);
+
+  return grid;
+}
+
+function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
+  const wrap = el("div", { class: "slot" });
+  if (!inst) return wrap;
+  const card = getCard(inst.cardId);
+  const attack = effectiveAttack(state, playerIndex, inst);
+  const health = effectiveHealth(inst);
+  const isPowerUp = isStarPlayerInPowerUpTurns(inst, state.turnNumber);
+
+  const classes = ["card-face"];
+  if (handlers.attackableInstanceIds?.has(inst.instanceId)) classes.push("attackable");
+  if (handlers.targetableInstanceIds?.has(inst.instanceId)) classes.push("targetable");
+
+  const face = el(
+    "div",
+    {
+      class: classes.join(" "),
+      style: `background-image:url(/${card.image});`,
+      title: `${card.name}${isPowerUp ? " (Power Up Turn)" : ""}`,
+      "data-instance-id": inst.instanceId,
+      "data-player-index": String(playerIndex),
+      onclick: () => handlers.onFieldCardClick?.(playerIndex, slot, inst),
+    },
+    [
+      el("div", { class: "health-pill" }, String(health)),
+      el("div", { class: "attack-pill" }, String(attack)),
+      ...(inst.attachedPsUp.length ? [psAttachBadge(inst.attachedPsUp.length)] : []),
+    ]
+  );
+  wrap.appendChild(face);
+  return wrap;
+}
+
+function psAttachBadge(count) {
+  return el(
+    "div",
+    {
+      style:
+        "position:absolute;top:2px;right:2px;background:var(--bbl-blue);color:white;border:1.5px solid black;border-radius:999px;font-size:0.6rem;font-weight:800;padding:0 4px;",
+    },
+    `+${count}`
+  );
+}
+
+function renderHandBar(state, viewerIndex, handlers) {
+  const bar = el("div", { class: "player-hand-bar" });
+  const player = state.players[viewerIndex];
+  player.hand.forEach((cardId, handIndex) => {
+    const card = getCard(cardId);
+    bar.appendChild(
+      el("div", { class: "hand-card" }, [
+        el("div", {
+          class: "card-face",
+          style: `background-image:url(/${card.image});`,
+          "data-hand-index": String(handIndex),
+          onclick: () => handlers.onHandCardClick?.(handIndex, cardId),
+        }),
+      ])
+    );
+  });
+  const badge = countBadge(player.hand.length, { position: "absolute", top: "4px", left: "4px" });
+  bar.style.position = "relative";
+  bar.appendChild(badge);
+  return bar;
+}
+
+export { cardImg, CARD_BACK };

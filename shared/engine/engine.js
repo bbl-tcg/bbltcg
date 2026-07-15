@@ -241,12 +241,20 @@ export function canAttackWith(state, playerIndex, slot) {
   return canAttack(state, playerIndex, inst, false);
 }
 
+const defaultDecideWindow = async (controllerIndex, available) => (available.length ? available[0] : null);
+
 /**
  * `windowCtx` is mutable and passed by reference through every window: a SACRIFICE-triggered
  * redirect effect (e.g. Rafael Murray) can rewrite `windowCtx.targetSlot` mid-flow, and the
  * final `declareAttack` call reads the (possibly redirected) target back out of it.
+ *
+ * `decideWindow(controllerIndex, available, windowCtx)` picks which (if any) activatable
+ * source to use at each reactive window - callers with a real human in the loop MUST pass
+ * one that actually asks (including a "do nothing" option), since a player should always be
+ * free to decline reacting to an attack. The default (auto-pick-first) is only appropriate
+ * for headless tests/simulations, never for real gameplay.
  */
-export async function attack(state, { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot }, resolveChoice) {
+export async function attack(state, { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot }, resolveChoice, decideWindow = defaultDecideWindow) {
   if (!canAttackWith(state, attackerPlayerIndex, attackerSlot)) return { ok: false, reason: "CANNOT_ATTACK" };
 
   const attackerInst = state.players[attackerPlayerIndex].playerSlots[attackerSlot];
@@ -264,9 +272,9 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
 
   const windowCtx = { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot, attackerInstanceId: attackerInst.instanceId };
   const defenderIndex = opponentIndex(attackerPlayerIndex);
-  const pickFirst = async (available) => (available.length ? available[0] : null);
+  const decideFor = (controllerIndex) => (available) => decideWindow(controllerIndex, available, windowCtx);
 
-  await openWindow(state, attackerPlayerIndex, TRIGGER.WHILE_ATTACKING, windowCtx, pickFirst, resolveChoice);
+  await openWindow(state, attackerPlayerIndex, TRIGGER.WHILE_ATTACKING, windowCtx, decideFor(attackerPlayerIndex), resolveChoice);
 
   // "Attacks not affected by your opponent's player or coach effects" (e.g. Chef Luis)
   // blocks the defender's reactive windows for this specific attack.
@@ -276,13 +284,13 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
     // offered here (in addition to its own end-of-turn checkpoint in endTurn()) so cards
     // that specifically need to react to *this* attack (e.g. Santiago Rivera negating it)
     // get a chance to, even though their trigger label isn't the narrower ON_OPPONENTS_ATTACK.
-    await openWindow(state, defenderIndex, TRIGGER.OPPONENTS_TURN, windowCtx, pickFirst, resolveChoice);
+    await openWindow(state, defenderIndex, TRIGGER.OPPONENTS_TURN, windowCtx, decideFor(defenderIndex), resolveChoice);
     if (!windowCtx.cancelled) {
-      await openWindow(state, defenderIndex, TRIGGER.ON_OPPONENTS_ATTACK, windowCtx, pickFirst, resolveChoice);
+      await openWindow(state, defenderIndex, TRIGGER.ON_OPPONENTS_ATTACK, windowCtx, decideFor(defenderIndex), resolveChoice);
     }
     // Only relevant when the target belongs to the defender (not a teammate-targeting attack).
     if (!windowCtx.cancelled && windowCtx.targetPlayerIndex === defenderIndex) {
-      await openWindow(state, defenderIndex, TRIGGER.SACRIFICE, windowCtx, pickFirst, resolveChoice);
+      await openWindow(state, defenderIndex, TRIGGER.SACRIFICE, windowCtx, decideFor(defenderIndex), resolveChoice);
     }
   }
 
@@ -371,15 +379,9 @@ export async function activateEffectAction(state, playerIndex, source, triggerTy
   return { ok: true };
 }
 
-export async function endTurn(state, playerIndex, resolveChoice) {
+export async function endTurn(state, playerIndex, resolveChoice, decideWindow = defaultDecideWindow) {
   const windowCtx = { playerIndex };
-  await openWindow(
-    state,
-    opponentIndex(playerIndex),
-    TRIGGER.OPPONENTS_TURN,
-    windowCtx,
-    async (available) => (available.length ? available[0] : null),
-    resolveChoice
-  );
+  const defenderIndex = opponentIndex(playerIndex);
+  await openWindow(state, defenderIndex, TRIGGER.OPPONENTS_TURN, windowCtx, (available) => decideWindow(defenderIndex, available, windowCtx), resolveChoice);
   endTurnPhase(state);
 }

@@ -1,0 +1,120 @@
+:root {
+  --bbl-white: #ffffff;
+  --bbl-bg: #f4f5f7;
+  --bbl-slot-bg: #d9dce2;
+  --bbl-slot-bg-dark: #c3c7d1;
+  --bbl-blue: #1e3062;
+  --bbl-blue-dark: #142145;
+  --bbl-red: #99222b;
+  --bbl-red-dark: #6e1820;
+  --bbl-black: #111214;
+  --bbl-text: #1a1a1a;
+  --bbl-text-inverse: #ffffff;
+  --bbl-shadow: rgba(0, 0, 0, 0.35);
+  --bbl-radius: 10px;
+  --card-aspect-w: 5;
+  --card-aspect-h: 7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bbl-bg);
+  color: var(--bbl-text);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+#app-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.bbl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.75em 1.5em;
+  border-radius: var(--bbl-radius);
+  border: 2px solid var(--bbl-black);
+  background: var(--bbl-blue);
+  color: var(--bbl-text-inverse);
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 3px 0 var(--bbl-black);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bbl-btn:hover {
+  transform: translateY(-1px);
+}
+.bbl-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--bbl-black);
+}
+.bbl-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 0 var(--bbl-black);
+}
+.bbl-btn.secondary {
+  background: var(--bbl-red);
+}
+.bbl-btn.ghost {
+  background: var(--bbl-white);
+  color: var(--bbl-blue);
+}
+
+.bbl-panel {
+  background: var(--bbl-white);
+  border: 2px solid var(--bbl-black);
+  border-radius: var(--bbl-radius);
+  box-shadow: 0 4px 14px var(--bbl-shadow);
+}
+
+.bbl-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6em;
+  height: 1.6em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: var(--bbl-red);
+  color: var(--bbl-text-inverse);
+  border: 2px solid var(--bbl-black);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.bbl-scroll {
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+a.bbl-link {
+  color: var(--bbl-blue);
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+.screen.active {
+  display: flex;
+}

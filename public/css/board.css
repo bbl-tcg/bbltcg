@@ -1,0 +1,356 @@
+.game-screen {
+  flex-direction: column;
+  background: var(--bbl-bg);
+  height: 100%;
+  width: 100%;
+}
+
+.game-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bbl-blue);
+  color: var(--bbl-text-inverse);
+  border-bottom: 2px solid var(--bbl-black);
+  font-weight: 700;
+  flex: 0 0 auto;
+  gap: 8px;
+  z-index: 20;
+}
+.game-topbar .phase-pill {
+  background: var(--bbl-red);
+  border: 2px solid var(--bbl-black);
+  border-radius: 999px;
+  padding: 2px 12px;
+}
+.game-topbar .topbar-actions {
+  display: flex;
+  gap: 6px;
+}
+.game-topbar .bbl-btn {
+  padding: 0.35em 0.9em;
+  font-size: 0.85rem;
+}
+
+.fields-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.opponent-area,
+.player-area {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  position: relative;
+}
+
+.opponent-hand-fan {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  z-index: 5;
+  pointer-events: none;
+}
+.opponent-hand-fan .mini-card-back {
+  width: 28px;
+  aspect-ratio: var(--card-aspect-w) / var(--card-aspect-h);
+  margin-left: -14px;
+  border-radius: 4px;
+  border: 1.5px solid var(--bbl-black);
+  box-shadow: 0 2px 4px var(--bbl-shadow);
+  background-size: cover;
+  background-position: center;
+}
+.opponent-hand-fan .mini-card-back:first-child {
+  margin-left: 0;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-rows: 1fr 0.68fr 0.85fr;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+}
+.field-grid.mirrored {
+  transform: rotate(180deg);
+}
+
+.sector {
+  background: var(--bbl-slot-bg);
+  border: 2px solid var(--bbl-black);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+.sector.empty-sector {
+  background: transparent;
+  border: 2px dashed var(--bbl-slot-bg-dark);
+}
+
+.sector-score {
+  grid-column: 1;
+  grid-row: 1;
+  gap: 4px;
+}
+.sector-players {
+  grid-column: 2;
+  grid-row: 1;
+  gap: 6px;
+  padding: 4px;
+}
+.sector-topright {
+  grid-column: 3;
+  grid-row: 1;
+}
+.sector-midleft {
+  grid-column: 1;
+  grid-row: 2;
+}
+.sector-coaches {
+  grid-column: 2;
+  grid-row: 2;
+  gap: 6px;
+  padding: 4px;
+}
+.sector-deck {
+  grid-column: 3;
+  grid-row: 2;
+}
+.sector-psdeck {
+  grid-column: 1;
+  grid-row: 3;
+}
+.sector-psfield {
+  grid-column: 2;
+  grid-row: 3;
+  gap: 3px;
+  padding: 4px;
+  flex-wrap: wrap;
+}
+.sector-discard {
+  grid-column: 3;
+  grid-row: 3;
+}
+
+.slot {
+  height: 100%;
+  aspect-ratio: var(--card-aspect-w) / var(--card-aspect-h);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex: 0 1 auto;
+}
+
+.card-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  border: 1.5px solid var(--bbl-black);
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bbl-white);
+  box-shadow: 0 2px 6px var(--bbl-shadow);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-face:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px var(--bbl-shadow);
+}
+.card-face.attackable {
+  outline: 3px solid #ffd23f;
+  outline-offset: 1px;
+}
+.card-face.targetable {
+  outline: 3px solid var(--bbl-red);
+  outline-offset: 1px;
+}
+
+.ps-up-slot {
+  width: 22px;
+  aspect-ratio: var(--card-aspect-w) / var(--card-aspect-h);
+}
+.ps-up-slot .card-face {
+  border-radius: 3px;
+}
+.ps-up-slot.rested .card-face {
+  transform: rotate(90deg) scale(0.82);
+}
+
+.health-pill,
+.attack-pill {
+  position: absolute;
+  bottom: 2px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1.5px solid var(--bbl-black);
+  padding: 0 4px;
+  color: var(--bbl-text-inverse);
+  line-height: 1.3;
+}
+.health-pill {
+  left: 2px;
+  background: #2e8b3d;
+}
+.attack-pill {
+  right: 2px;
+  background: var(--bbl-red);
+}
+
+.count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 3;
+}
+
+.player-hand-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bbl-white);
+  border-top: 2px solid var(--bbl-black);
+  overflow-x: auto;
+  min-height: 120px;
+  position: relative;
+}
+.player-hand-bar .hand-card {
+  width: 78px;
+  aspect-ratio: var(--card-aspect-w) / var(--card-aspect-h);
+  flex: 0 0 auto;
+}
+
+.main-action-bar {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bbl-blue-dark);
+  justify-content: center;
+  border-top: 2px solid var(--bbl-black);
+}
+
+/* Card zoom modal */
+.card-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.card-zoom-overlay img {
+  max-height: 85vh;
+  max-width: 90vw;
+  border-radius: 14px;
+  border: 3px solid var(--bbl-black);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Discard pile viewer */
+.discard-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.discard-viewer-panel {
+  width: min(92vw, 720px);
+  max-height: 85vh;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.discard-viewer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+}
+.discard-viewer-grid img {
+  width: 100%;
+  border-radius: 6px;
+  border: 1.5px solid var(--bbl-black);
+}
+
+/* Attack swipe animation */
+.attack-swipe {
+  position: fixed;
+  z-index: 60;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(153, 34, 43, 0.95) 0%, rgba(153, 34, 43, 0) 70%);
+}
+
+.fly-card {
+  position: fixed;
+  z-index: 55;
+  pointer-events: none;
+  border-radius: 6px;
+  border: 1.5px solid var(--bbl-black);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 6px 16px var(--bbl-shadow);
+  transition: top 0.35s ease, left 0.35s ease, width 0.35s ease, height 0.35s ease, transform 0.35s ease;
+}
+
+.choice-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 110;
+}
+.choice-panel {
+  width: min(92vw, 560px);
+  max-height: 85vh;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow-y: auto;
+}
+.choice-options .choice-option {
+  width: 90px;
+  cursor: pointer;
+}
+.choice-options .choice-option img {
+  width: 100%;
+  border-radius: 6px;
+  border: 1.5px solid var(--bbl-black);
+}
+.choice-options .choice-option.selected img {
+  outline: 3px solid var(--bbl-red);
+}

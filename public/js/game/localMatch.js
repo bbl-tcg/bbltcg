@@ -1,0 +1,382 @@
+import { buildStarterDeckList, getCard } from "/shared/engine/cardDb.js";
+import { makeRng } from "/shared/engine/rng.js";
+import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer } from "/shared/engine/setup.js";
+import { startTurn, endTurn as endTurnPhase } from "/shared/engine/turn.js";
+import * as engine from "/shared/engine/engine.js";
+import { renderBoard, cardImg } from "./render.js";
+import { showChoice } from "./choiceModal.js";
+import { runBotTurn, autoResolveForBot, chooseBotReaction } from "../bot/ai.js";
+import { animateAttackSwipe, animateCardMove } from "./animations.js";
+
+let G = null;
+
+function isPlayerish(cardId) {
+  const t = getCard(cardId).type;
+  return t === "Player" || t === "StarPlayer";
+}
+
+export async function startLocalMatch({ deckAName, deckBName, vsBot }) {
+  const rng = makeRng((Date.now() % 1e9) + Math.floor(Math.random() * 1e6));
+  const deckA = buildStarterDeckList(deckAName);
+  const deckB = buildStarterDeckList(deckBName);
+  const state = initializeGame({
+    playerADef: { id: "A", name: deckAName, ...deckA },
+    playerBDef: { id: "B", name: deckBName, ...deckB },
+    rng,
+  });
+
+  G = { state, vsBot, humanIndex: 0, armedSlot: null, gameOverShown: false };
+
+  drawOpeningHand(state, 0, rng);
+  drawOpeningHand(state, 1, rng);
+  await maybeOfferMulligan(0, rng);
+  await maybeOfferMulligan(1, rng);
+  keepHand(state, 0);
+  keepHand(state, 1);
+  drawScoreCards(state, 0);
+  drawScoreCards(state, 1);
+
+  const roll = rollForFirstPick(rng);
+  setFirstPlayer(state, roll.winnerIndex);
+  toast(`${roll.winnerIndex === 0 ? "You" : "Opponent"} won the die roll (${roll.playerARoll} vs ${roll.playerBRoll}) and goes first.`);
+
+  for (const p of [0, 1]) {
+    await pickOpeningCard(p);
+  }
+
+  await runTurnLoop();
+}
+
+async function maybeOfferMulligan(playerIndex, rng) {
+  if (isBotSeat(playerIndex)) return; // bots always keep for now
+  const hand = G.state.players[playerIndex].hand;
+  const names = hand.map((id) => getCard(id).name).join(", ");
+  const wantsMulligan = await showChoice({ type: "CHOOSE_YES_NO", prompt: `Player ${playerIndex + 1}'s hand: ${names}. Mulligan (redraw once)?` });
+  if (wantsMulligan) mulligan(G.state, playerIndex, rng);
+}
+
+async function pickOpeningCard(playerIndex) {
+  const state = G.state;
+  const hand = state.players[playerIndex].hand;
+  const candidates = hand.map((cardId, handIndex) => ({ cardId, handIndex })).filter((e) => isPlayerish(e.cardId));
+  let handIndex;
+  if (isBotSeat(playerIndex) || candidates.length === 1) {
+    handIndex = candidates[0].handIndex;
+  } else {
+    const chosen = await showChoice({
+      type: "CHOOSE_HAND_CARD",
+      prompt: `Player ${playerIndex + 1}: choose your opening Player/Star Player (played free)`,
+      options: candidates,
+    });
+    handIndex = chosen.handIndex;
+  }
+  playOpeningCard(state, playerIndex, handIndex);
+}
+
+function isBotSeat(playerIndex) {
+  return G.vsBot && playerIndex !== G.humanIndex;
+}
+
+function makeResolver(actingControllerIndex) {
+  return async (request) => {
+    const forPlayer = request.forPlayer ?? actingControllerIndex;
+    if (isBotSeat(forPlayer)) return autoResolveForBot(request);
+    return showChoice(request);
+  };
+}
+
+/**
+ * Decides which (if any) activatable source to use at a reactive window. For a human seat
+ * this always asks - including an explicit "do nothing" choice - since being auto-enrolled
+ * into using a reaction card the moment it's available would take away a real decision
+ * (whether to react at all, and with which card if several qualify).
+ */
+async function decideWindow(controllerIndex, available, windowCtx) {
+  if (available.length === 0) return null;
+  if (isBotSeat(controllerIndex)) return chooseBotReaction(G.state, controllerIndex, available, windowCtx);
+
+  const options = available.map((s) => ({ cardId: s.cardId, label: `${getCard(s.cardId).name}${s.label !== "main" ? ` (${s.label})` : ""}`, value: s }));
+  const chosen = await showChoice({
+    type: "CHOOSE_EFFECT_SOURCE",
+    prompt: "You may react with one of these cards, or pass.",
+    options,
+    allowNone: true,
+  });
+  return chosen || null;
+}
+
+async function runTurnLoop() {
+  while (!G.state.gameOver) {
+    startTurn(G.state);
+    render();
+    if (G.state.gameOver) break;
+
+    const me = G.state.activePlayerIndex;
+    if (isBotSeat(me)) {
+      toast("Opponent's turn...");
+      await runBotTurn(G.state, me, render, makeResolver(me), decideWindow);
+      if (G.state.gameOver) break;
+      await engine.endTurn(G.state, me, makeResolver(me), decideWindow);
+      render();
+      continue;
+    }
+
+    await waitForHumanTurn(me);
+    if (G.state.gameOver) break;
+  }
+  render();
+  showGameOver();
+}
+
+/** Resolves once the human playing seat `me` clicks "End Turn". All the interim actions
+ * (playing cards, attacking, activating effects) are wired as click handlers in render()
+ * and call back into engine functions directly; this promise just waits for the button. */
+function waitForHumanTurn(me) {
+  return new Promise((resolve) => {
+    G.endTurnResolve = async () => {
+      await engine.endTurn(G.state, me, makeResolver(me), decideWindow);
+      render();
+      resolve();
+    };
+  });
+}
+
+function render() {
+  const container = document.getElementById("game-screen");
+  container.innerHTML = "";
+
+  const topbar = document.createElement("div");
+  topbar.className = "game-topbar";
+  const me = G.state.activePlayerIndex;
+  const viewerIndex = G.vsBot ? G.humanIndex : me;
+  const isMyTurn = me === viewerIndex;
+  topbar.innerHTML = `
+    <div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${G.state.turnNumber}</div>
+    <div class="phase-pill">${G.state.phase}</div>
+  `;
+  const actions = document.createElement("div");
+  actions.className = "topbar-actions";
+  const effectsBtn = mkBtn("Effects", () => showEffectsPanel(viewerIndex));
+  const endBtn = mkBtn("End Turn", () => G.endTurnResolve && G.endTurnResolve());
+  endBtn.disabled = !isMyTurn;
+  effectsBtn.disabled = !isMyTurn;
+  actions.appendChild(effectsBtn);
+  actions.appendChild(endBtn);
+  topbar.appendChild(actions);
+  container.appendChild(topbar);
+
+  const boardArea = document.createElement("div");
+  boardArea.style.flex = "1 1 auto";
+  boardArea.style.display = "flex";
+  boardArea.style.flexDirection = "column";
+  boardArea.style.minHeight = "0";
+  container.appendChild(boardArea);
+
+  const attackable = new Set();
+  const targetable = new Set();
+  if (isMyTurn && G.state.turnFlags.attacksAllowed) {
+    G.state.players[me].playerSlots.forEach((inst, slot) => {
+      if (inst && engine.canAttackWith(G.state, me, slot)) attackable.add(inst.instanceId);
+    });
+  }
+  if (G.armedSlot !== null) {
+    const oppIndex = me === 0 ? 1 : 0;
+    G.state.players[oppIndex].playerSlots.forEach((inst) => {
+      if (inst) targetable.add(inst.instanceId);
+    });
+  }
+
+  renderBoard(boardArea, G.state, viewerIndex, {
+    attackableInstanceIds: attackable,
+    targetableInstanceIds: targetable,
+    onZoom: (cardId) => showZoom(cardId),
+    onDiscardClick: (playerIndex) => showDiscardViewer(playerIndex),
+    onHandCardClick: (handIndex, cardId) => onHandCardClick(handIndex, cardId, isMyTurn, me),
+    onFieldCardClick: (playerIndex, slot, inst) => onFieldCardClick(playerIndex, slot, inst, isMyTurn, me),
+  });
+}
+
+function mkBtn(label, onClick) {
+  const b = document.createElement("button");
+  b.className = "bbl-btn";
+  b.textContent = label;
+  b.onclick = onClick;
+  return b;
+}
+
+async function onHandCardClick(handIndex, cardId, isMyTurn, me) {
+  if (!isMyTurn) return;
+  const card = getCard(cardId);
+  if (card.type === "Event") {
+    const sources = engine.getActivatableSources(G.state, me, "YOUR_TURN");
+    const match = sources.find((s) => s.zone === "HAND" && s.handIndex === handIndex);
+    if (!match) {
+      toast("That event isn't playable right now.");
+      return;
+    }
+    await engine.activateEffectAction(G.state, me, match, "YOUR_TURN", {}, makeResolver(me));
+    render();
+    return;
+  }
+
+  const check = engine.canPlayCard(G.state, me, handIndex);
+  if (!check.ok) {
+    toast(`Can't play that: ${check.reason}`);
+    return;
+  }
+  let replaceSlot = null;
+  if ((card.type === "Player" || card.type === "StarPlayer") && !G.state.players[me].playerSlots.some((s) => s === null)) {
+    const chosen = await showChoice({
+      type: "CHOOSE_OWN_PLAYER",
+      prompt: "Your 3 player slots are full - replace which one?",
+      options: G.state.players[me].playerSlots.map((s) => s.instanceId),
+    });
+    replaceSlot = G.state.players[me].playerSlots.findIndex((s) => s.instanceId === chosen);
+  }
+
+  const sourceEl = document.querySelector(`.hand-card .card-face[data-hand-index="${handIndex}"]`);
+  const startRect = sourceEl?.getBoundingClientRect();
+
+  const result = await engine.playCard(G.state, me, handIndex, { replaceSlot }, makeResolver(me));
+  if (!result.ok) {
+    toast(`Can't play that: ${result.reason}`);
+    render();
+    return;
+  }
+  render();
+  if (result.instance && startRect) {
+    const destEl = document.querySelector(`[data-instance-id="${result.instance.instanceId}"]`);
+    if (destEl) {
+      const endRect = destEl.getBoundingClientRect();
+      destEl.style.visibility = "hidden";
+      await animateCardMove(startRect, cardImg(cardId), endRect);
+      destEl.style.visibility = "";
+    }
+  }
+}
+
+async function onFieldCardClick(playerIndex, slot, inst, isMyTurn, me) {
+  if (!isMyTurn || !inst) return;
+  const oppIndex = me === 0 ? 1 : 0;
+
+  // Only an opponent's card can be *declared* as the target from the UI - the rare
+  // teammate-targeting case (e.g. Ricky Covey Jr.'s GREATER GOOD star power) isn't a
+  // player choice made here at all, it's the attacking card's own effect silently
+  // rewriting the target mid-resolution inside engine.attack(). The animation below reads
+  // the *actual* resolved target back out of the attack log afterward for exactly that
+  // reason, rather than trusting what was clicked.
+  if (G.armedSlot !== null && playerIndex === oppIndex) {
+    const attackerInstanceId = G.state.players[me].playerSlots[G.armedSlot]?.instanceId;
+    const result = await engine.attack(G.state, { attackerPlayerIndex: me, attackerSlot: G.armedSlot, targetPlayerIndex: oppIndex, targetSlot: slot }, makeResolver(me), decideWindow);
+    G.armedSlot = null;
+    if (!result.ok) {
+      toast(`Attack failed: ${result.reason}`);
+      render();
+      return;
+    }
+
+    const attackEvent = [...G.state.log].reverse().find((e) => e.type === "ATTACK" && e.attackerInstanceId === attackerInstanceId);
+    const attackerEl = document.querySelector(`[data-instance-id="${attackerInstanceId}"]`);
+    const targetEl = attackEvent ? document.querySelector(`[data-instance-id="${attackEvent.targetInstanceId}"]`) : null;
+    await animateAttackSwipe(attackerEl, targetEl);
+    render();
+    return;
+  }
+
+  if (G.armedSlot !== null && playerIndex === me && slot === G.armedSlot) {
+    G.armedSlot = null; // un-arm
+    render();
+    return;
+  }
+
+  if (playerIndex === me && engine.canAttackWith(G.state, me, slot)) {
+    G.armedSlot = slot;
+    render();
+  }
+}
+
+async function showEffectsPanel(me) {
+  const yourTurn = engine.getActivatableSources(G.state, me, "YOUR_TURN").filter((s) => s.zone !== "HAND");
+  const sacrifice = engine.getActivatableSources(G.state, me, "SACRIFICE");
+  const all = [...yourTurn, ...sacrifice];
+  if (all.length === 0) {
+    toast("No effects are activatable right now.");
+    return;
+  }
+  const options = all.map((s) => ({ cardId: s.cardId, label: `${getCard(s.cardId).name}${s.label !== "main" ? ` (${s.label})` : ""}`, value: s }));
+  const chosen = await showChoice({ type: "CHOOSE_EFFECT_SOURCE", prompt: "Activate which effect?", options });
+  if (!chosen) return;
+  const trigger = chosen.effectDef.trigger;
+  await engine.activateEffectAction(G.state, me, chosen, trigger, {}, makeResolver(me));
+  render();
+}
+
+function showZoom(cardId) {
+  const overlay = document.createElement("div");
+  overlay.className = "card-zoom-overlay";
+  overlay.onclick = () => overlay.remove();
+  const img = document.createElement("img");
+  img.src = cardImg(cardId);
+  overlay.appendChild(img);
+  document.body.appendChild(overlay);
+}
+
+function showDiscardViewer(playerIndex) {
+  const overlay = document.createElement("div");
+  overlay.className = "discard-viewer-overlay";
+  overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.remove();
+  };
+  const panel = document.createElement("div");
+  panel.className = "discard-viewer-panel bbl-panel";
+  panel.innerHTML = `<div style="font-weight:800;color:var(--bbl-blue);">Discard Pile (${G.state.players[playerIndex].discard.length} cards, most recent first)</div>`;
+  const grid = document.createElement("div");
+  grid.className = "discard-viewer-grid";
+  [...G.state.players[playerIndex].discard].reverse().forEach((cardId) => {
+    const img = document.createElement("img");
+    img.src = cardImg(cardId);
+    grid.appendChild(img);
+  });
+  panel.appendChild(grid);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+}
+
+function toast(message) {
+  const t = document.createElement("div");
+  t.textContent = message;
+  Object.assign(t.style, {
+    position: "fixed",
+    bottom: "140px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "var(--bbl-black)",
+    color: "white",
+    padding: "8px 16px",
+    borderRadius: "8px",
+    zIndex: 200,
+    fontWeight: "700",
+    maxWidth: "80vw",
+    textAlign: "center",
+  });
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+function showGameOver() {
+  if (G.gameOverShown) return;
+  G.gameOverShown = true;
+  const viewerIndex = G.vsBot ? G.humanIndex : 0;
+  const youWon = G.state.winner === viewerIndex;
+  const overlay = document.createElement("div");
+  overlay.className = "card-zoom-overlay";
+  overlay.innerHTML = `
+    <div class="bbl-panel" style="padding:32px;text-align:center;">
+      <div style="font-size:1.6rem;font-weight:800;color:${youWon ? "var(--bbl-blue)" : "var(--bbl-red)"};">
+        ${G.vsBot ? (youWon ? "You win!" : "You lose!") : `Player ${(G.state.winner ?? 0) + 1} wins!`}
+      </div>
+      <button class="bbl-btn" style="margin-top:16px;" onclick="location.reload()">Back to Menu</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
