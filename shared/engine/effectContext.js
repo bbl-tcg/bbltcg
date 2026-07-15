@@ -8,6 +8,7 @@ import {
   returnPsUpToDeck,
   discardFromHand,
   moveFieldInstanceToDiscard,
+  moveFieldInstanceToBottomOfDeck,
   createFieldInstance,
   findEmptySlot,
   isFieldFull,
@@ -58,14 +59,15 @@ export function makeEffectContext(state, { controllerIndex, source }) {
     payCost: (playerIndex, cost) => payCost(state, playerIndex, cost),
 
     attachPsUp: (playerIndex, psUpId, targetInstanceId) => attachPsUp(state, playerIndex, psUpId, targetInstanceId),
-    /** Effect-driven attach that bypasses the "must be active" / "not a Star Player" restrictions, per "unless an effect dictates otherwise." */
+    /** Effect-driven attach that bypasses the "must be active" / "not a Star Player" restrictions,
+     * per "unless an effect dictates otherwise." Preserves the PS UP's active/rested state as-is -
+     * attachment doesn't itself activate a rested one, only the next Recover phase does. */
     attachPsUpForced: (playerIndex, psUpId, targetInstanceId) => {
       const p = state.players[playerIndex];
       const psUp = p.psField.find((x) => x.id === psUpId);
       const target = p.playerSlots.find((s) => s && s.instanceId === targetInstanceId);
       if (!psUp || !target || psUp.attachedTo) return false;
       psUp.attachedTo = targetInstanceId;
-      psUp.isActive = true;
       target.attachedPsUp.push(psUpId);
       log(state, { type: "ATTACH_PS_UP", playerIndex, psUpId, targetInstanceId, forced: true });
       return true;
@@ -92,6 +94,7 @@ export function makeEffectContext(state, { controllerIndex, source }) {
 
     koSlot: (playerIndex, slot) => moveFieldInstanceToDiscard(state, playerIndex, slot, { koed: true }),
     discardFieldSlot: (playerIndex, slot) => moveFieldInstanceToDiscard(state, playerIndex, slot, { koed: false }),
+    bottomDeckFieldSlot: (playerIndex, slot) => moveFieldInstanceToBottomOfDeck(state, playerIndex, slot),
 
     findEmptySlot: (playerIndex) => findEmptySlot(state.players[playerIndex]),
     isFieldFull: (playerIndex) => isFieldFull(state.players[playerIndex]),
@@ -105,6 +108,16 @@ export function makeEffectContext(state, { controllerIndex, source }) {
       const inst = createFieldInstance(cardId, state.turnNumber);
       player.playerSlots[slotIndex] = inst;
       log(state, { type: "PLAY_TO_FIELD", playerIndex, cardId, instanceId: inst.instanceId, slotIndex, free: true, fromZone });
+      return inst;
+    },
+    /** Like playFreeToField, but for a card that isn't sitting in any zone array right now
+     * (e.g. already pulled out mid-resolution while "revealing" cards from the deck). */
+    placeCardOnField: (playerIndex, cardId, slotIndex) => {
+      const player = state.players[playerIndex];
+      if (player.playerSlots[slotIndex]) return null;
+      const inst = createFieldInstance(cardId, state.turnNumber);
+      player.playerSlots[slotIndex] = inst;
+      log(state, { type: "PLAY_TO_FIELD", playerIndex, cardId, instanceId: inst.instanceId, slotIndex, free: true, fromZone: "reveal" });
       return inst;
     },
 
@@ -124,6 +137,19 @@ export function makeEffectContext(state, { controllerIndex, source }) {
     /** "Regains any Health lost as a result of this event [unless KOed]" style effects. */
     scheduleRestoreIfSurvives: (instanceId, amount) => {
       state.pendingRestores.push({ instanceId, amount });
+    },
+
+    /** "If it is discarded as a result of this attack, choose 1 player on your opponent's
+     * field to be put at the bottom of their deck" (Ricky Covey Jr.) and similar one-off
+     * "if X happens as a result of this attack, do Y" follow-ups. */
+    schedulePostAttackHook: (hook) => {
+      state.pendingPostAttackHooks.push(hook);
+    },
+
+    /** Same idea as schedulePostAttackHook, but for non-attack effects (e.g. Scottie's
+     * "if this player is still on the field after the [redirected] effect, discard it"). */
+    schedulePostEffectHook: (hook) => {
+      state.pendingPostEffectHooks.push(hook);
     },
 
     addBuff: (instanceId, buff) => {

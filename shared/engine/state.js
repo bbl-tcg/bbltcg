@@ -48,6 +48,7 @@ export function createGameState({ playerA, playerB, rng }) {
     turnFlags: {
       attacksAllowed: true,
       attackedThisGameByInstance: {}, // instanceId -> bool, used by some "first attack" effects
+      eventsPlayedThisTurnBy: [], // playerIndex[], reset every startTurn()
     },
     winner: null,
     log: [],
@@ -55,6 +56,8 @@ export function createGameState({ playerA, playerB, rng }) {
     gameOver: false,
     rng, // shared PRNG for the whole game (shuffles, coin flips triggered by effects, etc.)
     pendingRestores: [], // [{ instanceId, amount }] - "regains Health lost... unless KOed" style effects, processed right after the attack that triggered them resolves
+    pendingPostAttackHooks: [], // [{ type, ... }] - one-off "if X happens as a result of this attack, do Y" follow-ups; see engine.js's processPendingPostAttackHooks
+    pendingPostEffectHooks: [], // [{ type, ... }] - same idea, but drained right after any activated effect resolves (not just attacks); see engine.js's activateSource
   };
 }
 

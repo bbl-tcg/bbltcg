@@ -16,6 +16,7 @@ export function createFieldInstance(cardId, turnNumber) {
     buffs: [], // { id, source, attack, health, speedOverride, expires: 'endOfTurn' | 'permanent' }
     grantedEffects: [], // { id, effectDef, expires: { endOfTurn: N } | 'permanent' } - temporarily-gained abilities (e.g. "gains [SACRIFICE]")
     extraAttacksGrantedThisTurn: 0,
+    lastAttack: null, // { targetPlayerIndex, targetInstanceId, turnNumber } - set by combat.declareAttack, read by follow-up effects like Himmy Neutron
   };
 }
 
@@ -150,6 +151,20 @@ export function moveFieldInstanceToDiscard(state, playerIndex, slotIndex, { koed
   if (koed) {
     drawFromScore(state, playerIndex);
   }
+}
+
+/** Removes a field card without discarding or KO-scoring it - it goes to the bottom of its owner's deck instead. */
+export function moveFieldInstanceToBottomOfDeck(state, playerIndex, slotIndex) {
+  const player = state.players[playerIndex];
+  const inst = player.playerSlots[slotIndex];
+  if (!inst) return;
+  for (const psUpId of inst.attachedPsUp) {
+    const psUp = player.psField.find((p) => p.id === psUpId);
+    if (psUp) psUp.attachedTo = null;
+  }
+  player.playerSlots[slotIndex] = null;
+  player.deck.push(inst.cardId);
+  log(state, { type: "FIELD_TO_BOTTOM_OF_DECK", playerIndex, cardId: inst.cardId, instanceId: inst.instanceId });
 }
 
 export function drawFromScore(state, playerIndex) {

@@ -9,9 +9,10 @@ import {
   playEvent,
   findEmptySlot,
   moveFieldInstanceToDiscard,
+  moveFieldInstanceToBottomOfDeck,
 } from "./primitives.js";
 import { declareAttack } from "./combat.js";
-import { canAttack, getStaticFlag } from "./stats.js";
+import { canAttack, getStaticFlag, isSilenced } from "./stats.js";
 import { getEffect } from "./effectRegistry.js";
 import { makeEffectContext } from "./effectContext.js";
 import { runEffect } from "./effectRunner.js";
@@ -79,6 +80,13 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
     if (triggerType === TRIGGER.WHILE_ATTACKING && windowCtx.attackerInstanceId && src.instanceId !== windowCtx.attackerInstanceId) {
       return false;
     }
+    // "The chosen player has no effect until your End Phase" (Kimi Raikonnen) - a silenced
+    // field card's activatable abilities (granted ones included) are unavailable, though the
+    // card itself stays on the field.
+    if (src.zone === "FIELD" && src.instanceId) {
+      const inst = state.players[controllerIndex].playerSlots.find((s) => s && s.instanceId === src.instanceId);
+      if (inst && isSilenced(inst)) return false;
+    }
     const ctx = makeEffectContext(state, { controllerIndex, source: src });
     if (src.effectDef.canActivate) return !!src.effectDef.canActivate(ctx, windowCtx);
     return true;
@@ -90,12 +98,35 @@ async function activateSource(state, controllerIndex, source, windowCtx, resolve
   if (source.zone === "HAND") {
     payCost(state, controllerIndex, source.cost);
     playEvent(state, controllerIndex, source.handIndex);
+    state.turnFlags.eventsPlayedThisTurnBy.push(controllerIndex);
   }
   const ctx = makeEffectContext(state, { controllerIndex, source });
   if (source.effectDef.resolve) {
     await runEffect(source.effectDef.resolve(ctx, windowCtx), resolveChoice);
   }
   log(state, { type: "EFFECT_ACTIVATED", controllerIndex, cardId: source.cardId, trigger: source.effectDef.trigger, label: source.label });
+  processPendingPostEffectHooks(state);
+}
+
+/** See effectContext.js's schedulePostEffectHook doc comment. */
+function processPendingPostEffectHooks(state) {
+  if (!state.pendingPostEffectHooks.length) return;
+  const hooks = state.pendingPostEffectHooks;
+  state.pendingPostEffectHooks = [];
+  for (const hook of hooks) {
+    if (hook.type === "DISCARD_IF_SURVIVED") {
+      const found = findFieldSlotByInstanceId(state, hook.instanceId);
+      if (found) moveFieldInstanceToDiscard(state, found.playerIndex, found.slot, { koed: false });
+    }
+  }
+}
+
+function findFieldSlotByInstanceId(state, instanceId) {
+  for (let playerIndex = 0; playerIndex < state.players.length; playerIndex++) {
+    const slot = state.players[playerIndex].playerSlots.findIndex((s) => s && s.instanceId === instanceId);
+    if (slot !== -1) return { playerIndex, slot };
+  }
+  return null;
 }
 
 function sourceKey(src) {
@@ -213,6 +244,18 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
   if (!canAttackWith(state, attackerPlayerIndex, attackerSlot)) return { ok: false, reason: "CANNOT_ATTACK" };
 
   const attackerInst = state.players[attackerPlayerIndex].playerSlots[attackerSlot];
+  const targetInst = state.players[targetPlayerIndex].playerSlots[targetSlot];
+  if (targetInst) {
+    const blocksAttack = getEffect(targetInst.cardId);
+    const targetStatic = blocksAttack?.main ? [blocksAttack.main, blocksAttack.starPower] : [blocksAttack];
+    for (const def of targetStatic) {
+      if (def?.trigger === null && def.staticEffect?.blocksAttackFrom) {
+        const targetCtx = makeEffectContext(state, { controllerIndex: targetPlayerIndex, source: { cardId: targetInst.cardId, zone: "FIELD", instanceId: targetInst.instanceId, slot: targetSlot } });
+        if (def.staticEffect.blocksAttackFrom(targetCtx, attackerInst)) return { ok: false, reason: "TARGET_IMMUNE" };
+      }
+    }
+  }
+
   const windowCtx = { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot, attackerInstanceId: attackerInst.instanceId };
   const defenderIndex = opponentIndex(attackerPlayerIndex);
   const pickFirst = async (available) => (available.length ? available[0] : null);
@@ -244,16 +287,38 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
     return { ok: true, negated: true };
   }
 
-  const result = declareAttack(state, {
-    attackerPlayerIndex,
-    attackerSlot,
-    targetPlayerIndex: windowCtx.targetPlayerIndex,
-    targetSlot: windowCtx.targetSlot,
-  });
+  const result = declareAttack(
+    state,
+    {
+      attackerPlayerIndex,
+      attackerSlot,
+      targetPlayerIndex: windowCtx.targetPlayerIndex,
+      targetSlot: windowCtx.targetSlot,
+    },
+    { suppressScoreDrawOnZeroHealth: !!windowCtx.suppressScoreDrawOnZeroHealth }
+  );
 
   processPendingRestores(state);
+  await processPendingPostAttackHooks(state, result, resolveChoice);
 
   return result;
+}
+
+/** See effectContext.js's schedulePostAttackHook doc comment. */
+async function processPendingPostAttackHooks(state, attackResult, resolveChoice) {
+  if (!state.pendingPostAttackHooks.length) return;
+  const hooks = state.pendingPostAttackHooks;
+  state.pendingPostAttackHooks = [];
+  for (const hook of hooks) {
+    if (hook.type === "BOTTOM_DECK_IF_DISCARDED" && attackResult.discardedInstead) {
+      const opponent = opponentIndex(hook.controllerIndex);
+      const options = state.players[opponent].playerSlots.filter((s) => s).map((s) => s.instanceId);
+      if (!options.length) continue;
+      const targetInstanceId = options.length === 1 ? options[0] : await resolveChoice({ type: "CHOOSE_OPPONENT_PLAYER", prompt: "Send which opponent player to the bottom of their deck?", options });
+      const found = state.players[opponent].playerSlots.findIndex((s) => s && s.instanceId === targetInstanceId);
+      if (found !== -1) moveFieldInstanceToBottomOfDeck(state, opponent, found);
+    }
+  }
 }
 
 /** Undo "Health lost as a result of this event" for anything that survived the attack it was cast on. */
@@ -273,7 +338,11 @@ function processPendingRestores(state) {
 export function attachPsUpAction(state, playerIndex, psUpId, targetInstanceId) {
   const player = state.players[playerIndex];
   const target = player.playerSlots.find((s) => s && s.instanceId === targetInstanceId);
-  if (target && target.isStarPlayer) return { ok: false, reason: "CANNOT_ATTACH_TO_STAR_PLAYER" };
+  // "PLAYERSCORE UP! cards cannot be attached to Star Players unless an effect
+  // dictates otherwise" (e.g. Joao's "You may attach PLAYERSCORE UP! cards to this player").
+  if (target && target.isStarPlayer && getStaticFlag(target, "allowsNormalPsUpAttachment") !== true) {
+    return { ok: false, reason: "CANNOT_ATTACH_TO_STAR_PLAYER" };
+  }
   const psUp = player.psField.find((p) => p.id === psUpId);
   if (!psUp || !psUp.isActive || psUp.attachedTo) return { ok: false, reason: "PS_UP_UNAVAILABLE" };
   psUp.attachedTo = targetInstanceId;

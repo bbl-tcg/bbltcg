@@ -24,6 +24,7 @@ export function startTurn(state) {
   drawPsUpFromDeck(state, playerIndex, isVeryFirstTurnOfGame ? 1 : 2);
 
   state.turnFlags.attacksAllowed = !firstTurnOfGameForThisPlayer;
+  state.turnFlags.eventsPlayedThisTurnBy = [];
 
   state.phase = PHASE.MAIN;
   log(state, { type: "MAIN_PHASE_START", playerIndex, attacksAllowed: state.turnFlags.attacksAllowed });

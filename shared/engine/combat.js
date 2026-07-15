@@ -7,7 +7,11 @@ import { moveFieldInstanceToDiscard } from "./primitives.js";
  * teammate-targeting effects (e.g. Ricky Covey Jr.) — callers are responsible for only
  * allowing that when the attacking card's effect explicitly permits it.
  */
-export function declareAttack(state, { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot }, { isFirstTurnOfGameForActor = false } = {}) {
+export function declareAttack(
+  state,
+  { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot },
+  { isFirstTurnOfGameForActor = false, suppressScoreDrawOnZeroHealth = false } = {}
+) {
   const attackerPlayer = state.players[attackerPlayerIndex];
   const targetPlayer = state.players[targetPlayerIndex];
   const attacker = attackerPlayer.playerSlots[attackerSlot];
@@ -30,6 +34,7 @@ export function declareAttack(state, { attackerPlayerIndex, attackerSlot, target
   }
   attacker.hasAttackedThisTurn = true;
   state.turnFlags.attackedThisGameByInstance[attacker.instanceId] = true;
+  attacker.lastAttack = { targetPlayerIndex, targetInstanceId: target.instanceId, turnNumber: state.turnNumber };
 
   log(state, {
     type: "ATTACK",
@@ -41,12 +46,14 @@ export function declareAttack(state, { attackerPlayerIndex, attackerSlot, target
     speedBonus: bonus,
   });
 
-  const koed = target.currentHealth <= 0;
-  if (koed) {
-    moveFieldInstanceToDiscard(state, targetPlayerIndex, targetSlot, { koed: true });
+  const zeroHealth = target.currentHealth <= 0;
+  if (zeroHealth) {
+    // Ricky Covey Jr.'s GREATER GOOD star power: "it is discarded instead of KOed" - no
+    // Score draw for the defender when this specific attack's zero-health rule is overridden.
+    moveFieldInstanceToDiscard(state, targetPlayerIndex, targetSlot, { koed: !suppressScoreDrawOnZeroHealth });
   }
 
-  return { ok: true, damage, koed };
+  return { ok: true, damage, koed: zeroHealth && !suppressScoreDrawOnZeroHealth, discardedInstead: zeroHealth && suppressScoreDrawOnZeroHealth };
 }
 
 export function dealDamage(state, { targetPlayerIndex, targetSlot, amount, source }) {
