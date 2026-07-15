@@ -12,6 +12,7 @@ import {
   createFieldInstance,
   findEmptySlot,
   isFieldFull,
+  drawFromScore,
 } from "./primitives.js";
 import { dealDamage } from "./combat.js";
 import { shuffle } from "./rng.js";
@@ -106,6 +107,22 @@ export function makeEffectContext(state, { controllerIndex, source }) {
     koSlot: (playerIndex, slot) => moveFieldInstanceToDiscard(state, playerIndex, slot, { koed: true }),
     discardFieldSlot: (playerIndex, slot) => moveFieldInstanceToDiscard(state, playerIndex, slot, { koed: false }),
     bottomDeckFieldSlot: (playerIndex, slot) => moveFieldInstanceToBottomOfDeck(state, playerIndex, slot),
+    /** "Draw 1 card from your Score" (TKO) - spends a life card as a resource. */
+    drawFromScoreCard: (playerIndex) => drawFromScore(state, playerIndex),
+    /** "Send [a player] back to your opponent's hand" (Coach Schmaxel Ego Death). */
+    returnFieldSlotToHand: (playerIndex, slot) => {
+      const player = state.players[playerIndex];
+      const inst = player.playerSlots[slot];
+      if (!inst) return false;
+      for (const psUpId of inst.attachedPsUp) {
+        const psUp = player.psField.find((p) => p.id === psUpId);
+        if (psUp) psUp.attachedTo = null;
+      }
+      player.playerSlots[slot] = null;
+      player.hand.push(inst.cardId);
+      log(state, { type: "FIELD_TO_HAND", playerIndex, cardId: inst.cardId, instanceId: inst.instanceId });
+      return true;
+    },
 
     findEmptySlot: (playerIndex) => findEmptySlot(state.players[playerIndex]),
     isFieldFull: (playerIndex) => isFieldFull(state.players[playerIndex]),

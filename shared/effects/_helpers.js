@@ -179,6 +179,30 @@ export function drawThenDiscardEffect(trigger, drawCount, discardCount) {
   };
 }
 
+/** "Draw N cards from your deck [look at the top N]. Put/add 1 in your hand, and discard
+ * the rest." Shared by Yen Durmont (001-019) and Silvia Snipes: Rookie of the Year event
+ * (001-106) - identical shape, different N. */
+export function revealTopKeepOneEffect(trigger, count) {
+  return {
+    trigger,
+    canActivate(ctx) {
+      return ctx.player().deck.length > 0;
+    },
+    *resolve(ctx) {
+      const player = ctx.player();
+      const revealed = [];
+      for (let i = 0; i < count && player.deck.length; i++) revealed.push(player.deck.shift());
+      if (revealed.length === 0) return;
+      const options = revealed.map((cardId, i) => ({ cardId, i }));
+      const keep = options.length === 1 ? options[0] : yield { type: "CHOOSE_REVEALED_CARD", prompt: "Keep which card in your hand?", options };
+      revealed.forEach((cardId, i) => {
+        if (i === keep.i) player.hand.push(cardId);
+        else player.discard.push(cardId);
+      });
+    },
+  };
+}
+
 /** "This player's stat gains a flat bonus while <conditionFn(ctx)> is true." */
 export function conditionalStatBoost({ conditionFn, attack = 0, health = 0 }) {
   return {
