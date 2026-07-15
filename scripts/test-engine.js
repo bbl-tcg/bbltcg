@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import "../shared/engine/nodeCardDbLoader.js";
 import "../shared/effects/index.js";
 import { buildStarterDeckList, getCard } from "../shared/engine/cardDb.js";
 import { makeRng } from "../shared/engine/rng.js";

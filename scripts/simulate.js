@@ -1,6 +1,7 @@
 // Headless bot-vs-bot simulation: plays full games using a naive "always do something if
 // legal" policy, to catch crashes/infinite loops across many card effects at once. This is
 // a smoke test for engine robustness, not a correctness check of individual card text.
+import "../shared/engine/nodeCardDbLoader.js";
 import "../shared/effects/index.js";
 import { buildStarterDeckList, starterDeckNames, getCard } from "../shared/engine/cardDb.js";
 import { makeRng } from "../shared/engine/rng.js";

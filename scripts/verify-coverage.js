@@ -1,3 +1,4 @@
+import "../shared/engine/nodeCardDbLoader.js";
 import "../shared/effects/index.js";
 import { allCards } from "../shared/engine/cardDb.js";
 import { getEffect } from "../shared/engine/effectRegistry.js";

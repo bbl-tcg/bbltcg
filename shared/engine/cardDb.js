@@ -1,14 +1,22 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+// Isomorphic in-memory card database - no filesystem/network access here, so this module
+// works unmodified in the browser (single-player, client-side engine) and on the server
+// (multiplayer, authoritative engine). Something must call initCardDb() once before any
+// other engine code runs: scripts/nodeCardDbLoader.js (Node, fs) or public/js/loadCardDb.js
+// (browser, fetch) - see those for the two environment-specific loaders.
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, "..", "data");
+let cardsArray = [];
+let cardsById = new Map();
+let starterDecksRaw = {};
 
-const cardsArray = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "cards.json"), "utf8"));
-const starterDecksRaw = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "starterDecks.json"), "utf8"));
+export function initCardDb(cards, starterDecks) {
+  cardsArray = cards;
+  cardsById = new Map(cards.map((c) => [c.id, c]));
+  starterDecksRaw = starterDecks;
+}
 
-const cardsById = new Map(cardsArray.map((c) => [c.id, c]));
+export function isCardDbInitialized() {
+  return cardsArray.length > 0;
+}
 
 export function getCard(cardId) {
   const card = cardsById.get(cardId);

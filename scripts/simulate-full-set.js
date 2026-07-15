@@ -1,5 +1,6 @@
 // Like simulate.js, but builds legal decks for EVERY month from the full 156-card pool
 // (not just the 4 starter decks), so cards outside the starter lists get exercised too.
+import "../shared/engine/nodeCardDbLoader.js";
 import "../shared/effects/index.js";
 import { allCards, getCard } from "../shared/engine/cardDb.js";
 import { makeRng, shuffle } from "../shared/engine/rng.js";
