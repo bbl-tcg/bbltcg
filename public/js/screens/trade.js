@@ -2,6 +2,7 @@ import { el, showScreen } from "../screens.js";
 import { getCard } from "/shared/engine/cardDb.js";
 import { getCollection, currentUser } from "../api.js";
 import { toast } from "../ui.js";
+import { showCardZoomWithActions } from "../game/cardZoom.js";
 
 let socket = null;
 let myCollection = {};
@@ -87,7 +88,12 @@ function renderBody() {
             broadcastSelection();
           },
         },
-        [el("img", { src: `/${card.image}`, alt: card.name }), ...(selectedCount ? [el("div", { class: "bbl-badge qty-badge" }, String(selectedCount))] : [])]
+        [
+          el("img", { src: `/${card.image}`, alt: card.name }),
+          el("div", { class: "bbl-badge owned-badge", title: "Copies you own" }, `x${myCollection[cardId]}`),
+          ...(selectedCount ? [el("div", { class: "bbl-badge qty-badge" }, String(selectedCount))] : []),
+          el("button", { class: "zoom-btn", title: "Zoom in", onclick: (e) => { e.stopPropagation(); showCardZoomWithActions(cardId, []); } }, "🔍"),
+        ]
       )
     );
   }

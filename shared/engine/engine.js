@@ -105,9 +105,15 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
  * actually belongs to, and choices tied to a reactive card would always fall back to
  * whatever default the caller picked - almost always wrong for the defending/reacting
  * player's own effects.
+ *
+ * Also tags every yielded request with `__windowCtx` (when one exists) so the UI layer can
+ * tell it's resolving mid-attack and, for a "choose one of your own players" prompt, that
+ * the attack's current target is the specific player under threat - see choiceEnrich.js,
+ * which reads this to highlight that player rather than every effect file needing to pass
+ * it through by hand.
  */
-function scopedResolver(resolveChoice, controllerIndex) {
-  return (request) => resolveChoice({ ...request, forPlayer: request.forPlayer ?? controllerIndex });
+function scopedResolver(resolveChoice, controllerIndex, windowCtx) {
+  return (request) => resolveChoice({ ...request, forPlayer: request.forPlayer ?? controllerIndex, __windowCtx: request.__windowCtx ?? windowCtx });
 }
 
 /** Runs one chosen source's effect: pays cost + discards from hand first for Events, then resolves. */
@@ -119,7 +125,7 @@ async function activateSource(state, controllerIndex, source, windowCtx, resolve
   }
   const ctx = makeEffectContext(state, { controllerIndex, source });
   if (source.effectDef.resolve) {
-    await runEffect(source.effectDef.resolve(ctx, windowCtx), scopedResolver(resolveChoice, controllerIndex));
+    await runEffect(source.effectDef.resolve(ctx, windowCtx), scopedResolver(resolveChoice, controllerIndex, windowCtx));
   }
   log(state, { type: "EFFECT_ACTIVATED", controllerIndex, cardId: source.cardId, trigger: source.effectDef.trigger, label: source.label });
   processPendingPostEffectHooks(state);

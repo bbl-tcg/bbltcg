@@ -142,6 +142,8 @@ export function autoResolveForBot(request) {
   switch (request.type) {
     case "CHOOSE_YES_NO":
       return true;
+    case "CHOOSE_FIRST_OR_SECOND":
+      return "first";
     case "CHOOSE_NUMBER":
       return request.max ?? request.min ?? 0;
     case "CHOOSE_CARDS": {

@@ -49,7 +49,7 @@ export function renderRulebook() {
     el("h2", {}, "Setup"),
     el("ol", {}, [
       el("li", {}, "Each player's deck is exactly 60 cards (not counting the Head Coach or PLAYERSCORE UP!), plus 1 Head Coach and 8 PLAYERSCORE UP!."),
-      el("li", {}, "Both players roll a die; the higher roll decides who goes first (reroll ties)."),
+      el("li", {}, "Both players roll a die (reroll ties) - the higher roll wins the choice of whether to go first or second."),
       el("li", {}, "Draw 5 cards. You may mulligan once (shuffle your hand back and redraw 5). STAR Players and Players with a Cost of 3 or more cannot be put on the field at setup, so every kept hand is guaranteed to contain at least 1 Player with a Cost of 3 or less."),
       el("li", {}, "Take the next 2 cards off the top of your deck as your face-down Score."),
       el("li", {}, "Each player plays 1 Player (Cost 3 or less, not a STAR Player) from their hand to the field for free."),

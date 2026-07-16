@@ -42,8 +42,20 @@ export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice =
     toast("Opponent goes first.");
   } else {
     const roll = rollForFirstPick(rng);
-    setFirstPlayer(state, roll.winnerIndex);
-    toast(`${roll.winnerIndex === 0 ? "You" : "Opponent"} won the die roll (${roll.playerARoll} vs ${roll.playerBRoll}) and goes first.`);
+    const winnerIndex = roll.winnerIndex;
+    const winnerLabel = G.vsBot ? (winnerIndex === G.humanIndex ? "You" : "The bot") : `Player ${winnerIndex + 1}`;
+    toast(`${winnerLabel} won the die roll (${roll.playerARoll} vs ${roll.playerBRoll}).`);
+
+    let firstIndex;
+    if (isBotSeat(winnerIndex)) {
+      firstIndex = winnerIndex; // bots always choose to go first
+    } else {
+      const choice = await showChoice({ type: "CHOOSE_FIRST_OR_SECOND", prompt: `${winnerLabel} won the die roll - go first or second?` });
+      firstIndex = choice === "second" ? (winnerIndex === 0 ? 1 : 0) : winnerIndex;
+    }
+    setFirstPlayer(state, firstIndex);
+    const firstLabel = G.vsBot ? (firstIndex === G.humanIndex ? "You" : "The bot") : `Player ${firstIndex + 1}`;
+    toast(`${firstLabel} will go first.`);
   }
 
   for (const p of [0, 1]) {

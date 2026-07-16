@@ -125,7 +125,7 @@ function isCardOptionRequest(request) {
  */
 function normalizeCardOptions(options, requestType) {
   return (options || []).map((o) => {
-    if (o && o.__enrichedInstance) return { cardId: o.cardId, label: getCard(o.cardId).name, value: o.instanceId };
+    if (o && o.__enrichedInstance) return { cardId: o.cardId, label: getCard(o.cardId).name, value: o.instanceId, threatened: !!o.threatened };
     if (typeof o === "string") {
       const label = requestType === "CHOOSE_PS_UP" ? "PS UP" : null;
       return { cardId: null, instanceId: o, label, value: o };
@@ -140,7 +140,7 @@ function buildCardOptionGrid(options, onPick) {
   for (const opt of options) {
     if (opt.cardId) {
       grid.appendChild(
-        el("div", { class: "choice-option", onclick: () => onPick(opt.value) }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })])
+        el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}`, onclick: () => onPick(opt.value) }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })])
       );
     } else {
       grid.appendChild(
@@ -164,7 +164,7 @@ function buildZoomSelectGrid(options, onPick) {
   const grid = el("div", { class: "choice-options" });
   for (const opt of options) {
     if (!opt.cardId) continue;
-    const tile = el("div", { class: "choice-option" }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })]);
+    const tile = el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}` }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })]);
     tile.onclick = () => {
       const zoomOverlay = el("div", { class: "card-zoom-overlay" });
       zoomOverlay.onclick = (e) => {
@@ -199,7 +199,7 @@ function renderMultiSelect(panel, request, options, finish) {
 
   options.forEach((opt) => {
     const tile = opt.cardId
-      ? el("div", { class: "choice-option" }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })])
+      ? el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}` }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })])
       : el("div", { class: "choice-option bbl-btn ghost" }, typeof opt.value === "string" ? opt.value : "Option");
     tile.addEventListener("click", () => {
       if (selected.has(opt)) selected.delete(opt);

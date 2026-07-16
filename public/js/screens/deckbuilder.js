@@ -5,14 +5,17 @@ import { MAX_COPIES_PER_NAME, MAIN_DECK_SIZE, PS_DECK_SIZE } from "/shared/engin
 import { loadCustomDecks, saveCustomDeck, deleteCustomDeck, loadCollection } from "../storage.js";
 import { toast, confirmDialog } from "../ui.js";
 import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck, getCollection } from "../api.js";
+import { showCardZoomWithActions } from "../game/cardZoom.js";
 
 let deck = null; // { id?, name, headCoachId, mainDeck: string[] }
 let filterText = "";
 let savedDecksCache = [];
 let collectionCache = {}; // { [cardId]: quantityOwned }
 
+/** Only Head Coaches actually in the account's/browser's collection - a Head Coach with
+ * 0 copies owned isn't a legal deck foundation, so it shouldn't be offered as one. */
 function headCoaches() {
-  return allCards().filter((c) => c.type === "HeadCoach");
+  return allCards().filter((c) => c.type === "HeadCoach" && ownedQty(c.id) > 0);
 }
 
 function newDeck(headCoachId) {
@@ -35,32 +38,47 @@ async function removeSavedDeck(d) {
   deleteCustomDeck(d.name);
 }
 
-/** Server-backed collection when logged in; this browser's localStorage otherwise - a
- * Head Coach is always "ownable" for free since every account/guest can pick any of them. */
+/** Server-backed collection when logged in; this browser's localStorage otherwise. */
 async function loadCollectionData() {
   if (isLoggedIn()) return getCollection();
   return loadCollection();
 }
 
 function ownedQty(cardId) {
-  const card = getCard(cardId);
-  if (card.type === "HeadCoach") return 1;
   return collectionCache[cardId] || 0;
 }
 
 export async function renderDeckbuilder() {
-  if (!deck) deck = newDeck(headCoaches()[0]?.id);
   const root = document.getElementById("deckbuilder-screen");
   root.className = "screen deckbuilder-screen";
+  // headCoaches() now depends on the collection, so it must load *before* picking a
+  // default deck - deriving it first (as this used to) would always see an empty
+  // collectionCache and could wedge `deck` on an undefined Head Coach forever, since the
+  // `if (!deck)` guard below only ever runs this once.
   [savedDecksCache, collectionCache] = await Promise.all([
     loadSavedDecks().catch(() => []),
     loadCollectionData().catch(() => ({})),
   ]);
+  if (!deck) deck = newDeck(headCoaches()[0]?.id);
   renderAll();
 }
 
 function renderAll() {
   const root = document.getElementById("deckbuilder-screen");
+
+  if (headCoaches().length === 0) {
+    root.innerHTML = "";
+    root.appendChild(
+      el("div", { style: "padding:24px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;" }, [
+        el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu"),
+        el("div", { style: "font-weight:800;color:var(--bbl-blue);font-size:1.1rem;" }, "You don't own any Head Coaches yet"),
+        el("div", {}, "Open a pack or start from one of the 4 starter decks to get one."),
+      ])
+    );
+    return;
+  }
+  if (!deck || ownedQty(deck.headCoachId) <= 0) deck = newDeck(headCoaches()[0]?.id);
+
   const prevScrollTop = root.querySelector(".db-pool")?.scrollTop ?? 0;
   root.innerHTML = "";
 
@@ -163,7 +181,9 @@ function renderPool() {
     const count = countInDeck(card.name);
     const tile = el("div", { class: "db-card-tile", onclick: () => addCard(card) }, [
       el("img", { src: `/${card.image}`, alt: card.name }),
+      el("div", { class: "bbl-badge owned-badge", title: "Copies you own" }, `x${ownedQty(card.id)}`),
       ...(count > 0 ? [el("div", { class: "bbl-badge qty-badge" }, String(count))] : []),
+      el("button", { class: "zoom-btn", title: "Zoom in", onclick: (e) => { e.stopPropagation(); showCardZoomWithActions(card.id, []); } }, "🔍"),
     ]);
     pool.appendChild(tile);
   }

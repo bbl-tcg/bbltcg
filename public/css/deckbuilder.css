@@ -77,6 +77,29 @@
   top: -6px;
   right: -6px;
 }
+/* Used on both the Deckbuilder and Trade screens - both reuse this same class. */
+.db-card-tile .owned-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  background: var(--bbl-blue);
+}
+.db-card-tile .zoom-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--bbl-black);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .db-status {
   padding: 8px;
   border-radius: 6px;

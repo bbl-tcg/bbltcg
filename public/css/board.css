@@ -371,3 +371,9 @@
 .choice-options .choice-option.selected img {
   outline: 3px solid var(--bbl-red);
 }
+/* Marks the player currently under attack in a reactive-effect target picker (e.g.
+   Rebound/Save asking "give +Health to which player?") so the choice is informed. */
+.choice-options .choice-option.threatened img {
+  outline: 3px solid var(--bbl-red);
+  box-shadow: 0 0 14px 3px rgba(153, 34, 43, 0.85);
+}
