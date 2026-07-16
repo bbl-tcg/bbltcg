@@ -35,9 +35,6 @@ export function renderLogin() {
       el("button", { class: "bbl-btn secondary", onclick: () => showScreen("menu-screen") }, "Cancel"),
     ])
   );
-  root.style.display = "flex";
-  root.style.alignItems = "center";
-  root.style.justifyContent = "center";
 }
 
 function inputStyle() {

@@ -1,14 +1,15 @@
 import { el, showScreen } from "../screens.js";
 import { allCards, getCard } from "/shared/engine/cardDb.js";
 import { validateDeck } from "/shared/engine/deckLegality.js";
-import { MAX_COPIES_PER_NAME, MAIN_DECK_SIZE } from "/shared/engine/constants.js";
-import { loadCustomDecks, saveCustomDeck, deleteCustomDeck } from "../storage.js";
+import { MAX_COPIES_PER_NAME, MAIN_DECK_SIZE, PS_DECK_SIZE } from "/shared/engine/constants.js";
+import { loadCustomDecks, saveCustomDeck, deleteCustomDeck, loadCollection } from "../storage.js";
 import { toast, confirmDialog } from "../ui.js";
-import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck } from "../api.js";
+import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck, getCollection } from "../api.js";
 
 let deck = null; // { id?, name, headCoachId, mainDeck: string[] }
 let filterText = "";
 let savedDecksCache = [];
+let collectionCache = {}; // { [cardId]: quantityOwned }
 
 function headCoaches() {
   return allCards().filter((c) => c.type === "HeadCoach");
@@ -34,16 +35,33 @@ async function removeSavedDeck(d) {
   deleteCustomDeck(d.name);
 }
 
+/** Server-backed collection when logged in; this browser's localStorage otherwise - a
+ * Head Coach is always "ownable" for free since every account/guest can pick any of them. */
+async function loadCollectionData() {
+  if (isLoggedIn()) return getCollection();
+  return loadCollection();
+}
+
+function ownedQty(cardId) {
+  const card = getCard(cardId);
+  if (card.type === "HeadCoach") return 1;
+  return collectionCache[cardId] || 0;
+}
+
 export async function renderDeckbuilder() {
   if (!deck) deck = newDeck(headCoaches()[0]?.id);
   const root = document.getElementById("deckbuilder-screen");
   root.className = "screen deckbuilder-screen";
-  savedDecksCache = await loadSavedDecks().catch(() => []);
+  [savedDecksCache, collectionCache] = await Promise.all([
+    loadSavedDecks().catch(() => []),
+    loadCollectionData().catch(() => ({})),
+  ]);
   renderAll();
 }
 
 function renderAll() {
   const root = document.getElementById("deckbuilder-screen");
+  const prevScrollTop = root.querySelector(".db-pool")?.scrollTop ?? 0;
   root.innerHTML = "";
 
   root.appendChild(renderTopbar());
@@ -51,6 +69,9 @@ function renderAll() {
   body.appendChild(renderPool());
   body.appendChild(renderDeckPanel());
   root.appendChild(body);
+
+  const pool = root.querySelector(".db-pool");
+  if (pool) pool.scrollTop = prevScrollTop;
 }
 
 function renderTopbar() {
@@ -98,7 +119,7 @@ function renderTopbar() {
 }
 
 async function onSaveDeck() {
-  const result = validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: 5 });
+  const result = validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: PS_DECK_SIZE });
   try {
     await persistDeck(deck);
   } catch (err) {
@@ -121,6 +142,7 @@ function eligibleCards() {
   const hcMonths = new Set(hc.months || []);
   return allCards().filter((c) => {
     if (!["Player", "StarPlayer", "AssistantCoach", "Event"].includes(c.type)) return false;
+    if (ownedQty(c.id) <= 0) return false;
     if (c.type !== "Event" && !(c.months || []).some((m) => hcMonths.has(m))) return false;
     if (filterText && !c.name.toLowerCase().includes(filterText.toLowerCase())) return false;
     return true;
@@ -129,6 +151,10 @@ function eligibleCards() {
 
 function countInDeck(name) {
   return deck.mainDeck.filter((id) => getCard(id).name === name).length;
+}
+
+function countInDeckById(cardId) {
+  return deck.mainDeck.filter((id) => id === cardId).length;
 }
 
 function renderPool() {
@@ -153,6 +179,10 @@ function addCard(card) {
     toast(`You already have the maximum ${MAX_COPIES_PER_NAME} copies of "${card.name}".`);
     return;
   }
+  if (countInDeckById(card.id) >= ownedQty(card.id)) {
+    toast(`You only own ${ownedQty(card.id)} cop${ownedQty(card.id) === 1 ? "y" : "ies"} of "${card.name}".`);
+    return;
+  }
   deck.mainDeck.push(card.id);
   renderAll();
 }
@@ -165,9 +195,9 @@ function removeCard(cardId) {
 
 function renderDeckPanel() {
   const panel = el("div", { class: "db-deck-panel" });
-  const result = validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: 5 });
+  const result = validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: PS_DECK_SIZE });
 
-  panel.appendChild(el("div", { style: "font-weight:800;color:var(--bbl-blue);" }, `${deck.mainDeck.length} / ${MAIN_DECK_SIZE} cards + 1 Head Coach + 5 PLAYERSCORE UP!`));
+  panel.appendChild(el("div", { style: "font-weight:800;color:var(--bbl-blue);" }, `${deck.mainDeck.length} / ${MAIN_DECK_SIZE} cards + 1 Head Coach + ${PS_DECK_SIZE} PLAYERSCORE UP!`));
 
   const status = el(
     "div",
@@ -189,7 +219,10 @@ function renderDeckPanel() {
     [...grouped.values()].map((g) =>
       el("div", { class: "db-deck-row" }, [
         el("span", {}, `${g.card.name} x${g.count}`),
-        el("button", { class: "bbl-btn secondary", style: "padding:2px 8px;font-size:0.75rem;", onclick: () => removeCard(g.id) }, "-1"),
+        el("div", { style: "display:flex;gap:4px;" }, [
+          el("button", { class: "bbl-btn", style: "padding:2px 8px;font-size:0.75rem;", onclick: () => addCard(g.card) }, "+1"),
+          el("button", { class: "bbl-btn secondary", style: "padding:2px 8px;font-size:0.75rem;", onclick: () => removeCard(g.id) }, "-1"),
+        ]),
       ])
     )
   );

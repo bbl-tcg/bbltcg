@@ -31,7 +31,7 @@ export function renderMenu() {
     el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderTrade(); showScreen("trade-screen"); }) }, "Trade Cards"),
     el("button", { class: "bbl-btn", onclick: () => { renderRulebook(); showScreen("rulebook-screen"); } }, "Rulebook"),
     isLoggedIn()
-      ? el("button", { class: "bbl-btn ghost", onclick: async () => { await logout(); renderMenu(); } }, "Log Out")
+      ? el("button", { class: "bbl-btn ghost", onclick: async () => { await logout(); renderMenu(); showScreen("menu-screen"); } }, "Log Out")
       : el("button", { class: "bbl-btn ghost", onclick: () => { renderLogin(); showScreen("login-screen"); } }, "Login"),
   ]);
   root.appendChild(buttons);

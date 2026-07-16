@@ -134,12 +134,17 @@ export function speedTriangleBonus(attackerSpeed, defenderSpeed) {
 
 export function isStarPlayerInPowerUpTurns(instance, currentTurnNumber) {
   if (!instance.isStarPlayer) return false;
-  // "Power Up Turns" = the turn played and the turn immediately after.
-  return currentTurnNumber === instance.turnPlayed || currentTurnNumber === instance.turnPlayed + 1;
+  // "Power Up Turns" = the turn played and this player's own next turn. state.turnNumber
+  // is a single counter that alternates between both players (it increments once per
+  // endTurn, for *either* player), so a given player's own next turn is turnPlayed + 2,
+  // not turnPlayed + 1 (which would actually be the opponent's very next turn).
+  return currentTurnNumber === instance.turnPlayed || currentTurnNumber === instance.turnPlayed + 2;
 }
 
 export function canAttack(state, playerIndex, instance, isFirstTurnOfGameForActor) {
   if (isFirstTurnOfGameForActor) return false;
+  // Ordinary summoning sickness: can't attack on the very turn this card was played.
+  if (instance.turnPlayed === state.turnNumber) return false;
   if (instance.hasAttackedThisTurn && instance.extraAttacksGrantedThisTurn <= 0) return false;
   if (isStarPlayerInPowerUpTurns(instance, state.turnNumber)) return false;
   if (isStunned(instance)) return false;

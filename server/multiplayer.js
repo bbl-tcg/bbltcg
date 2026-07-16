@@ -1,4 +1,4 @@
-import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer } from "../shared/engine/setup.js";
+import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "../shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "../shared/engine/turn.js";
 import * as engine from "../shared/engine/engine.js";
 import { makeRng } from "../shared/engine/rng.js";
@@ -14,11 +14,6 @@ function generateInviteCode() {
     code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
   } while (rooms.has(code));
   return code;
-}
-
-function isPlayerish(cardId) {
-  const t = getCard(cardId).type;
-  return t === "Player" || t === "StarPlayer";
 }
 
 /** Strips information the *other* player shouldn't see: hand contents (count only), deck
@@ -95,7 +90,7 @@ class Room {
     drawOpeningHand(this.state, 1, rng);
     for (const p of [0, 1]) {
       const hand = this.state.players[p].hand.map((id) => getCard(id).name);
-      const wantsMulligan = await this.resolveChoice({ forPlayer: p, type: "CHOOSE_YES_NO", prompt: `Your hand: ${hand.join(", ")}. Mulligan?` });
+      const wantsMulligan = await this.resolveChoice({ forPlayer: p, type: "CHOOSE_YES_NO", prompt: `Your hand: ${hand.join(", ")}. Mulligan?`, yesLabel: "Mulligan", noLabel: "Keep" });
       if (wantsMulligan) mulligan(this.state, p, rng);
       keepHand(this.state, p);
     }
@@ -110,11 +105,11 @@ class Room {
     setFirstPlayer(this.state, firstPlayerIndex);
 
     for (const p of [0, 1]) {
-      const candidates = this.state.players[p].hand.map((cardId, handIndex) => ({ cardId, handIndex })).filter((e) => isPlayerish(e.cardId));
+      const candidates = this.state.players[p].hand.map((cardId, handIndex) => ({ cardId, handIndex })).filter((e) => isEligibleForOpeningField(e.cardId));
       const handIndex =
         candidates.length === 1
           ? candidates[0].handIndex
-          : (await this.resolveChoice({ forPlayer: p, type: "CHOOSE_HAND_CARD", prompt: "Choose your opening Player/Star Player", options: candidates })).handIndex;
+          : (await this.resolveChoice({ forPlayer: p, type: "CHOOSE_HAND_CARD", prompt: "Choose your opening Player (Cost 3 or less)", options: candidates })).handIndex;
       playOpeningCard(this.state, p, handIndex);
     }
 
@@ -171,6 +166,10 @@ class Room {
       case "endTurn":
         await engine.endTurn(this.state, me, resolveChoice, decideWindow);
         return { ok: true };
+      case "concede":
+        this.state.gameOver = true;
+        this.state.winner = me === 0 ? 1 : 0;
+        return { ok: true };
       default:
         return { ok: false, reason: "UNKNOWN_ACTION" };
     }
@@ -221,6 +220,15 @@ export function attachMultiplayer(io) {
       if (!room) return;
       const otherIndex = socket.data.playerIndex === 0 ? 1 : 0;
       room.sockets[otherIndex]?.emit("opponent-disconnected");
+
+      // A game already in progress shouldn't just hang forever waiting on a turn from a
+      // player who's gone - award the win to whoever's still connected instead.
+      if (room.state && !room.state.gameOver) {
+        room.state.gameOver = true;
+        room.state.winner = otherIndex;
+        room.broadcastState();
+        room.awardResults().catch(() => {});
+      }
       // Room is left in place (not deleted) so the same code can be used to reconnect;
       // a stale/abandoned room is harmless since it's only kept in memory, not the DB.
     });

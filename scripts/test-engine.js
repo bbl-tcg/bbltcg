@@ -184,8 +184,11 @@ await asyncTest("Deck Sphera: rests 1 PS UP and free-plays a Skuba Doo from hand
   const { state } = freshGame();
   setFirstPlayer(state, 0);
   const player = state.players[0];
-  player.hand = ["001-001", "001-006"];
-  playOpeningCard(state, 0, 0); // Deck Sphera as the free opening play
+  // Deck Sphera (Cost 4) is no longer eligible as a free opening-field play under the
+  // "STAR Players and Cost 3+ Players can't be put on the field at setup" rule, so place
+  // it directly for this test - the setup flow itself is covered by its own test above.
+  player.playerSlots[0] = createFieldInstance("001-001", 0);
+  player.hand = ["001-006"];
   startTurn(state);
   drawPsUpFromDeck(state, 0, 1); // guarantee a payable PS UP beyond the automatic PS-draw
 

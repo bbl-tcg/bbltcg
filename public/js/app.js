@@ -1,3 +1,4 @@
+import "/shared/effects/index.js"; // registers all 156 card effects - must load before any local/hot-seat game runs
 import { loadCardDb } from "./loadCardDb.js";
 import { showScreen, currentScreenKind } from "./screens.js";
 import { renderMenu } from "./screens/menu.js";

@@ -5,16 +5,12 @@ import "../shared/effects/index.js";
 import { allCards, getCard } from "../shared/engine/cardDb.js";
 import { makeRng, shuffle } from "../shared/engine/rng.js";
 import { validateDeck } from "../shared/engine/deckLegality.js";
-import { initializeGame, drawOpeningHand, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer } from "../shared/engine/setup.js";
+import { initializeGame, drawOpeningHand, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "../shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "../shared/engine/turn.js";
 import * as engine from "../shared/engine/engine.js";
+import { PS_DECK_SIZE } from "../shared/engine/constants.js";
 
 const MAX_TURNS = 150;
-
-function isPlayerish(cardId) {
-  const t = getCard(cardId).type;
-  return t === "Player" || t === "StarPlayer";
-}
 
 function autoResolve(request) {
   switch (request.type) {
@@ -28,6 +24,8 @@ function autoResolve(request) {
       return null;
     case "CHOOSE_OPPONENT_PLAYERS":
       return (request.options || []).slice(0, request.count ?? 0);
+    case "CHOOSE_TWO_OWN_PLAYERS":
+      return (request.options || []).slice(0, 2);
     default: {
       const options = request.options;
       if (Array.isArray(options) && options.length > 0) return options[0];
@@ -60,7 +58,7 @@ function buildDeckForMonth(month, rng) {
     if (i > 2000) break; // safety valve if a month doesn't have enough unique card pool
   }
 
-  return { headCoachId: headCoach.id, mainDeck, psDeckCount: 5 };
+  return { headCoachId: headCoach.id, mainDeck, psDeckCount: PS_DECK_SIZE };
 }
 
 async function playOneGame(deckA, deckB, seed) {
@@ -80,7 +78,7 @@ async function playOneGame(deckA, deckB, seed) {
   const roll = rollForFirstPick(rng);
   setFirstPlayer(state, roll.winnerIndex);
   for (const p of [0, 1]) {
-    const idx = state.players[p].hand.findIndex(isPlayerish);
+    const idx = state.players[p].hand.findIndex(isEligibleForOpeningField);
     if (idx !== -1) playOpeningCard(state, p, idx);
   }
 

@@ -21,8 +21,8 @@ export function showChoice(request) {
     if (request.type === "CHOOSE_YES_NO") {
       panel.appendChild(
         el("div", { style: "display:flex;gap:10px;justify-content:center;" }, [
-          el("button", { class: "bbl-btn", onclick: () => finish(true) }, "Yes"),
-          el("button", { class: "bbl-btn secondary", onclick: () => finish(false) }, "No"),
+          el("button", { class: "bbl-btn", onclick: () => finish(true) }, request.yesLabel || "Yes"),
+          el("button", { class: "bbl-btn secondary", onclick: () => finish(false) }, request.noLabel || "No"),
         ])
       );
     } else if (request.type === "CHOOSE_NUMBER") {

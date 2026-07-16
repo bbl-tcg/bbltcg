@@ -85,7 +85,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
       el("div", {
         class: "card-face",
         style: `background-image:url(${cardImg(player.headCoach.cardId)});`,
-        onclick: () => handlers.onZoom?.(player.headCoach.cardId),
+        onclick: () => handlers.onCoachClick?.(playerIndex, "HEAD_COACH", player.headCoach.cardId),
       }),
     ])
   );
@@ -95,7 +95,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
         el("div", {
           class: "card-face",
           style: `background-image:url(${cardImg(player.assistantCoach.cardId)});`,
-          onclick: () => handlers.onZoom?.(player.assistantCoach.cardId),
+          onclick: () => handlers.onCoachClick?.(playerIndex, "ASSISTANT_COACH", player.assistantCoach.cardId),
         }),
       ])
     );
@@ -133,7 +133,8 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   }
   grid.appendChild(psFieldSector);
 
-  // Bottom-right: Discard
+  // Bottom-right: Discard - the count badge always shows (even at 0) so both players can
+  // see it at a glance; the clickable top-card face only appears once there's a card to show.
   const discardSector = el("div", { class: "sector sector-discard" });
   if (player.discard.length > 0) {
     const topCardId = player.discard[player.discard.length - 1];
@@ -146,8 +147,8 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
         }),
       ])
     );
-    discardSector.appendChild(countBadge(player.discard.length));
   }
+  discardSector.appendChild(countBadge(player.discard.length));
   grid.appendChild(discardSector);
 
   return grid;
@@ -178,6 +179,7 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
     [
       el("div", { class: "health-pill" }, String(health)),
       el("div", { class: "attack-pill" }, String(attack)),
+      el("div", { class: "cost-pill" }, String(card.cost)),
       ...(inst.attachedPsUp.length ? [psAttachBadge(inst.attachedPsUp.length)] : []),
     ]
   );

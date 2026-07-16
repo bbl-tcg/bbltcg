@@ -93,6 +93,19 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
   });
 }
 
+/**
+ * Defaults a yielded choice request's `forPlayer` to whoever controls the effect being
+ * resolved, unless the effect explicitly overrides it (e.g. `forPlayer: ctx.opponent`).
+ * Without this, a caller holding a single shared `resolveChoice` function for a whole
+ * action (as the multiplayer room does) has no way to know which seat a given request
+ * actually belongs to, and choices tied to a reactive card would always fall back to
+ * whatever default the caller picked - almost always wrong for the defending/reacting
+ * player's own effects.
+ */
+function scopedResolver(resolveChoice, controllerIndex) {
+  return (request) => resolveChoice({ ...request, forPlayer: request.forPlayer ?? controllerIndex });
+}
+
 /** Runs one chosen source's effect: pays cost + discards from hand first for Events, then resolves. */
 async function activateSource(state, controllerIndex, source, windowCtx, resolveChoice) {
   if (source.zone === "HAND") {
@@ -102,7 +115,7 @@ async function activateSource(state, controllerIndex, source, windowCtx, resolve
   }
   const ctx = makeEffectContext(state, { controllerIndex, source });
   if (source.effectDef.resolve) {
-    await runEffect(source.effectDef.resolve(ctx, windowCtx), resolveChoice);
+    await runEffect(source.effectDef.resolve(ctx, windowCtx), scopedResolver(resolveChoice, controllerIndex));
   }
   log(state, { type: "EFFECT_ACTIVATED", controllerIndex, cardId: source.cardId, trigger: source.effectDef.trigger, label: source.label });
   processPendingPostEffectHooks(state);
@@ -226,7 +239,7 @@ export async function playCard(state, playerIndex, handIndex, { replaceSlot = nu
     if (onPlayDef && onPlayDef.trigger === TRIGGER.ON_PLAY) {
       const ctx = makeEffectContext(state, { controllerIndex: playerIndex, source: { ...source, effectDef: onPlayDef, label: "main" } });
       if (!onPlayDef.canActivate || onPlayDef.canActivate(ctx)) {
-        await runEffect(onPlayDef.resolve(ctx), resolveChoice);
+        await runEffect(onPlayDef.resolve(ctx), scopedResolver(resolveChoice, playerIndex));
       }
     }
   }

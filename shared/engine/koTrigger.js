@@ -27,12 +27,16 @@ export async function triggerOnKoIfApplicable(state, playerIndex, slot, resolveC
   const koedInst = player.playerSlots[slot];
   if (!koedInst) return;
 
+  // Default any yielded choice to the KOed card's own controller unless the effect
+  // explicitly redirects it (see engine.js's scopedResolver for the full rationale).
+  const scopedResolveChoice = (request) => resolveChoice({ ...request, forPlayer: request.forPlayer ?? playerIndex });
+
   const selfDef = onKoDefFor(koedInst.cardId);
   if (selfDef) {
     const source = { cardId: koedInst.cardId, zone: "FIELD", instanceId: koedInst.instanceId, slot };
     const ctx = makeEffectContext(state, { controllerIndex: playerIndex, source });
     if (!selfDef.canActivate || selfDef.canActivate(ctx)) {
-      await runEffect(selfDef.resolve(ctx), resolveChoice);
+      await runEffect(selfDef.resolve(ctx), scopedResolveChoice);
     }
   }
 
@@ -45,6 +49,6 @@ export async function triggerOnKoIfApplicable(state, playerIndex, slot, resolveC
     const source = { cardId: inst.cardId, zone: "FIELD", instanceId: inst.instanceId, slot: otherSlot };
     const ctx = makeEffectContext(state, { controllerIndex: playerIndex, source });
     if (def.canActivate && !def.canActivate(ctx)) continue;
-    await runEffect(def.resolve(ctx), resolveChoice);
+    await runEffect(def.resolve(ctx), scopedResolveChoice);
   }
 }

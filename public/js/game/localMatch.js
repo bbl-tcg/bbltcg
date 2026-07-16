@@ -1,20 +1,18 @@
 import { getCard } from "/shared/engine/cardDb.js";
 import { makeRng } from "/shared/engine/rng.js";
-import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer } from "/shared/engine/setup.js";
+import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "/shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "/shared/engine/turn.js";
 import * as engine from "/shared/engine/engine.js";
+import { getStaticFlag } from "/shared/engine/stats.js";
 import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
+import { showCardZoomWithActions } from "./cardZoom.js";
 import { runBotTurn, autoResolveForBot, chooseBotReaction } from "../bot/ai.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { isLoggedIn, reportGameResult } from "../api.js";
+import { confirmDialog } from "../ui.js";
 
 let G = null;
-
-function isPlayerish(cardId) {
-  const t = getCard(cardId).type;
-  return t === "Player" || t === "StarPlayer";
-}
 
 export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice = "random" }) {
   const rng = makeRng((Date.now() % 1e9) + Math.floor(Math.random() * 1e6));
@@ -58,21 +56,21 @@ async function maybeOfferMulligan(playerIndex, rng) {
   if (isBotSeat(playerIndex)) return; // bots always keep for now
   const hand = G.state.players[playerIndex].hand;
   const names = hand.map((id) => getCard(id).name).join(", ");
-  const wantsMulligan = await showChoice({ type: "CHOOSE_YES_NO", prompt: `Player ${playerIndex + 1}'s hand: ${names}. Mulligan (redraw once)?` });
+  const wantsMulligan = await showChoice({ type: "CHOOSE_YES_NO", prompt: `Player ${playerIndex + 1}'s hand: ${names}. Mulligan (redraw once)?`, yesLabel: "Mulligan", noLabel: "Keep" });
   if (wantsMulligan) mulligan(G.state, playerIndex, rng);
 }
 
 async function pickOpeningCard(playerIndex) {
   const state = G.state;
   const hand = state.players[playerIndex].hand;
-  const candidates = hand.map((cardId, handIndex) => ({ cardId, handIndex })).filter((e) => isPlayerish(e.cardId));
+  const candidates = hand.map((cardId, handIndex) => ({ cardId, handIndex })).filter((e) => isEligibleForOpeningField(e.cardId));
   let handIndex;
   if (isBotSeat(playerIndex) || candidates.length === 1) {
     handIndex = candidates[0].handIndex;
   } else {
     const chosen = await showChoice({
       type: "CHOOSE_HAND_CARD",
-      prompt: `Player ${playerIndex + 1}: choose your opening Player/Star Player (played free)`,
+      prompt: `Player ${playerIndex + 1}: choose your opening Player (Cost 3 or less; played free)`,
       options: candidates,
     });
     handIndex = chosen.handIndex;
@@ -157,17 +155,15 @@ function render() {
   const me = G.state.activePlayerIndex;
   const viewerIndex = G.vsBot ? G.humanIndex : me;
   const isMyTurn = me === viewerIndex;
-  topbar.innerHTML = `
-    <div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${G.state.turnNumber}</div>
-    <div class="phase-pill">${G.state.phase}</div>
-  `;
+  topbar.innerHTML = `<div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${G.state.turnNumber}</div>`;
   const actions = document.createElement("div");
   actions.className = "topbar-actions";
-  const effectsBtn = mkBtn("Effects", () => showEffectsPanel(viewerIndex));
+  const concedeBtn = mkBtn("Concede", onConcede);
+  concedeBtn.classList.add("secondary");
+  concedeBtn.disabled = !isMyTurn;
   const endBtn = mkBtn("End Turn", () => G.endTurnResolve && G.endTurnResolve());
   endBtn.disabled = !isMyTurn;
-  effectsBtn.disabled = !isMyTurn;
-  actions.appendChild(effectsBtn);
+  actions.appendChild(concedeBtn);
   actions.appendChild(endBtn);
   topbar.appendChild(actions);
   container.appendChild(topbar);
@@ -196,7 +192,7 @@ function render() {
   renderBoard(boardArea, G.state, viewerIndex, {
     attackableInstanceIds: attackable,
     targetableInstanceIds: targetable,
-    onZoom: (cardId) => showZoom(cardId),
+    onCoachClick: (playerIndex, zone, cardId) => onCoachClick(playerIndex, zone, cardId, isMyTurn, me),
     onDiscardClick: (playerIndex) => showDiscardViewer(playerIndex),
     onHandCardClick: (handIndex, cardId) => onHandCardClick(handIndex, cardId, isMyTurn, me),
     onFieldCardClick: (playerIndex, slot, inst) => onFieldCardClick(playerIndex, slot, inst, isMyTurn, me),
@@ -211,26 +207,44 @@ function mkBtn(label, onClick) {
   return b;
 }
 
-async function onHandCardClick(handIndex, cardId, isMyTurn, me) {
-  if (!isMyTurn) return;
-  const card = getCard(cardId);
-  if (card.type === "Event") {
-    const sources = engine.getActivatableSources(G.state, me, "YOUR_TURN");
-    const match = sources.find((s) => s.zone === "HAND" && s.handIndex === handIndex);
-    if (!match) {
-      toast("That event isn't playable right now.");
-      return;
-    }
-    await engine.activateEffectAction(G.state, me, match, "YOUR_TURN", {}, makeResolver(me));
-    render();
-    return;
-  }
+async function onConcede() {
+  if (!(await confirmDialog("Concede this game?"))) return;
+  const viewerIndex = G.vsBot ? G.humanIndex : G.state.activePlayerIndex;
+  const oppIndex = viewerIndex === 0 ? 1 : 0;
+  G.state.gameOver = true;
+  G.state.winner = oppIndex;
+  showGameOver();
+}
 
-  const check = engine.canPlayCard(G.state, me, handIndex);
-  if (!check.ok) {
-    toast(`Can't play that: ${check.reason}`);
-    return;
+/** Clicking any hand card zooms in on it; a "Play" action appears only when actually legal
+ * right now (correct trigger window for Events, normal play-legality for everything else). */
+function onHandCardClick(handIndex, cardId, isMyTurn, me) {
+  const card = getCard(cardId);
+  const actions = [];
+  if (isMyTurn) {
+    if (card.type === "Event") {
+      const sources = engine.getActivatableSources(G.state, me, "YOUR_TURN");
+      const match = sources.find((s) => s.zone === "HAND" && s.handIndex === handIndex);
+      if (match) {
+        actions.push({
+          label: "Play",
+          onClick: async () => {
+            await engine.activateEffectAction(G.state, me, match, "YOUR_TURN", {}, makeResolver(me));
+            render();
+          },
+        });
+      }
+    } else {
+      const check = engine.canPlayCard(G.state, me, handIndex);
+      if (check.ok) {
+        actions.push({ label: "Play", onClick: () => playFieldCardFromHand(handIndex, cardId, card, me) });
+      }
+    }
   }
+  showCardZoomWithActions(cardId, actions);
+}
+
+async function playFieldCardFromHand(handIndex, cardId, card, me) {
   let replaceSlot = null;
   if ((card.type === "Player" || card.type === "StarPlayer") && !G.state.players[me].playerSlots.some((s) => s === null)) {
     const chosen = await showChoice({
@@ -263,9 +277,12 @@ async function onHandCardClick(handIndex, cardId, isMyTurn, me) {
 }
 
 async function onFieldCardClick(playerIndex, slot, inst, isMyTurn, me) {
-  if (!isMyTurn || !inst) return;
+  if (!inst) return;
   const oppIndex = me === 0 ? 1 : 0;
 
+  // Mid-attack targeting takes priority over zoom: clicking the armed card un-arms it,
+  // clicking an opposing card declares the attack.
+  //
   // Only an opponent's card can be *declared* as the target from the UI - the rare
   // teammate-targeting case (e.g. Ricky Covey Jr.'s GREATER GOOD star power) isn't a
   // player choice made here at all, it's the attacking card's own effect silently
@@ -296,36 +313,58 @@ async function onFieldCardClick(playerIndex, slot, inst, isMyTurn, me) {
     return;
   }
 
-  if (playerIndex === me && engine.canAttackWith(G.state, me, slot)) {
-    G.armedSlot = slot;
-    render();
+  // Otherwise: zoom in, offering whichever actions make sense for this card right now.
+  const actions = [];
+  if (isMyTurn && playerIndex === me) {
+    if (engine.canAttackWith(G.state, me, slot)) {
+      actions.push({ label: "Attack", onClick: () => { G.armedSlot = slot; render(); } });
+    }
+    const hasActivePsUp = G.state.players[me].psField.some((p) => p.isActive && !p.attachedTo);
+    const canAttachPsUp = !inst.isStarPlayer || getStaticFlag(inst, "allowsNormalPsUpAttachment") === true;
+    if (hasActivePsUp && canAttachPsUp) {
+      actions.push({ label: "Attach PLAYERSCORE UP! (+1 Attack)", onClick: () => attachPsUpToField(me, inst.instanceId) });
+    }
+    const effectSources = [...engine.getActivatableSources(G.state, me, "YOUR_TURN"), ...engine.getActivatableSources(G.state, me, "SACRIFICE")].filter(
+      (s) => s.instanceId === inst.instanceId
+    );
+    for (const src of effectSources) {
+      actions.push({
+        label: `Activate: ${getCard(src.cardId).name}${src.label !== "main" ? ` (${src.label})` : ""}`,
+        onClick: async () => {
+          await engine.activateEffectAction(G.state, me, src, src.effectDef.trigger, {}, makeResolver(me));
+          render();
+        },
+      });
+    }
   }
+  showCardZoomWithActions(inst.cardId, actions);
 }
 
-async function showEffectsPanel(me) {
-  const yourTurn = engine.getActivatableSources(G.state, me, "YOUR_TURN").filter((s) => s.zone !== "HAND");
-  const sacrifice = engine.getActivatableSources(G.state, me, "SACRIFICE");
-  const all = [...yourTurn, ...sacrifice];
-  if (all.length === 0) {
-    toast("No effects are activatable right now.");
-    return;
-  }
-  const options = all.map((s) => ({ cardId: s.cardId, label: `${getCard(s.cardId).name}${s.label !== "main" ? ` (${s.label})` : ""}`, value: s }));
-  const chosen = await showChoice({ type: "CHOOSE_EFFECT_SOURCE", prompt: "Activate which effect?", options });
-  if (!chosen) return;
-  const trigger = chosen.effectDef.trigger;
-  await engine.activateEffectAction(G.state, me, chosen, trigger, {}, makeResolver(me));
+function attachPsUpToField(me, targetInstanceId) {
+  const psUp = G.state.players[me].psField.find((p) => p.isActive && !p.attachedTo);
+  if (!psUp) return;
+  const result = engine.attachPsUpAction(G.state, me, psUp.id, targetInstanceId);
+  if (!result.ok) toast(`Can't attach: ${result.reason}`);
   render();
 }
 
-function showZoom(cardId) {
-  const overlay = document.createElement("div");
-  overlay.className = "card-zoom-overlay";
-  overlay.onclick = () => overlay.remove();
-  const img = document.createElement("img");
-  img.src = cardImg(cardId);
-  overlay.appendChild(img);
-  document.body.appendChild(overlay);
+/** Head Coach / Assistant Coach click: zoom in, offering an activation action per
+ * applicable effect (there's no attack/PS-UP action for coaches). */
+function onCoachClick(playerIndex, zone, cardId, isMyTurn, me) {
+  const actions = [];
+  if (isMyTurn && playerIndex === me) {
+    const sources = [...engine.getActivatableSources(G.state, me, "YOUR_TURN"), ...engine.getActivatableSources(G.state, me, "SACRIFICE")].filter((s) => s.zone === zone);
+    for (const src of sources) {
+      actions.push({
+        label: `Activate: ${getCard(src.cardId).name}`,
+        onClick: async () => {
+          await engine.activateEffectAction(G.state, me, src, src.effectDef.trigger, {}, makeResolver(me));
+          render();
+        },
+      });
+    }
+  }
+  showCardZoomWithActions(cardId, actions);
 }
 
 function showDiscardViewer(playerIndex) {

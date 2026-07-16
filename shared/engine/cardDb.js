@@ -4,6 +4,8 @@
 // other engine code runs: scripts/nodeCardDbLoader.js (Node, fs) or public/js/loadCardDb.js
 // (browser, fetch) - see those for the two environment-specific loaders.
 
+import { PS_DECK_SIZE } from "./constants.js";
+
 let cardsArray = [];
 let cardsById = new Map();
 let starterDecksRaw = {};
@@ -45,7 +47,7 @@ export function buildStarterDeckList(deckName) {
       for (let i = 0; i < entry.quantity; i++) mainDeck.push(entry.id);
     }
   }
-  return { headCoachId, mainDeck, psDeckCount: 5 };
+  return { headCoachId, mainDeck, psDeckCount: PS_DECK_SIZE };
 }
 
 export function starterDeckNames() {

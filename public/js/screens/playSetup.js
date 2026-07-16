@@ -7,9 +7,6 @@ export async function renderPlaySetup() {
   const root = document.getElementById("game-setup-screen");
   root.innerHTML = "";
   root.className = "screen menu-screen";
-  root.style.display = "flex";
-  root.style.alignItems = "center";
-  root.style.justifyContent = "center";
   root.appendChild(el("div", { style: "color:white;" }, "Loading decks..."));
 
   const options = await allDeckOptions();

@@ -1,8 +1,11 @@
 import { getCard } from "/shared/engine/cardDb.js";
+import * as engine from "/shared/engine/engine.js";
+import { getStaticFlag } from "/shared/engine/stats.js";
 import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
+import { showCardZoomWithActions } from "./cardZoom.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
-import { toast } from "../ui.js";
+import { toast, confirmDialog } from "../ui.js";
 import { currentUser, reportGameResult } from "../api.js";
 import { showScreen } from "../screens.js";
 
@@ -67,14 +70,15 @@ function render() {
   const topbar = document.createElement("div");
   topbar.className = "game-topbar";
   const isMyTurn = state.activePlayerIndex === me;
-  topbar.innerHTML = `<div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${state.turnNumber}</div><div class="phase-pill">${state.phase}</div>`;
+  topbar.innerHTML = `<div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${state.turnNumber}</div>`;
   const actions = document.createElement("div");
   actions.className = "topbar-actions";
-  const effectsBtn = mkBtn("Effects", showEffectsPanel);
+  const concedeBtn = mkBtn("Concede", onConcede);
+  concedeBtn.classList.add("secondary");
+  concedeBtn.disabled = !isMyTurn;
   const endBtn = mkBtn("End Turn", () => sendAction({ type: "endTurn" }));
-  effectsBtn.disabled = !isMyTurn;
   endBtn.disabled = !isMyTurn;
-  actions.appendChild(effectsBtn);
+  actions.appendChild(concedeBtn);
   actions.appendChild(endBtn);
   topbar.appendChild(actions);
   container.appendChild(topbar);
@@ -103,7 +107,7 @@ function render() {
   renderBoard(boardArea, state, me, {
     attackableInstanceIds: attackable,
     targetableInstanceIds: targetable,
-    onZoom: showZoom,
+    onCoachClick: (playerIndex, zone, cardId) => onCoachClick(playerIndex, zone, cardId, isMyTurn, me),
     onDiscardClick: showDiscardViewer,
     onHandCardClick: (handIndex, cardId) => onHandCardClick(handIndex, cardId, isMyTurn, me),
     onFieldCardClick: (playerIndex, slot, inst) => onFieldCardClick(playerIndex, slot, inst, isMyTurn, me),
@@ -123,9 +127,35 @@ function mkBtn(label, onClick) {
   return b;
 }
 
-async function onHandCardClick(handIndex, cardId, isMyTurn, me) {
-  if (!isMyTurn) return;
+async function onConcede() {
+  if (!(await confirmDialog("Concede this game?"))) return;
+  await sendAction({ type: "concede" });
+}
+
+/** Clicking any hand card zooms in on it; a "Play" action appears only when actually legal
+ * right now (correct trigger window for Events, normal play-legality for everything else) -
+ * mirrors localMatch.js's client-side pre-check, with the server as the final word regardless. */
+function onHandCardClick(handIndex, cardId, isMyTurn, me) {
   const card = getCard(cardId);
+  const actions = [];
+  if (isMyTurn) {
+    if (card.type === "Event") {
+      const sources = engine.getActivatableSources(latestState, me, "YOUR_TURN");
+      const match = sources.find((s) => s.zone === "HAND" && s.handIndex === handIndex);
+      if (match) {
+        actions.push({ label: "Play", onClick: () => activateEffect(match, "YOUR_TURN") });
+      }
+    } else {
+      const check = engine.canPlayCard(latestState, me, handIndex);
+      if (check.ok) {
+        actions.push({ label: "Play", onClick: () => playFieldCardFromHand(handIndex, cardId, card, me) });
+      }
+    }
+  }
+  showCardZoomWithActions(cardId, actions);
+}
+
+async function playFieldCardFromHand(handIndex, cardId, card, me) {
   const startEl = document.querySelector(`.hand-card .card-face[data-hand-index="${handIndex}"]`);
   const startRect = startEl?.getBoundingClientRect();
 
@@ -157,7 +187,7 @@ async function onHandCardClick(handIndex, cardId, isMyTurn, me) {
 }
 
 async function onFieldCardClick(playerIndex, slot, inst, isMyTurn, me) {
-  if (!isMyTurn || !inst) return;
+  if (!inst) return;
   const oppIndex = me === 0 ? 1 : 0;
 
   if (armedSlot !== null && playerIndex === oppIndex) {
@@ -182,46 +212,52 @@ async function onFieldCardClick(playerIndex, slot, inst, isMyTurn, me) {
     return;
   }
 
-  if (playerIndex === me) {
-    armedSlot = slot;
-    render();
+  const actions = [];
+  if (isMyTurn && playerIndex === me) {
+    if (engine.canAttackWith(latestState, me, slot)) {
+      actions.push({ label: "Attack", onClick: () => { armedSlot = slot; render(); } });
+    }
+    const hasActivePsUp = latestState.players[me].psField.some((p) => p.isActive && !p.attachedTo);
+    const canAttachPsUp = !inst.isStarPlayer || getStaticFlag(inst, "allowsNormalPsUpAttachment") === true;
+    if (hasActivePsUp && canAttachPsUp) {
+      actions.push({ label: "Attach PLAYERSCORE UP! (+1 Attack)", onClick: () => attachPsUpToField(me, inst.instanceId) });
+    }
+    const effectSources = [...engine.getActivatableSources(latestState, me, "YOUR_TURN"), ...engine.getActivatableSources(latestState, me, "SACRIFICE")].filter(
+      (s) => s.instanceId === inst.instanceId
+    );
+    for (const src of effectSources) {
+      actions.push({
+        label: `Activate: ${getCard(src.cardId).name}${src.label !== "main" ? ` (${src.label})` : ""}`,
+        onClick: () => activateEffect(src, src.effectDef.trigger),
+      });
+    }
   }
+  showCardZoomWithActions(inst.cardId, actions);
 }
 
-async function showEffectsPanel() {
-  // The server is authoritative on what's actually activatable; this just offers the
-  // player's own field/coach cards (excluding hand Events, which use their own trigger
-  // window automatically) as candidates and lets the server validate/reject.
-  const me = you;
-  const player = latestState.players[me];
-  const candidates = [];
-  if (player.headCoach) candidates.push({ cardId: player.headCoach.cardId, zone: "HEAD_COACH", instanceId: null, label: "main" });
-  if (player.assistantCoach) candidates.push({ cardId: player.assistantCoach.cardId, zone: "ASSISTANT_COACH", instanceId: null, label: "main" });
-  player.playerSlots.forEach((inst) => {
-    if (inst) candidates.push({ cardId: inst.cardId, zone: "FIELD", instanceId: inst.instanceId, label: "main" });
-  });
-  if (candidates.length === 0) {
-    toast("No cards on your field/coaches to activate.");
-    return;
-  }
-  const options = candidates.map((s) => ({ cardId: s.cardId, label: getCard(s.cardId).name, value: s }));
-  const chosen = await showChoice({ type: "CHOOSE_EFFECT_SOURCE", prompt: "Try to activate which card's effect?", options, allowNone: true });
-  if (!chosen) return;
-  for (const trigger of ["YOUR_TURN", "SACRIFICE"]) {
-    const result = await sendAction({ type: "activateEffect", source: chosen, trigger });
-    if (result?.ok) return;
-  }
-  toast("That card has no activatable effect right now.");
+async function attachPsUpToField(me, targetInstanceId) {
+  const psUp = latestState.players[me].psField.find((p) => p.isActive && !p.attachedTo);
+  if (!psUp) return;
+  const result = await sendAction({ type: "attachPsUp", psUpId: psUp.id, targetInstanceId });
+  if (!result?.ok) toast(`Can't attach: ${result?.reason || "unknown error"}`);
 }
 
-function showZoom(cardId) {
-  const overlay = document.createElement("div");
-  overlay.className = "card-zoom-overlay";
-  overlay.onclick = () => overlay.remove();
-  const img = document.createElement("img");
-  img.src = cardImg(cardId);
-  overlay.appendChild(img);
-  document.body.appendChild(overlay);
+async function activateEffect(source, trigger) {
+  const result = await sendAction({ type: "activateEffect", source, trigger });
+  if (!result?.ok) toast(`Couldn't activate that: ${result?.reason || "unknown error"}`);
+}
+
+/** Head Coach / Assistant Coach click: zoom in, offering an activation action per
+ * applicable effect (there's no attack/PS-UP action for coaches). */
+function onCoachClick(playerIndex, zone, cardId, isMyTurn, me) {
+  const actions = [];
+  if (isMyTurn && playerIndex === me) {
+    const sources = [...engine.getActivatableSources(latestState, me, "YOUR_TURN"), ...engine.getActivatableSources(latestState, me, "SACRIFICE")].filter((s) => s.zone === zone);
+    for (const src of sources) {
+      actions.push({ label: `Activate: ${getCard(src.cardId).name}`, onClick: () => activateEffect(src, src.effectDef.trigger) });
+    }
+  }
+  showCardZoomWithActions(cardId, actions);
 }
 
 function showDiscardViewer(playerIndex) {

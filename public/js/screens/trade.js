@@ -68,7 +68,9 @@ function renderBody() {
   const body = el("div", { class: "db-body" });
 
   const myPool = el("div", { class: "db-pool" });
-  const ownedCardIds = Object.keys(myCollection).filter((id) => myCollection[id] > 0);
+  const ownedCardIds = Object.keys(myCollection)
+    .filter((id) => myCollection[id] > 0)
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   myPool.appendChild(el("div", { style: "grid-column:1/-1;font-weight:800;color:var(--bbl-blue);" }, "Your Collection (click to offer)"));
   for (const cardId of ownedCardIds) {
     const card = getCard(cardId);

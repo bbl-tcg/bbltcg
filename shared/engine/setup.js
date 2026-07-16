@@ -10,14 +10,22 @@ export function initializeGame({ playerADef, playerBDef, rng }) {
   return createGameState({ playerA, playerB, rng });
 }
 
-function hasPlayerOrStarPlayer(hand) {
-  return hand.some((cardId) => {
-    const card = getCard(cardId);
-    return card.type === CARD_TYPE.PLAYER || card.type === CARD_TYPE.STAR_PLAYER;
-  });
+const OPENING_FIELD_MAX_COST = 3;
+
+/** STAR Players and Cost 3+ Players can't be put on the field at setup - so a legal
+ * opening-field choice requires a Cost <= 3 (non-Star) Player somewhere in hand. */
+export function isEligibleForOpeningField(cardId) {
+  const card = getCard(cardId);
+  return card.type === CARD_TYPE.PLAYER && card.cost <= OPENING_FIELD_MAX_COST;
 }
 
-/** Draws 5, silently reshuffling until the mandatory "at least 1 Player/StarPlayer" rule is met. */
+function hasEligibleOpeningFieldCard(hand) {
+  return hand.some(isEligibleForOpeningField);
+}
+
+/** Draws 5, silently reshuffling until the mandatory "at least 1 opening-field-eligible
+ * Player" rule is met (a Cost 3 or less Player, since Star Players and Cost 3+ Players
+ * can't be played to the field for free at setup). */
 export function drawOpeningHand(state, playerIndex, rng) {
   const player = state.players[playerIndex];
   let hand;
@@ -25,7 +33,7 @@ export function drawOpeningHand(state, playerIndex, rng) {
     const pool = shuffle([...player.deck, ...player.hand], rng);
     hand = pool.slice(0, STARTING_HAND_SIZE);
     player.deck = pool.slice(STARTING_HAND_SIZE);
-  } while (!hasPlayerOrStarPlayer(hand));
+  } while (!hasEligibleOpeningFieldCard(hand));
   player.hand = hand;
   log(state, { type: "OPENING_HAND", playerIndex });
   return hand;
@@ -57,9 +65,8 @@ export function drawScoreCards(state, playerIndex) {
 export function playOpeningCard(state, playerIndex, handIndex) {
   const player = state.players[playerIndex];
   const cardId = player.hand[handIndex];
-  const card = getCard(cardId);
-  if (card.type !== CARD_TYPE.PLAYER && card.type !== CARD_TYPE.STAR_PLAYER) {
-    return { ok: false, reason: "NOT_A_PLAYER_CARD" };
+  if (!isEligibleForOpeningField(cardId)) {
+    return { ok: false, reason: "NOT_ELIGIBLE_FOR_OPENING_FIELD" };
   }
   const inst = playCardToField(state, playerIndex, handIndex, 0, 0);
   return { ok: true, instance: inst };

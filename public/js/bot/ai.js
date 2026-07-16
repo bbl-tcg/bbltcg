@@ -61,7 +61,22 @@ export async function runBotTurn(state, botIndex, render, resolveChoice, decideW
     if (!playedSomething) break;
   }
 
-  // 3) Attack with everything that can legally attack, favoring speed-triangle-favorable
+  // 3) Attach any active PLAYERSCORE UP! to non-Star players that can attack this turn,
+  // for the free +1 Attack each, before actually attacking.
+  const attachTargets = state.players[botIndex].playerSlots
+    .map((inst, slot) => ({ inst, slot }))
+    .filter(({ inst, slot }) => inst && !inst.isStarPlayer && engine.canAttackWith(state, botIndex, slot));
+  for (const { inst } of attachTargets) {
+    const psUp = state.players[botIndex].psField.find((p) => p.isActive && !p.attachedTo);
+    if (!psUp) break;
+    engine.attachPsUpAction(state, botIndex, psUp.id, inst.instanceId);
+  }
+  if (attachTargets.length) {
+    render();
+    await sleep(STEP_DELAY_MS);
+  }
+
+  // 4) Attack with everything that can legally attack, favoring speed-triangle-favorable
   // and lower-Health opposing targets.
   for (let slot = 0; slot < state.players[botIndex].playerSlots.length; slot++) {
     if (!engine.canAttackWith(state, botIndex, slot)) continue;
@@ -137,6 +152,8 @@ export function autoResolveForBot(request) {
       return null;
     case "CHOOSE_OPPONENT_PLAYERS":
       return (request.options || []).slice(0, request.count ?? 0);
+    case "CHOOSE_TWO_OWN_PLAYERS":
+      return (request.options || []).slice(0, 2);
     case "CHOOSE_EFFECT_SOURCE":
       return request.options && request.options.length ? request.options[0].value ?? request.options[0] : null;
     default: {

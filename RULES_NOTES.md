@@ -26,14 +26,11 @@ any of these to me if I guessed wrong and I'll change it — nothing here is fin
    in any deck) since that's what the actual data implies. Players, Star Players, and
    Assistant Coaches remain month-locked to the Head Coach as written.
 
-5. **PLAYERSCORE UP! deck size: 5 vs 8.** The rules text is internally inconsistent:
-   the card-type description says "only 8 PLAYERSCORE UP! cards are allowed in a deck,"
-   but the deckbuilding section says "5 PLAYERSCORE UP! cards are needed in every deck,"
-   and the setup section says the PS Deck starts with 5 (matching the "5 by your 5th
-   turn" turn-structure math). Implementing deckbuilding as requiring **exactly 5**
-   PLAYERSCORE UP! cards, since three separate places agree on 5 and only one says 8.
-   If you actually want deck construction to allow up to 8, let me know and I'll change
-   the legality check.
+5. **PLAYERSCORE UP! deck size: 5 vs 8.** ~~The rules text is internally inconsistent...
+   implementing as exactly 5.~~ **Update:** explicitly changed to require exactly **8**
+   per direct instruction. `PS_DECK_SIZE` in `shared/engine/constants.js` is the single
+   source of truth now - every prior "5" reference (deckbuilder, starter deck loader,
+   deck-legality server route) reads from that constant.
 
 6. **Full-slot replacement choice.** When a 4th Player/Star Player is played with all 3
    slots full, the rules say one existing player is discarded and replaced but don't say
@@ -63,3 +60,8 @@ any of these to me if I guessed wrong and I'll change it — nothing here is fin
    The one case where the expiry genuinely outlives the next Recover on either side (Coach
    Cap's Health swap, "until your opponent's next End Phase") does use explicit reversal
    bookkeeping (`healthReversion` on the buff, applied by turn.js's end-of-turn sweep).
+
+10. **Setup rule change (explicit instruction):** STAR Players and Players with a Cost of
+    3 or more can no longer be played to the field for free at setup - only a Player with
+    Cost <= 3. `drawOpeningHand` (setup.js) now reshuffles until the hand contains at
+    least one such card, guaranteeing setup is always possible.

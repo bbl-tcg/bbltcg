@@ -5,17 +5,12 @@ import "../shared/engine/nodeCardDbLoader.js";
 import "../shared/effects/index.js";
 import { buildStarterDeckList, starterDeckNames, getCard } from "../shared/engine/cardDb.js";
 import { makeRng } from "../shared/engine/rng.js";
-import { initializeGame, drawOpeningHand, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer } from "../shared/engine/setup.js";
+import { initializeGame, drawOpeningHand, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "../shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "../shared/engine/turn.js";
 import * as engine from "../shared/engine/engine.js";
 
 const MAX_TURNS = 200;
 const GAMES_PER_DECK_PAIR = 3;
-
-function isPlayerish(cardId) {
-  const t = getCard(cardId).type;
-  return t === "Player" || t === "StarPlayer";
-}
 
 // Answers any yielded choice request with a simple, always-terminating default so the
 // generator loop can't hang waiting on an unanswered decision.
@@ -29,6 +24,10 @@ function autoResolve(request) {
       return (request.options || []).slice(0, request.min ?? 0).map((o) => o.cardId ?? o);
     case "CHOOSE_HAND_CARD_OPTIONAL":
       return null;
+    case "CHOOSE_OPPONENT_PLAYERS":
+      return (request.options || []).slice(0, request.count ?? 0);
+    case "CHOOSE_TWO_OWN_PLAYERS":
+      return (request.options || []).slice(0, 2);
     default: {
       const options = request.options;
       if (Array.isArray(options) && options.length > 0) {
@@ -59,7 +58,7 @@ async function playOneGame(deckNameA, deckNameB, seed) {
   const roll = rollForFirstPick(rng);
   setFirstPlayer(state, roll.winnerIndex);
   for (const p of [0, 1]) {
-    const idx = state.players[p].hand.findIndex(isPlayerish);
+    const idx = state.players[p].hand.findIndex(isEligibleForOpeningField);
     if (idx !== -1) playOpeningCard(state, p, idx);
   }
 

@@ -3,21 +3,23 @@ import { getCard } from "/shared/engine/cardDb.js";
 import { openPack, currentUser } from "../api.js";
 import { toast } from "../ui.js";
 
+const PACK_COST = 3;
+
 export function renderPacks() {
   const root = document.getElementById("packs-screen");
   root.innerHTML = "";
   root.className = "screen menu-screen";
 
   const pointsLine = el("div", { style: "font-weight:800;color:var(--bbl-blue);font-size:1.1rem;" }, `Pack Points: ${currentUser()?.packPoints ?? 0}`);
-  const resultsArea = el("div", { class: "choice-options", style: "justify-content:center;max-width:700px;" });
+  const resultsArea = el("div", { style: "display:flex;flex-wrap:nowrap;gap:6px;justify-content:center;overflow-x:auto;max-width:96vw;padding:6px 2px;" });
 
   const packImg = el("img", {
     src: "/assets/packs/booster.png",
     alt: "Booster Pack",
     style: "width:200px;cursor:pointer;filter:drop-shadow(0 6px 14px rgba(0,0,0,0.4));transition:transform 0.15s;",
     onclick: async () => {
-      if ((currentUser()?.packPoints ?? 0) < 1) {
-        toast("Not enough Pack Points.");
+      if ((currentUser()?.packPoints ?? 0) < PACK_COST) {
+        toast(`Not enough Pack Points (costs ${PACK_COST}).`);
         return;
       }
       packImg.style.transform = "scale(0.92) rotate(-3deg)";
@@ -26,7 +28,11 @@ export function renderPacks() {
         resultsArea.innerHTML = "";
         for (const cardId of cardIds) {
           const card = getCard(cardId);
-          resultsArea.appendChild(el("div", { class: "choice-option" }, [el("img", { src: `/${card.image}`, alt: card.name })]));
+          resultsArea.appendChild(
+            el("div", { style: "flex:0 0 auto;width:70px;" }, [
+              el("img", { src: `/${card.image}`, alt: card.name, style: "width:100%;border-radius:6px;border:1.5px solid var(--bbl-black);" }),
+            ])
+          );
         }
         pointsLine.textContent = `Pack Points: ${currentUser().packPoints}`;
       } catch (err) {
@@ -40,6 +46,6 @@ export function renderPacks() {
   root.appendChild(el("div", { class: "menu-title" }, "Open a Pack!"));
   root.appendChild(pointsLine);
   root.appendChild(packImg);
-  root.appendChild(el("div", { style: "color:#666;" }, "Click the pack to open it (costs 1 Pack Point)"));
+  root.appendChild(el("div", { style: "color:#666;" }, `Click the pack to open it (costs ${PACK_COST} Pack Points)`));
   root.appendChild(resultsArea);
 }

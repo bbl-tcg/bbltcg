@@ -1,4 +1,5 @@
 import { starterDeckNames, buildStarterDeckList } from "/shared/engine/cardDb.js";
+import { PS_DECK_SIZE } from "/shared/engine/constants.js";
 import { loadCustomDecks } from "./storage.js";
 import { isLoggedIn, listServerDecks } from "./api.js";
 
@@ -11,7 +12,7 @@ export async function allDeckOptions() {
   const custom = savedDecks.map((d) => ({
     key: `custom:${d.name}`,
     label: `${d.name} (custom)`,
-    resolve: () => ({ headCoachId: d.headCoachId, mainDeck: d.mainDeck, psDeckCount: 5, name: d.name }),
+    resolve: () => ({ headCoachId: d.headCoachId, mainDeck: d.mainDeck, psDeckCount: PS_DECK_SIZE, name: d.name }),
   }));
   return [...starters, ...custom];
 }

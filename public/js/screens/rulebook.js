@@ -43,11 +43,11 @@ export function renderRulebook() {
 
     el("h2", {}, "Setup"),
     el("ol", {}, [
-      el("li", {}, "Each player's deck is exactly 60 cards (not counting the Head Coach or PLAYERSCORE UP!), plus 1 Head Coach and 5 PLAYERSCORE UP!."),
+      el("li", {}, "Each player's deck is exactly 60 cards (not counting the Head Coach or PLAYERSCORE UP!), plus 1 Head Coach and 8 PLAYERSCORE UP!."),
       el("li", {}, "Both players roll a die; the higher roll decides who goes first (reroll ties)."),
-      el("li", {}, "Draw 5 cards. You may mulligan once (shuffle your hand back and redraw 5). Every kept hand must contain at least 1 Player or Star Player."),
+      el("li", {}, "Draw 5 cards. You may mulligan once (shuffle your hand back and redraw 5). STAR Players and Players with a Cost of 3 or more cannot be put on the field at setup, so every kept hand is guaranteed to contain at least 1 Player with a Cost of 3 or less."),
       el("li", {}, "Take the next 2 cards off the top of your deck as your face-down Score."),
-      el("li", {}, "Each player plays 1 Player or Star Player from their hand to the field for free."),
+      el("li", {}, "Each player plays 1 Player (Cost 3 or less, not a STAR Player) from their hand to the field for free."),
     ]),
 
     el("h2", {}, "Turn Phases"),
@@ -58,11 +58,8 @@ export function renderRulebook() {
     el("p", {}, "Whenever one of your Player or Star Player cards is KOed (not simply discarded), draw a card from your own Score. If you have no Score cards left when this happens, you lose. You also draw from your Score (and can lose the same way) if you end your turn with 0 players on your field."),
 
     el("h2", {}, "The Field"),
-    el(
-      "p",
-      {},
-      "Each side has a 3x3 grid of sectors: Score (top-left) - 3 Player slots (top-center) - empty (top-right) - empty (middle-left) - Head Coach + Assistant Coach (middle-center) - your Deck (middle-right) - PS Deck (bottom-left) - 8 PLAYERSCORE UP! slots (bottom-center) - Discard Pile (bottom-right)."
-    ),
+    el("p", {}, "Each side of the board is its own 3x3 grid of sectors, laid out like this (the center column is wider - that's where all the action happens):"),
+    fieldDiagram(),
   ]);
   root.appendChild(content);
 }
@@ -95,4 +92,27 @@ function phaseTable() {
     el("tr", {}, [el("th", {}, "Phase"), el("th", {}, "What happens")]),
     ...PHASES.map(([a, b]) => el("tr", {}, [el("td", {}, a), el("td", {}, b)])),
   ]);
+}
+
+/** Maps out the 3x3 field grid - a plain CSS-grid mock (not an image) so it always matches
+ * the real board.css proportions and never goes stale as a separately-drawn diagram would. */
+function fieldDiagram() {
+  const cells = [
+    ["Score", false],
+    ["3 Player Slots", false],
+    ["(empty)", true],
+    ["(empty)", true],
+    ["Head Coach +\nAssistant Coach", false],
+    ["Deck", false],
+    ["PS Deck", false],
+    ["8 PLAYERSCORE UP! Slots", false],
+    ["Discard Pile", false],
+  ];
+  return el(
+    "div",
+    { class: "field-diagram" },
+    cells.map(([label, empty]) =>
+      el("div", { class: `field-diagram-cell${empty ? " empty" : ""}` }, label)
+    )
+  );
 }
