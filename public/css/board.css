@@ -264,7 +264,10 @@
   border-top: 2px solid var(--bbl-black);
 }
 
-/* Card zoom modal */
+/* Card zoom modal - z-index is intentionally ABOVE .choice-overlay's (110): zooming a
+   card is often triggered from inside an already-open choice prompt (e.g. picking which
+   of your players to target opens a zoom+Select view on top of that prompt), so this must
+   always render in front of it, not behind. */
 .card-zoom-overlay {
   position: fixed;
   inset: 0;
@@ -272,7 +275,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 120;
 }
 .card-zoom-overlay img {
   max-height: 85vh;
