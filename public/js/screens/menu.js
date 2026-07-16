@@ -7,6 +7,7 @@ import { renderCollection } from "./collection.js";
 import { renderPacks } from "./packs.js";
 import { renderMultiplayerSetup } from "./multiplayerSetup.js";
 import { renderTrade } from "./trade.js";
+import { renderCodes } from "./codes.js";
 import { toast } from "../ui.js";
 import { getPackPoints } from "../storage.js";
 import { currentUser, isLoggedIn, logout } from "../api.js";
@@ -38,7 +39,10 @@ export function renderMenu() {
 
   const footer = el("div", { class: "menu-footer" }, [
     el("div", { class: "pack-points-pill" }, `Pack Points: ${isLoggedIn() ? currentUser().packPoints : getPackPoints()}`),
-    el("a", { class: "bbl-btn coffee-btn", href: "https://buymeacoffee.com/bbltcg", target: "_blank", rel: "noopener" }, "Buy me a coffee"),
+    el("div", { class: "menu-footer-row" }, [
+      el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderCodes(); showScreen("codes-screen"); }) }, "Community Codes"),
+      el("a", { class: "bbl-btn coffee-btn", href: "https://buymeacoffee.com/bbltcg", target: "_blank", rel: "noopener" }, "Buy me a coffee"),
+    ]),
   ]);
   root.appendChild(footer);
 }

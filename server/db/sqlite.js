@@ -31,6 +31,12 @@ db.exec(`
     main_deck_json TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS redeemed_codes (
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    code TEXT NOT NULL,
+    redeemed_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, code)
+  );
 `);
 
 function rowToUser(row) {
@@ -111,6 +117,14 @@ export async function saveDeck(userId, deck) {
 
 export async function deleteDeck(userId, deckId) {
   db.prepare("DELETE FROM decks WHERE id = ? AND user_id = ?").run(deckId, userId);
+}
+
+export async function hasRedeemedCode(userId, code) {
+  return !!db.prepare("SELECT 1 FROM redeemed_codes WHERE user_id = ? AND code = ?").get(userId, code);
+}
+
+export async function recordCodeRedemption(userId, code) {
+  db.prepare("INSERT INTO redeemed_codes (user_id, code, redeemed_at) VALUES (?, ?, ?)").run(userId, code, new Date().toISOString());
 }
 
 /** Atomically swaps card ownership between two users - used by the trade system. Throws

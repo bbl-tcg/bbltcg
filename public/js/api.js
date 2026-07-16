@@ -77,6 +77,12 @@ export async function reportGameResult(result) {
   return data.packPoints;
 }
 
+export async function redeemCode(code) {
+  const data = await request("POST", "/api/codes/redeem", { code });
+  cachedUser = cachedUser ? { ...cachedUser, packPoints: data.packPoints } : cachedUser;
+  return data;
+}
+
 export async function sendHeartbeat(screen) {
   if (!cachedUser) return;
   try {

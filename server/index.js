@@ -12,6 +12,7 @@ import { authRouter } from "./routes/auth.js";
 import { collectionRouter } from "./routes/collection.js";
 import { decksRouter } from "./routes/decks.js";
 import { packsRouter } from "./routes/packs.js";
+import { codesRouter } from "./routes/codes.js";
 import { attachMultiplayer } from "./multiplayer.js";
 import { attachTrading } from "./trading.js";
 
@@ -38,6 +39,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/collection", collectionRouter);
 app.use("/api/decks", decksRouter);
 app.use("/api/packs", packsRouter);
+app.use("/api/codes", codesRouter);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 

@@ -24,3 +24,12 @@ CREATE TABLE IF NOT EXISTS decks (
   main_deck_json TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+-- Tracks which one-time-use Community Codes an account has already redeemed. Repeatable
+-- codes (e.g. ADMINTEST) never write a row here - see server/routes/codes.js.
+CREATE TABLE IF NOT EXISTS redeemed_codes (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  code TEXT NOT NULL,
+  redeemed_at TEXT NOT NULL,
+  PRIMARY KEY (user_id, code)
+);

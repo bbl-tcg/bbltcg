@@ -30,6 +30,12 @@ await pool.query(`
     main_deck_json TEXT NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
+  CREATE TABLE IF NOT EXISTS redeemed_codes (
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    code TEXT NOT NULL,
+    redeemed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (user_id, code)
+  );
 `);
 
 function rowToUser(row) {
@@ -114,6 +120,15 @@ export async function saveDeck(userId, deck) {
 
 export async function deleteDeck(userId, deckId) {
   await pool.query("DELETE FROM decks WHERE id = $1 AND user_id = $2", [deckId, userId]);
+}
+
+export async function hasRedeemedCode(userId, code) {
+  const { rows } = await pool.query("SELECT 1 FROM redeemed_codes WHERE user_id = $1 AND code = $2", [userId, code]);
+  return rows.length > 0;
+}
+
+export async function recordCodeRedemption(userId, code) {
+  await pool.query("INSERT INTO redeemed_codes (user_id, code) VALUES ($1, $2)", [userId, code]);
 }
 
 export async function executeTrade(userAId, userAGives, userBId, userBGives) {
