@@ -5,7 +5,14 @@
   height: 100%;
   flex-direction: column;
   align-items: center;
+  /* "safe center" centers when content fits, but falls back to start-aligned (like
+     flex-start) instead of overflowing equally above AND below when it doesn't - plain
+     "center" on a short/Chromebook-height viewport pushes the top of the content above
+     y=0 into an unreachable negative-scroll area, clipping the logo under the browser's
+     own UI with no way to scroll up to see it. The plain "center" fallback covers browsers
+     that don't yet support "safe center" (still correct on normal-height viewports either way). */
   justify-content: center;
+  justify-content: safe center;
   gap: 22px;
   background: linear-gradient(180deg, var(--bbl-white) 0%, var(--bbl-slot-bg) 100%);
   overflow-y: auto;

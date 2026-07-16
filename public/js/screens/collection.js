@@ -2,6 +2,7 @@ import { el, showScreen } from "../screens.js";
 import { allCards } from "/shared/engine/cardDb.js";
 import { getCollection } from "../api.js";
 import { toast } from "../ui.js";
+import { showCardZoomWithActions } from "../game/cardZoom.js";
 
 export async function renderCollection() {
   const root = document.getElementById("collection-screen");
@@ -31,7 +32,7 @@ export async function renderCollection() {
   }
   for (const card of owned) {
     grid.appendChild(
-      el("div", { class: "db-card-tile" }, [
+      el("div", { class: "db-card-tile", onclick: () => showCardZoomWithActions(card.id, []) }, [
         el("img", { src: `/${card.image}`, alt: card.name }),
         el("div", { class: "bbl-badge qty-badge" }, String(collection[card.id])),
       ])

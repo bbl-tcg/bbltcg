@@ -16,8 +16,10 @@ registerEffect("001-025", {
     return activePsUpOptions(ctx).length > 0 && starPlayerOptions(ctx).length > 0;
   },
   *resolve(ctx) {
-    const psUpOptions = activePsUpOptions(ctx).map((p) => p.id);
-    const psUpId = psUpOptions.length === 1 ? psUpOptions[0] : yield { type: "CHOOSE_PS_UP", prompt: "Attach which active PLAYERSCORE UP!?", options: psUpOptions };
+    const available = activePsUpOptions(ctx);
+    if (available.length === 0) return;
+    // PLAYERSCORE UP! cards are fungible - no need to ask which active one to use.
+    const psUpId = available[0].id;
     const starOptions = starPlayerOptions(ctx).map((s) => s.instanceId);
     const targetInstanceId = starOptions.length === 1 ? starOptions[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Attach it to which Star Player?", options: starOptions };
     ctx.attachPsUpForced(ctx.self, psUpId, targetInstanceId);

@@ -4,6 +4,7 @@ import { getStaticFlag } from "/shared/engine/stats.js";
 import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
 import { showCardZoomWithActions } from "./cardZoom.js";
+import { enrichChoiceRequest } from "./choiceEnrich.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { toast, confirmDialog } from "../ui.js";
 import { currentUser, reportGameResult } from "../api.js";
@@ -25,7 +26,7 @@ function connect() {
     render();
   });
   socket.on("choice-request", async (request, ack) => {
-    const answer = await showChoice(request);
+    const answer = await showChoice(enrichChoiceRequest(latestState, request));
     ack(answer);
   });
   socket.on("window-request", async ({ options, windowCtx }, ack) => {
@@ -161,11 +162,13 @@ async function playFieldCardFromHand(handIndex, cardId, card, me) {
 
   let replaceSlot = null;
   if ((card.type === "Player" || card.type === "StarPlayer") && !latestState.players[me].playerSlots.some((s) => s === null)) {
-    const chosen = await showChoice({
-      type: "CHOOSE_OWN_PLAYER",
-      prompt: "Your 3 player slots are full - replace which one?",
-      options: latestState.players[me].playerSlots.map((s) => s.instanceId),
-    });
+    const chosen = await showChoice(
+      enrichChoiceRequest(latestState, {
+        type: "CHOOSE_OWN_PLAYER",
+        prompt: "Your 3 player slots are full - replace which one?",
+        options: latestState.players[me].playerSlots.map((s) => s.instanceId),
+      })
+    );
     replaceSlot = latestState.players[me].playerSlots.findIndex((s) => s.instanceId === chosen);
   }
 
@@ -275,6 +278,8 @@ function showDiscardViewer(playerIndex) {
   [...discard].reverse().forEach((cardId) => {
     const img = document.createElement("img");
     img.src = cardImg(cardId);
+    img.style.cursor = "pointer";
+    img.onclick = () => showCardZoomWithActions(cardId, []);
     grid.appendChild(img);
   });
   panel.appendChild(grid);

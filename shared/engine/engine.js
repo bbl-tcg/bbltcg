@@ -74,10 +74,14 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
   return effectSources(state, controllerIndex).filter((src) => {
     if (src.effectDef.trigger !== triggerType) return false;
     if (src.zone === "HAND" && !canAffordCost(player, effectiveHandCost(state, controllerIndex, src.card))) return false;
-    // WHILE_ATTACKING is specifically "while *this* card is attacking" (e.g. Skuba Doo's
-    // PUMMEL DOWN, Silvia Snipes' CLUTCH) - not any teammate's attack, even though the
-    // window is opened once per attack across the whole team's sources.
-    if (triggerType === TRIGGER.WHILE_ATTACKING && windowCtx.attackerInstanceId && src.instanceId !== windowCtx.attackerInstanceId) {
+    // WHILE_ATTACKING on a FIELD card is specifically "while *this* card is attacking"
+    // (e.g. Skuba Doo's PUMMEL DOWN, Silvia Snipes' CLUTCH) - not any teammate's attack,
+    // even though the window is opened once per attack across the whole team's sources.
+    // HAND-zone WHILE_ATTACKING Events (e.g. Stun) aren't tied to any one field instance -
+    // they're reactively playable during any of the controller's own attacks - so this
+    // restriction only applies to FIELD sources; a HAND source has no instanceId to
+    // compare against and was being incorrectly filtered out entirely.
+    if (triggerType === TRIGGER.WHILE_ATTACKING && src.zone === "FIELD" && windowCtx.attackerInstanceId && src.instanceId !== windowCtx.attackerInstanceId) {
       return false;
     }
     // "The chosen player has no effect until your End Phase" (Kimi Raikonnen) - a silenced

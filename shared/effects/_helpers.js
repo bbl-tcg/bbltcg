@@ -98,8 +98,8 @@ export function janJanPsUpBoostEffect() {
     },
     *resolve(ctx) {
       const janJan = findJanJan(ctx);
-      const options = restedPsUpOptions(ctx).map((p) => p.id);
-      const psUpId = options.length === 1 ? options[0] : yield { type: "CHOOSE_PS_UP", prompt: "Attach which rested PLAYERSCORE UP! to JanJan?", options };
+      // PLAYERSCORE UP! cards are fungible - no need to ask which rested one to use.
+      const psUpId = restedPsUpOptions(ctx)[0].id;
       ctx.attachPsUpForced(ctx.self, psUpId, janJan.instanceId);
       ctx.addBuff(janJan.instanceId, { source: "janJanPsUpBoost", health: 1, expires: "permanent" });
     },

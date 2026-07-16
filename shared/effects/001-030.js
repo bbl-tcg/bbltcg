@@ -27,9 +27,8 @@ registerStarPlayerEffect(
       return ctx.player(ctx.opponent).psField.some((p) => p.isActive && !p.attachedTo);
     },
     *resolve(ctx) {
-      const options = ctx.player(ctx.opponent).psField.filter((p) => p.isActive && !p.attachedTo).map((p) => p.id);
-      const psUpId = options.length === 1 ? options[0] : yield { type: "CHOOSE_PS_UP", forPlayer: ctx.self, prompt: "Rest which of your opponent's active PLAYERSCORE UP!?", options };
-      const psUp = ctx.player(ctx.opponent).psField.find((p) => p.id === psUpId);
+      // PLAYERSCORE UP! cards are fungible - no need to ask which active one to rest.
+      const psUp = ctx.player(ctx.opponent).psField.find((p) => p.isActive && !p.attachedTo);
       if (psUp) psUp.isActive = false;
     },
   }

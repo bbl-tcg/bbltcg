@@ -14,8 +14,13 @@ registerEffect("001-107", {
     return activePsUpOptions(ctx).length > 0 && ctx.player().playerSlots.some((s) => s);
   },
   *resolve(ctx) {
-    const psUpOptions = activePsUpOptions(ctx).map((p) => p.id);
-    const psUpId = psUpOptions.length === 1 ? psUpOptions[0] : yield { type: "CHOOSE_PS_UP", prompt: "Attach which active PLAYERSCORE UP!?", options: psUpOptions };
+    // Paying this Event's own cost may have rested the only active PS UP that was
+    // available when canActivate ran (cost payment happens before resolve()) - re-check
+    // rather than crash if none are left.
+    const available = activePsUpOptions(ctx);
+    if (available.length === 0) return;
+    // PLAYERSCORE UP! cards are fungible - no need to ask which active one to use.
+    const psUpId = available[0].id;
     const playerOptions = ctx.player().playerSlots.filter((s) => s).map((s) => s.instanceId);
     const targetInstanceId = playerOptions.length === 1 ? playerOptions[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Attach it to which player?", options: playerOptions };
     ctx.attachPsUpForced(ctx.self, psUpId, targetInstanceId);

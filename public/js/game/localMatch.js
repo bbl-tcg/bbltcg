@@ -7,6 +7,7 @@ import { getStaticFlag } from "/shared/engine/stats.js";
 import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
 import { showCardZoomWithActions } from "./cardZoom.js";
+import { enrichChoiceRequest } from "./choiceEnrich.js";
 import { runBotTurn, autoResolveForBot, chooseBotReaction } from "../bot/ai.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { isLoggedIn, reportGameResult } from "../api.js";
@@ -86,7 +87,7 @@ function makeResolver(actingControllerIndex) {
   return async (request) => {
     const forPlayer = request.forPlayer ?? actingControllerIndex;
     if (isBotSeat(forPlayer)) return autoResolveForBot(request);
-    return showChoice(request);
+    return showChoice(enrichChoiceRequest(G.state, request));
   };
 }
 
@@ -247,11 +248,13 @@ function onHandCardClick(handIndex, cardId, isMyTurn, me) {
 async function playFieldCardFromHand(handIndex, cardId, card, me) {
   let replaceSlot = null;
   if ((card.type === "Player" || card.type === "StarPlayer") && !G.state.players[me].playerSlots.some((s) => s === null)) {
-    const chosen = await showChoice({
-      type: "CHOOSE_OWN_PLAYER",
-      prompt: "Your 3 player slots are full - replace which one?",
-      options: G.state.players[me].playerSlots.map((s) => s.instanceId),
-    });
+    const chosen = await showChoice(
+      enrichChoiceRequest(G.state, {
+        type: "CHOOSE_OWN_PLAYER",
+        prompt: "Your 3 player slots are full - replace which one?",
+        options: G.state.players[me].playerSlots.map((s) => s.instanceId),
+      })
+    );
     replaceSlot = G.state.players[me].playerSlots.findIndex((s) => s.instanceId === chosen);
   }
 
@@ -381,6 +384,8 @@ function showDiscardViewer(playerIndex) {
   [...G.state.players[playerIndex].discard].reverse().forEach((cardId) => {
     const img = document.createElement("img");
     img.src = cardImg(cardId);
+    img.style.cursor = "pointer";
+    img.onclick = () => showCardZoomWithActions(cardId, []);
     grid.appendChild(img);
   });
   panel.appendChild(grid);

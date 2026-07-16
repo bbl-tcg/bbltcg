@@ -116,7 +116,10 @@ export function makeEffectContext(state, { controllerIndex, source }) {
       if (!inst) return false;
       for (const psUpId of inst.attachedPsUp) {
         const psUp = player.psField.find((p) => p.id === psUpId);
-        if (psUp) psUp.attachedTo = null;
+        if (psUp) {
+          psUp.attachedTo = null;
+          psUp.isActive = false;
+        }
       }
       player.playerSlots[slot] = null;
       player.hand.push(inst.cardId);

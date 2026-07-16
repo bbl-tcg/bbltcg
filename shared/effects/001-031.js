@@ -17,8 +17,8 @@ registerEffect("001-031", {
   },
   *resolve(ctx) {
     const simon = findSimonChapman(ctx);
-    const psUpOptions = restedPsUpOptions(ctx).map((p) => p.id);
-    const psUpId = psUpOptions.length === 1 ? psUpOptions[0] : yield { type: "CHOOSE_PS_UP", prompt: "Attach which rested PLAYERSCORE UP! to Simon Chapman?", options: psUpOptions };
+    // PLAYERSCORE UP! cards are fungible - no need to ask which rested one to use.
+    const psUpId = restedPsUpOptions(ctx)[0].id;
     ctx.attachPsUpForced(ctx.self, psUpId, simon.instanceId);
   },
 });

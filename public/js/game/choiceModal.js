@@ -1,6 +1,7 @@
 import { el } from "../screens.js";
 import { getCard } from "/shared/engine/cardDb.js";
 import { cardImg } from "./render.js";
+import { showCardZoomWithActions } from "./cardZoom.js";
 
 /**
  * Shows a modal for a yielded effect choice request and resolves with the player's answer.
@@ -25,6 +26,13 @@ export function showChoice(request) {
           el("button", { class: "bbl-btn secondary", onclick: () => finish(false) }, request.noLabel || "No"),
         ])
       );
+    } else if (request.type === "CHOOSE_FIRST_OR_SECOND") {
+      panel.appendChild(
+        el("div", { style: "display:flex;gap:10px;justify-content:center;" }, [
+          el("button", { class: "bbl-btn", onclick: () => finish("first") }, "Go First"),
+          el("button", { class: "bbl-btn secondary", onclick: () => finish("second") }, "Go Second"),
+        ])
+      );
     } else if (request.type === "CHOOSE_NUMBER") {
       const min = request.min ?? 0;
       const max = request.max ?? 0;
@@ -33,6 +41,18 @@ export function showChoice(request) {
         row.appendChild(el("button", { class: "bbl-btn", onclick: () => finish(n) }, String(n)));
       }
       panel.appendChild(row);
+    } else if (request.type === "REVEAL_TOP_CARDS") {
+      // Purely informational - the effect already decided what happens to these cards, the
+      // player just needs to actually see them. Each tile is also zoomable to read closely.
+      const cardIds = request.cards || [];
+      const grid = el("div", { class: "choice-options" });
+      for (const cardId of cardIds) {
+        grid.appendChild(
+          el("div", { class: "choice-option", onclick: () => showCardZoomWithActions(cardId, []) }, [el("img", { src: cardImg(cardId), alt: getCard(cardId).name })])
+        );
+      }
+      panel.appendChild(grid);
+      panel.appendChild(el("button", { class: "bbl-btn", onclick: () => finish(null) }, "Continue"));
     } else if (request.type === "CHOOSE_HAND_CARD_OPTIONAL") {
       const options = request.options || [];
       const grid = buildCardOptionGrid(
@@ -52,9 +72,12 @@ export function showChoice(request) {
         panel.appendChild(el("button", { class: "bbl-btn ghost", onclick: () => finish(null) }, "Pass"));
       }
     } else if (isCardOptionRequest(request)) {
-      const options = normalizeCardOptions(request.options);
+      const options = normalizeCardOptions(request.options, request.type);
       const multi = request.type === "CHOOSE_CARDS" || request.type === "CHOOSE_OPPONENT_PLAYERS" || request.type === "CHOOSE_TWO_OWN_PLAYERS";
-      if (!multi) {
+      const zoomSelect = request.type === "CHOOSE_OWN_PLAYER" || request.type === "CHOOSE_OPPONENT_PLAYER";
+      if (zoomSelect) {
+        panel.appendChild(buildZoomSelectGrid(options, (value) => finish(value)));
+      } else if (!multi) {
         panel.appendChild(buildCardOptionGrid(options, (value) => finish(value)));
       } else {
         renderMultiSelect(panel, request, options, finish);
@@ -66,7 +89,7 @@ export function showChoice(request) {
       if (options.length === 0) {
         panel.appendChild(el("button", { class: "bbl-btn", onclick: () => finish(null) }, "Continue"));
       } else {
-        panel.appendChild(buildCardOptionGrid(normalizeCardOptions(options), (value) => finish(value)));
+        panel.appendChild(buildCardOptionGrid(normalizeCardOptions(options, request.type), (value) => finish(value)));
       }
     }
 
@@ -89,10 +112,24 @@ function isCardOptionRequest(request) {
  * Effect code and match logic that yields `{cardId, handIndex}}`-shaped options (or
  * `{cardId, index, card}` search results, etc.) reads those extra fields back off the
  * resolved value, so losing them here would silently corrupt the answer.
+ *
+ * `{ __enrichedInstance, instanceId, cardId }` is a display-only shape added by
+ * choiceEnrich.js right before a request reaches this modal - it lets CHOOSE_OWN_PLAYER/
+ * CHOOSE_OPPONENT_PLAYER/etc. show real card art instead of a raw instance id, while still
+ * resolving back to the plain instanceId string the yielding effect actually expects.
+ *
+ * PLAYERSCORE UP! cards are fungible (no card art of their own, no distinguishing feature),
+ * so a bare-string option under a CHOOSE_PS_UP request is labeled "PS UP" rather than
+ * showing its raw instance id - though in practice these are auto-resolved without ever
+ * reaching a modal (see the CHOOSE_PS_UP call sites), this is a defensive fallback.
  */
-function normalizeCardOptions(options) {
+function normalizeCardOptions(options, requestType) {
   return (options || []).map((o) => {
-    if (typeof o === "string") return { cardId: null, instanceId: o, label: null, value: o };
+    if (o && o.__enrichedInstance) return { cardId: o.cardId, label: getCard(o.cardId).name, value: o.instanceId };
+    if (typeof o === "string") {
+      const label = requestType === "CHOOSE_PS_UP" ? "PS UP" : null;
+      return { cardId: null, instanceId: o, label, value: o };
+    }
     if (o.cardId) return { cardId: o.cardId, label: getCard(o.cardId).name, value: o };
     return { cardId: null, instanceId: o, label: null, value: o };
   });
@@ -110,10 +147,40 @@ function buildCardOptionGrid(options, onPick) {
         el(
           "button",
           { class: "bbl-btn ghost", style: "width:100%;", onclick: () => onPick(opt.value) },
-          typeof opt.value === "string" ? opt.value : "Select"
+          opt.label || (typeof opt.value === "string" ? opt.value : "Select")
         )
       );
     }
+  }
+  return grid;
+}
+
+/** Same tile grid as buildCardOptionGrid, but clicking a card zooms in first with an
+ * explicit "Select"/"Cancel" pair rather than picking instantly - lets the player confirm
+ * they've got the right card before committing (per request: "show me the player cards,
+ * let me zoom in, and click a button that says Select"). Used for the single-card own/
+ * opponent-player-targeting choice types. */
+function buildZoomSelectGrid(options, onPick) {
+  const grid = el("div", { class: "choice-options" });
+  for (const opt of options) {
+    if (!opt.cardId) continue;
+    const tile = el("div", { class: "choice-option" }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })]);
+    tile.onclick = () => {
+      const zoomOverlay = el("div", { class: "card-zoom-overlay" });
+      zoomOverlay.onclick = (e) => {
+        if (e.target === zoomOverlay) zoomOverlay.remove();
+      };
+      const wrap = el("div", { style: "display:flex;flex-direction:column;align-items:center;gap:12px;" }, [
+        el("img", { src: cardImg(opt.cardId) }),
+        el("div", { style: "display:flex;gap:10px;" }, [
+          el("button", { class: "bbl-btn", onclick: () => { zoomOverlay.remove(); onPick(opt.value); } }, "Select"),
+          el("button", { class: "bbl-btn ghost", onclick: () => zoomOverlay.remove() }, "Cancel"),
+        ]),
+      ]);
+      zoomOverlay.appendChild(wrap);
+      document.body.appendChild(zoomOverlay);
+    };
+    grid.appendChild(tile);
   }
   return grid;
 }

@@ -139,9 +139,14 @@ export function moveFieldInstanceToDiscard(state, playerIndex, slotIndex, { koed
   if (!inst) return;
   const card = getCard(inst.cardId);
 
+  // PLAYERSCORE UP! attached to a player that leaves the field return to the field
+  // rested, not active - only a full Recover phase reactivates them.
   for (const psUpId of inst.attachedPsUp) {
     const psUp = player.psField.find((p) => p.id === psUpId);
-    if (psUp) psUp.attachedTo = null;
+    if (psUp) {
+      psUp.attachedTo = null;
+      psUp.isActive = false;
+    }
   }
 
   player.playerSlots[slotIndex] = null;
@@ -161,7 +166,10 @@ export function moveFieldInstanceToBottomOfDeck(state, playerIndex, slotIndex) {
   if (!inst) return;
   for (const psUpId of inst.attachedPsUp) {
     const psUp = player.psField.find((p) => p.id === psUpId);
-    if (psUp) psUp.attachedTo = null;
+    if (psUp) {
+      psUp.attachedTo = null;
+      psUp.isActive = false;
+    }
   }
   player.playerSlots[slotIndex] = null;
   player.deck.push(inst.cardId);

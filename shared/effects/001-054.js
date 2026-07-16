@@ -25,6 +25,13 @@ registerStarPlayerEffect(
       for (let i = 0; i < 5 && player.deck.length; i++) revealed.push(player.deck.shift());
 
       const diamondIndexes = revealed.map((cardId, i) => ({ cardId, i })).filter((e) => ctx.card(e.cardId).name === "Xander Diamond");
+
+      yield {
+        type: "REVEAL_TOP_CARDS",
+        prompt: diamondIndexes.length > 0 ? "Revealed - a Xander Diamond was found!" : "Revealed - no Xander Diamond among these. All 5 go to the bottom of your deck.",
+        cards: revealed,
+      };
+
       let placed = null;
       if (diamondIndexes.length > 0) {
         const slot = ctx.findEmptySlot(ctx.self);

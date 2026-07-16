@@ -2,9 +2,9 @@ import { el, showScreen } from "../screens.js";
 
 const TRIGGER_DOCS = [
   ["YOUR TURN", "Usable any time during your own Main Phase."],
-  ["OPPONENT'S TURN", "Usable any time during your opponent's turn - a general reaction window."],
-  ["WHILE ATTACKING", "Usable by a card while it is the one attacking (or, for reactive cards, while it's being attacked), right as that attack is declared."],
-  ["ON OPPONENT'S ATTACK", "A reaction usable specifically when your opponent declares an attack."],
+  ["OPP. TURN", "Usable any time during your opponent's turn - a general reaction window."],
+  ["DURING ATK", "Usable by a card while it is the one attacking (or, for reactive cards, while it's being attacked), right as that attack is declared."],
+  ["OPP. ATK", "A reaction usable specifically when your opponent declares an attack."],
   ["ON PLAY", "Usable immediately when the card is played from your hand to the field."],
   ["ON KO", "Usable the moment the card is KOed, before it's removed from the field."],
   ["SACRIFICE", "A defensive ability, usually letting a player card intercept/redirect an attack meant for a different one of your players."],
@@ -30,6 +30,11 @@ export function renderRulebook() {
 
     el("h2", {}, "The 6 Card Types"),
     cardTypeTable(),
+    el(
+      "p",
+      {},
+      "PLAYERSCORE UP!: on your turn, you may attach an active (unrested) PLAYERSCORE UP! to one of your own non-STAR Players for +1 Attack. It cannot be attached to a STAR Player unless a card effect specifically allows it. Attached PLAYERSCORE UP! return to the field, rested, whenever that player leaves the field (KOed, discarded, or otherwise removed) - and everything returns to the field active again in your next Recover phase."
+    ),
 
     el("h2", {}, "Anatomy of a Player Card"),
     el("img", { class: "rulebook-diagram", src: "/assets/branding/card-diagram.png", alt: "Diagram of a Player card's parts" }),

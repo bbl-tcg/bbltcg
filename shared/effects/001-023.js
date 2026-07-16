@@ -12,8 +12,8 @@ registerEffect("001-023", {
     return restedPsUpOptions(ctx).length > 0 && ctx.player().playerSlots.some((s) => s);
   },
   *resolve(ctx) {
-    const psUpOptions = restedPsUpOptions(ctx).map((p) => p.id);
-    const psUpId = psUpOptions.length === 1 ? psUpOptions[0] : yield { type: "CHOOSE_PS_UP", prompt: "Attach which rested PLAYERSCORE UP!?", options: psUpOptions };
+    // PLAYERSCORE UP! cards are fungible - no need to ask which rested one to use.
+    const psUpId = restedPsUpOptions(ctx)[0].id;
     const playerOptions = ctx.player().playerSlots.filter((s) => s).map((s) => s.instanceId);
     const targetInstanceId = playerOptions.length === 1 ? playerOptions[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Attach it to which player?", options: playerOptions };
     ctx.attachPsUpForced(ctx.self, psUpId, targetInstanceId);
