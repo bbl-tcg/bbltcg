@@ -32,7 +32,7 @@ export function renderLogin() {
       statusLine,
       el("button", { class: "bbl-btn", onclick: () => doAuth(login) }, "Log In"),
       el("button", { class: "bbl-btn ghost", onclick: () => doAuth(signup) }, "Create Account"),
-      el("button", { class: "bbl-btn secondary", onclick: () => showScreen("menu-screen") }, "Cancel"),
+      el("button", { class: "bbl-btn secondary", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "Cancel"),
     ])
   );
 }

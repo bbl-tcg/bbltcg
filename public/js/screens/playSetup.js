@@ -2,6 +2,7 @@ import { el, showScreen } from "../screens.js";
 import { startLocalMatch } from "../game/localMatch.js";
 import { allDeckOptions } from "../deckOptions.js";
 import { toast } from "../ui.js";
+import { renderMenu } from "./menu.js";
 
 export async function renderPlaySetup() {
   const root = document.getElementById("game-setup-screen");
@@ -74,7 +75,7 @@ export async function renderPlaySetup() {
         },
         "Start Game"
       ),
-      el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "Cancel"),
+      el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "Cancel"),
     ])
   );
 }

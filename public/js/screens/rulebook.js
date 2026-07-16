@@ -1,4 +1,5 @@
 import { el, showScreen } from "../screens.js";
+import { renderMenu } from "./menu.js";
 
 const TRIGGER_DOCS = [
   ["YOUR TURN", "Usable any time during your own Main Phase."],
@@ -25,7 +26,7 @@ export function renderRulebook() {
   root.className = "screen rulebook-screen";
 
   const content = el("div", { class: "rulebook-content" }, [
-    el("div", { class: "rulebook-back" }, [el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu")]),
+    el("div", { class: "rulebook-back" }, [el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu")]),
     el("h1", {}, "Big Ball League TCG - Rulebook"),
 
     el("h2", {}, "The 6 Card Types"),

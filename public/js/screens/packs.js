@@ -2,6 +2,7 @@ import { el, showScreen } from "../screens.js";
 import { getCard } from "/shared/engine/cardDb.js";
 import { openPack, currentUser } from "../api.js";
 import { toast } from "../ui.js";
+import { renderMenu } from "./menu.js";
 
 const PACK_COST = 3;
 
@@ -42,7 +43,7 @@ export function renderPacks() {
     },
   });
 
-  root.appendChild(el("button", { class: "bbl-btn ghost", style: "position:absolute;top:10px;left:10px;", onclick: () => showScreen("menu-screen") }, "← Menu"));
+  root.appendChild(el("button", { class: "bbl-btn ghost", style: "position:absolute;top:10px;left:10px;", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"));
   root.appendChild(el("div", { class: "menu-title" }, "Open a Pack!"));
   root.appendChild(pointsLine);
   root.appendChild(packImg);

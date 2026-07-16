@@ -3,6 +3,7 @@ import { getCard } from "/shared/engine/cardDb.js";
 import { getCollection, currentUser } from "../api.js";
 import { toast } from "../ui.js";
 import { showCardZoomWithActions } from "../game/cardZoom.js";
+import { renderMenu } from "./menu.js";
 
 let socket = null;
 let myCollection = {};
@@ -26,6 +27,7 @@ function connect() {
     } else {
       toast("Trade failed: " + data.reason);
     }
+    renderMenu();
     showScreen("menu-screen");
   });
   socket.on("opponent-disconnected", () => toast("Your trade partner disconnected."));
@@ -56,7 +58,7 @@ function renderBody() {
 
   const codeInput = el("input", { type: "text", placeholder: "Invite code", maxlength: "6", style: "padding:6px;border-radius:6px;border:2px solid var(--bbl-black);" });
   const topbar = el("div", { class: "db-topbar" }, [
-    el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu"),
+    el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"),
     el("button", { class: "bbl-btn", onclick: onCreateTrade }, "Create Trade"),
     codeInput,
     el("button", { class: "bbl-btn secondary", onclick: () => onJoinTrade(codeInput.value.trim().toUpperCase()) }, "Join Trade"),

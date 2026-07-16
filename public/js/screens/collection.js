@@ -3,6 +3,7 @@ import { allCards } from "/shared/engine/cardDb.js";
 import { getCollection } from "../api.js";
 import { toast } from "../ui.js";
 import { showCardZoomWithActions } from "../game/cardZoom.js";
+import { renderMenu } from "./menu.js";
 
 export async function renderCollection() {
   const root = document.getElementById("collection-screen");
@@ -20,7 +21,7 @@ export async function renderCollection() {
 
   root.innerHTML = "";
   const topbar = el("div", { class: "db-topbar" }, [
-    el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu"),
+    el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"),
     el("span", { style: "font-weight:800;" }, `Your Collection (${Object.values(collection).reduce((a, b) => a + b, 0)} cards)`),
   ]);
   root.appendChild(topbar);

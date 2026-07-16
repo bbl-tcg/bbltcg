@@ -2,6 +2,7 @@ import { el, showScreen } from "../screens.js";
 import { allDeckOptions } from "../deckOptions.js";
 import { createMultiplayerRoom, joinMultiplayerRoom } from "../game/multiplayerMatch.js";
 import { toast } from "../ui.js";
+import { renderMenu } from "./menu.js";
 
 export async function renderMultiplayerSetup() {
   const root = document.getElementById("game-setup-screen");
@@ -63,7 +64,7 @@ export async function renderMultiplayerSetup() {
         },
         "Join Room"
       ),
-      el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "Cancel"),
+      el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "Cancel"),
     ])
   );
 }

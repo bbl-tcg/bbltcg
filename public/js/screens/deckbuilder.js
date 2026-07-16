@@ -6,6 +6,7 @@ import { loadCustomDecks, saveCustomDeck, deleteCustomDeck, loadCollection } fro
 import { toast, confirmDialog } from "../ui.js";
 import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck, getCollection } from "../api.js";
 import { showCardZoomWithActions } from "../game/cardZoom.js";
+import { renderMenu } from "./menu.js";
 
 let deck = null; // { id?, name, headCoachId, mainDeck: string[] }
 let filterText = "";
@@ -70,7 +71,7 @@ function renderAll() {
     root.innerHTML = "";
     root.appendChild(
       el("div", { style: "padding:24px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;" }, [
-        el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu"),
+        el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"),
         el("div", { style: "font-weight:800;color:var(--bbl-blue);font-size:1.1rem;" }, "You don't own any Head Coaches yet"),
         el("div", {}, "Open a pack or start from one of the 4 starter decks to get one."),
       ])
@@ -124,7 +125,7 @@ function renderTopbar() {
   });
 
   const topbar = el("div", { class: "db-topbar" }, [
-    el("button", { class: "bbl-btn ghost", onclick: () => showScreen("menu-screen") }, "← Menu"),
+    el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"),
     el("span", { style: "font-weight:800;" }, "Head Coach:"),
     hcSelect,
     nameInput,
