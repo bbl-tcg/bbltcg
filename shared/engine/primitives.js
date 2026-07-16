@@ -106,6 +106,17 @@ export function attachPsUp(state, playerIndex, psUpId, targetInstanceId) {
 /** Recover phase: full-heal this player's field and return all PS UP (attached or rested) to active/unattached. */
 export function recoverPlayer(state, playerIndex) {
   const player = state.players[playerIndex];
+  // Detach PS UP (and clear any "gains +N for each attached" tag) *before* recomputing
+  // Health below - otherwise a stat bonus tied to a PS UP that's about to detach would get
+  // baked into this turn's currentHealth one Recover phase too late.
+  for (const psUp of player.psField) {
+    psUp.isActive = true;
+    psUp.attachedTo = null;
+    psUp.bonusPerAttach = null;
+  }
+  for (const inst of player.playerSlots) {
+    if (inst) inst.attachedPsUp = [];
+  }
   for (const inst of player.playerSlots) {
     if (!inst) continue;
     inst.hasAttackedThisTurn = false;
@@ -113,13 +124,6 @@ export function recoverPlayer(state, playerIndex) {
     inst.buffs = inst.buffs.filter((b) => b.expires === "permanent");
     inst.grantedEffects = inst.grantedEffects.filter((g) => g.expires === "permanent");
     inst.currentHealth = effectiveMaxHealth(state, playerIndex, inst);
-  }
-  for (const psUp of player.psField) {
-    psUp.isActive = true;
-    psUp.attachedTo = null;
-  }
-  for (const inst of player.playerSlots) {
-    if (inst) inst.attachedPsUp = [];
   }
   log(state, { type: "RECOVER", playerIndex });
 }
@@ -146,6 +150,7 @@ export function moveFieldInstanceToDiscard(state, playerIndex, slotIndex, { koed
     if (psUp) {
       psUp.attachedTo = null;
       psUp.isActive = false;
+      psUp.bonusPerAttach = null;
     }
   }
 
@@ -169,6 +174,7 @@ export function moveFieldInstanceToBottomOfDeck(state, playerIndex, slotIndex) {
     if (psUp) {
       psUp.attachedTo = null;
       psUp.isActive = false;
+      psUp.bonusPerAttach = null;
     }
   }
   player.playerSlots[slotIndex] = null;

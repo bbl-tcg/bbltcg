@@ -73,13 +73,19 @@ export function makeEffectContext(state, { controllerIndex, source }) {
     attachPsUp: (playerIndex, psUpId, targetInstanceId) => attachPsUp(state, playerIndex, psUpId, targetInstanceId),
     /** Effect-driven attach that bypasses the "must be active" / "not a Star Player" restrictions,
      * per "unless an effect dictates otherwise." Preserves the PS UP's active/rested state as-is -
-     * attachment doesn't itself activate a rested one, only the next Recover phase does. */
-    attachPsUpForced: (playerIndex, psUpId, targetInstanceId) => {
+     * attachment doesn't itself activate a rested one, only the next Recover phase does.
+     * `bonusPerAttach` (e.g. `{ health: 1 }`) tags the PS UP itself for "gains +N for each
+     * PLAYERSCORE UP! attached in this way" cards (Coach Romano/Tall, Dwayne's Trade Value
+     * Skyrockets, etc.) - stats.js reads it live off whichever PS UPs are *currently*
+     * attached, so the bonus disappears the instant this specific PS UP detaches (Recover,
+     * the player leaving the field, ...) rather than lingering as a separate permanent buff. */
+    attachPsUpForced: (playerIndex, psUpId, targetInstanceId, bonusPerAttach) => {
       const p = state.players[playerIndex];
       const psUp = p.psField.find((x) => x.id === psUpId);
       const target = p.playerSlots.find((s) => s && s.instanceId === targetInstanceId);
       if (!psUp || !target || psUp.attachedTo) return false;
       psUp.attachedTo = targetInstanceId;
+      if (bonusPerAttach) psUp.bonusPerAttach = bonusPerAttach;
       target.attachedPsUp.push(psUpId);
       log(state, { type: "ATTACH_PS_UP", playerIndex, psUpId, targetInstanceId, forced: true });
       return true;
@@ -119,6 +125,7 @@ export function makeEffectContext(state, { controllerIndex, source }) {
         if (psUp) {
           psUp.attachedTo = null;
           psUp.isActive = false;
+          psUp.bonusPerAttach = null;
         }
       }
       player.playerSlots[slot] = null;

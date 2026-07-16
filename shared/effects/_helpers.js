@@ -100,8 +100,10 @@ export function janJanPsUpBoostEffect() {
       const janJan = findJanJan(ctx);
       // PLAYERSCORE UP! cards are fungible - no need to ask which rested one to use.
       const psUpId = restedPsUpOptions(ctx)[0].id;
-      ctx.attachPsUpForced(ctx.self, psUpId, janJan.instanceId);
-      ctx.addBuff(janJan.instanceId, { source: "janJanPsUpBoost", health: 1, expires: "permanent" });
+      // "+1 Health for each PLAYERSCORE UP! attached in this way" is tied to that specific
+      // PS UP staying attached - see attachPsUpForced's bonusPerAttach doc comment - not a
+      // permanent buff, so it correctly disappears once the PS UP detaches (Recover, etc).
+      ctx.attachPsUpForced(ctx.self, psUpId, janJan.instanceId, { health: 1 });
     },
   };
 }

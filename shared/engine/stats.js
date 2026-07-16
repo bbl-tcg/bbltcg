@@ -51,10 +51,24 @@ function teamStaticHooks(state, playerIndex) {
   return hooks;
 }
 
+/** Sums the `bonusPerAttach` tag (see effectContext.js's attachPsUpForced) carried by any
+ * PS UP *currently* attached to this instance - e.g. Coach Romano's "JanJan gains +1
+ * Health for each PLAYERSCORE UP! attached in this way." Deliberately live/dynamic rather
+ * than a stored buff: the bonus is tied to the PS UP actually staying attached, so it
+ * disappears the moment that PS UP detaches (Recover phase, the card leaving the field,
+ * etc.) exactly like the base "+1 Attack per attached PS UP" mechanic already does. */
+function psUpAttachBonus(state, playerIndex, instance, stat) {
+  const player = state.players[playerIndex];
+  return player.psField
+    .filter((p) => p.attachedTo === instance.instanceId && p.bonusPerAttach)
+    .reduce((sum, p) => sum + (p.bonusPerAttach[stat] || 0), 0);
+}
+
 export function effectiveAttack(state, playerIndex, instance) {
   const card = getCard(instance.cardId);
   let attack = card.attack + instance.attachedPsUp.length; // +1 attack per attached PLAYERSCORE UP!
   attack += instance.buffs.reduce((sum, b) => sum + (b.attack || 0), 0);
+  attack += psUpAttachBonus(state, playerIndex, instance, "attack");
 
   const ctx = hookCtx(state, playerIndex, instance, card);
   for (const hook of staticHooksFor(instance)) {
@@ -79,6 +93,7 @@ export function effectiveMaxHealth(state, playerIndex, instance) {
   const card = getCard(instance.cardId);
   let health = card.health;
   health += instance.buffs.filter((b) => b.expires === "permanent").reduce((sum, b) => sum + (b.health || 0), 0);
+  health += psUpAttachBonus(state, playerIndex, instance, "health");
 
   const ctx = hookCtx(state, playerIndex, instance, card);
   for (const hook of staticHooksFor(instance)) {

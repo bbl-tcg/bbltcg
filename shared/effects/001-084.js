@@ -23,7 +23,9 @@ registerEffect("001-084", {
     const psUpId = available[0].id;
     const starOptions = starPlayerOptions(ctx).map((s) => s.instanceId);
     const targetInstanceId = starOptions.length === 1 ? starOptions[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Attach it to which Star Player?", options: starOptions };
-    ctx.attachPsUpForced(ctx.self, psUpId, targetInstanceId);
-    ctx.addBuff(targetInstanceId, { source: "001-084", attack: 1, health: 1, expires: "permanent" });
+    // "+1 Health and +1 Attack for each PLAYERSCORE UP! attached in this way" is tied to
+    // that specific PS UP staying attached (see attachPsUpForced's bonusPerAttach doc
+    // comment), not a permanent buff - it disappears once the PS UP detaches (Recover, etc).
+    ctx.attachPsUpForced(ctx.self, psUpId, targetInstanceId, { attack: 1, health: 1 });
   },
 });
