@@ -6,12 +6,18 @@ import { renderMenu } from "./menu.js";
 
 const PACK_COST = 3;
 
+function statsText() {
+  const u = currentUser();
+  return `Packs Opened: ${u?.packsOpened ?? 0} | Alt Arts Pulled: ${u?.altArtsPulled ?? 0} | Secret Rares Pulled: ${u?.secretRaresPulled ?? 0}`;
+}
+
 export function renderPacks() {
   const root = document.getElementById("packs-screen");
   root.innerHTML = "";
   root.className = "screen menu-screen";
 
   const pointsLine = el("div", { style: "font-weight:800;color:var(--bbl-blue);font-size:1.1rem;" }, `Pack Points: ${currentUser()?.packPoints ?? 0}`);
+  const statsLine = el("div", { style: "color:#666;font-size:0.85rem;" }, statsText());
   const resultsArea = el("div", { style: "display:flex;flex-wrap:nowrap;gap:6px;justify-content:center;overflow-x:auto;max-width:96vw;padding:6px 2px;" });
 
   const packImg = el("img", {
@@ -36,6 +42,7 @@ export function renderPacks() {
           );
         }
         pointsLine.textContent = `Pack Points: ${currentUser().packPoints}`;
+        statsLine.textContent = statsText();
       } catch (err) {
         toast(err.message);
       }
@@ -46,6 +53,7 @@ export function renderPacks() {
   root.appendChild(el("button", { class: "bbl-btn ghost", style: "position:absolute;top:10px;left:10px;", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"));
   root.appendChild(el("div", { class: "menu-title" }, "Open a Pack!"));
   root.appendChild(pointsLine);
+  root.appendChild(statsLine);
   root.appendChild(packImg);
   root.appendChild(el("div", { style: "color:#666;" }, `Click the pack to open it (costs ${PACK_COST} Pack Points)`));
   root.appendChild(resultsArea);

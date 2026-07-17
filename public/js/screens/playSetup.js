@@ -1,6 +1,7 @@
 import { el, showScreen } from "../screens.js";
 import { startLocalMatch } from "../game/localMatch.js";
 import { allDeckOptions } from "../deckOptions.js";
+import { validateDeck } from "/shared/engine/deckLegality.js";
 import { toast } from "../ui.js";
 import { renderMenu } from "./menu.js";
 
@@ -19,8 +20,8 @@ export async function renderPlaySetup() {
     options.map((o) => el("option", { value: o.key }, o.label))
   );
   const deckBSelect = el("select", {}, [
-    el("option", { value: RANDOM_KEY }, "Random"),
-    ...options.map((o, i) => el("option", { value: o.key, selected: i === 1 ? "selected" : undefined }, o.label)),
+    el("option", { value: RANDOM_KEY, selected: "selected" }, "Random"),
+    ...options.map((o) => el("option", { value: o.key }, o.label)),
   ]);
 
   const opponentTypeSelect = el("select", {}, [
@@ -62,6 +63,17 @@ export async function renderPlaySetup() {
             const deckB = resolveByKey(deckBSelect.value);
             if (!deckA || !deckB) {
               toast("Build or pick a deck for both sides first.");
+              return;
+            }
+            // A saved deck can be an incomplete draft (the deckbuilder allows saving those
+            // as work-in-progress) - refuse to start a match with one instead of silently
+            // dealing out a too-small deck, which is confusing to debug after the fact.
+            const invalidA = validateDeck(deckA);
+            const invalidB = validateDeck(deckB);
+            if (!invalidA.legal || !invalidB.legal) {
+              const which = !invalidA.legal && !invalidB.legal ? "Both decks are" : !invalidA.legal ? "Your deck is" : "The opponent's deck is";
+              const errors = !invalidA.legal ? invalidA.errors : invalidB.errors;
+              toast(`${which} not legal yet: ${errors[0]}`);
               return;
             }
             showScreen("game-screen");

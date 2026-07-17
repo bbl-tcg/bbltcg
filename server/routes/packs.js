@@ -2,6 +2,7 @@ import express from "express";
 import * as db from "../db/index.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { openPack } from "../packOdds.js";
+import { getCard } from "../../shared/engine/cardDb.js";
 
 export const packsRouter = express.Router();
 packsRouter.use(requireAuth);
@@ -15,8 +16,17 @@ packsRouter.post("/open", async (req, res) => {
   const cardIds = openPack();
   await db.addToCollection(user.id, cardIds);
   await db.addPackPoints(user.id, -PACK_COST);
+  const altArts = cardIds.filter((id) => getCard(id).rarity === "Alternative Art").length;
+  const secretRares = cardIds.filter((id) => getCard(id).rarity === "Secret Rare").length;
+  await db.recordPackStats(user.id, { altArts, secretRares });
   const fresh = await db.getUserById(user.id);
-  res.json({ cardIds, packPoints: fresh.packPoints });
+  res.json({
+    cardIds,
+    packPoints: fresh.packPoints,
+    packsOpened: fresh.packsOpened,
+    altArtsPulled: fresh.altArtsPulled,
+    secretRaresPulled: fresh.secretRaresPulled,
+  });
 });
 
 /**

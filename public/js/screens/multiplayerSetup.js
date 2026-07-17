@@ -1,5 +1,6 @@
 import { el, showScreen } from "../screens.js";
 import { allDeckOptions } from "../deckOptions.js";
+import { validateDeck } from "/shared/engine/deckLegality.js";
 import { createMultiplayerRoom, joinMultiplayerRoom } from "../game/multiplayerMatch.js";
 import { toast } from "../ui.js";
 import { renderMenu } from "./menu.js";
@@ -23,6 +24,23 @@ export async function renderMultiplayerSetup() {
     return options.find((o) => o.key === deckSelect.value)?.resolve();
   }
 
+  // A saved deck can be an incomplete draft (the deckbuilder allows saving those as
+  // work-in-progress) - refuse to start/join a real match with one instead of silently
+  // dealing out a too-small deck.
+  function resolveLegalDeck() {
+    const deck = resolveDeck();
+    if (!deck) {
+      toast("Pick a deck first.");
+      return null;
+    }
+    const result = validateDeck(deck);
+    if (!result.legal) {
+      toast(`Your deck is not legal yet: ${result.errors[0]}`);
+      return null;
+    }
+    return deck;
+  }
+
   root.innerHTML = "";
   root.appendChild(
     el("div", { class: "bbl-panel", style: "padding:24px;max-width:420px;width:92vw;display:flex;flex-direction:column;gap:14px;" }, [
@@ -34,8 +52,8 @@ export async function renderMultiplayerSetup() {
         {
           class: "bbl-btn",
           onclick: () => {
-            const deck = resolveDeck();
-            if (!deck) return toast("Pick a deck first.");
+            const deck = resolveLegalDeck();
+            if (!deck) return;
             statusLine.textContent = "Creating room...";
             createMultiplayerRoom(deck, (code) => {
               statusLine.textContent = `Invite code: ${code} - share it with your opponent. Waiting for them to join...`;
@@ -51,8 +69,8 @@ export async function renderMultiplayerSetup() {
         {
           class: "bbl-btn secondary",
           onclick: () => {
-            const deck = resolveDeck();
-            if (!deck) return toast("Pick a deck first.");
+            const deck = resolveLegalDeck();
+            if (!deck) return;
             const code = codeInput.value.trim().toUpperCase();
             if (code.length !== 6) return toast("Enter the 6-character invite code.");
             statusLine.textContent = "Joining...";

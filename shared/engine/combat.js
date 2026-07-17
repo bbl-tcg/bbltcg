@@ -4,6 +4,22 @@ import { moveFieldInstanceToDiscard } from "./primitives.js";
 import { triggerOnKoIfApplicable } from "./koTrigger.js";
 
 /**
+ * The damage a declared-but-not-yet-resolved attack would deal to its current target right
+ * now, given `windowCtx` (attacker/target may still change before the attack actually
+ * resolves, e.g. a SACRIFICE redirect) - same formula declareAttack() itself uses. Lets a
+ * reactive choice prompt (e.g. Rebound/Save asking "+Health to which player?") show the
+ * player what they're actually reacting to instead of a blind guess.
+ */
+export function pendingAttackDamage(state, windowCtx) {
+  if (!windowCtx) return null;
+  const attacker = state.players[windowCtx.attackerPlayerIndex]?.playerSlots[windowCtx.attackerSlot];
+  const target = state.players[windowCtx.targetPlayerIndex]?.playerSlots[windowCtx.targetSlot];
+  if (!attacker || !target) return null;
+  const bonus = speedTriangleBonus(effectiveSpeed(attacker), effectiveSpeed(target));
+  return effectiveAttack(state, windowCtx.attackerPlayerIndex, attacker) + bonus;
+}
+
+/**
  * Resolve an attack. `targetPlayerIndex` may equal `attackerPlayerIndex` for the rare
  * teammate-targeting effects (e.g. Ricky Covey Jr.) — callers are responsible for only
  * allowing that when the attacking card's effect explicitly permits it.
@@ -22,11 +38,8 @@ export async function declareAttack(
     return { ok: false, reason: "CANNOT_ATTACK" };
   }
 
-  const attackerSpeed = effectiveSpeed(attacker);
-  const targetSpeed = effectiveSpeed(target);
-  const baseDamage = effectiveAttack(state, attackerPlayerIndex, attacker);
-  const bonus = speedTriangleBonus(attackerSpeed, targetSpeed);
-  const damage = baseDamage + bonus;
+  const speedBonus = speedTriangleBonus(effectiveSpeed(attacker), effectiveSpeed(target));
+  const damage = pendingAttackDamage(state, { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot });
 
   target.currentHealth -= damage;
   target.lastDamageTaken = damage;
@@ -45,7 +58,7 @@ export async function declareAttack(
     targetPlayerIndex,
     targetInstanceId: target.instanceId,
     damage,
-    speedBonus: bonus,
+    speedBonus,
   });
 
   const zeroHealth = target.currentHealth <= 0;

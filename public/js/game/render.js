@@ -1,6 +1,6 @@
 import { el } from "../screens.js";
 import { getCard } from "/shared/engine/cardDb.js";
-import { effectiveAttack, effectiveHealth, isStarPlayerInPowerUpTurns } from "/shared/engine/stats.js";
+import { effectiveAttack, effectiveHealth, isStarPlayerInPowerUpTurns, isStunned } from "/shared/engine/stats.js";
 
 const CARD_BACK = "/assets/cards/back.png";
 const PS_UP_FRONT = "/assets/cards/playerscoreup.png";
@@ -161,17 +161,19 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
   const attack = effectiveAttack(state, playerIndex, inst);
   const health = effectiveHealth(inst);
   const isPowerUp = isStarPlayerInPowerUpTurns(inst, state.turnNumber);
+  const stunned = isStunned(inst);
 
   const classes = ["card-face"];
   if (handlers.attackableInstanceIds?.has(inst.instanceId)) classes.push("attackable");
   if (handlers.targetableInstanceIds?.has(inst.instanceId)) classes.push("targetable");
+  if (stunned) classes.push("stunned");
 
   const face = el(
     "div",
     {
       class: classes.join(" "),
       style: `background-image:url(/${card.image});`,
-      title: `${card.name}${isPowerUp ? " (Power Up Turn)" : ""}`,
+      title: `${card.name}${isPowerUp ? " (Power Up Turn)" : ""}${stunned ? " (Cannot attack)" : ""}`,
       "data-instance-id": inst.instanceId,
       "data-player-index": String(playerIndex),
       onclick: () => handlers.onFieldCardClick?.(playerIndex, slot, inst),
@@ -181,10 +183,15 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
       el("div", { class: "attack-pill" }, String(attack)),
       el("div", { class: "cost-pill" }, String(card.cost)),
       ...(inst.attachedPsUp.length ? [psAttachBadge(inst.attachedPsUp.length)] : []),
+      ...(stunned ? [stunBadge()] : []),
     ]
   );
   wrap.appendChild(face);
   return wrap;
+}
+
+function stunBadge() {
+  return el("div", { class: "stun-badge", title: "Cannot attack" }, "\u{1F6AB}");
 }
 
 function psAttachBadge(count) {

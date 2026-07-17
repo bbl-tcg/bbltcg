@@ -49,6 +49,9 @@ export function createGameState({ playerA, playerB, rng }) {
       attacksAllowed: true,
       attackedThisGameByInstance: {}, // instanceId -> bool, used by some "first attack" effects
       eventsPlayedThisTurnBy: [], // playerIndex[], reset every startTurn()
+      // Keys of "<controllerIndex>:<sourceKey>" for YOUR_TURN/OPPONENTS_TURN effect sources
+      // already activated since the last startTurn() - see engine.js's ONCE_PER_TURN_TRIGGERS.
+      activatedStandingEffectsThisTurn: [],
     },
     winner: null,
     log: [],

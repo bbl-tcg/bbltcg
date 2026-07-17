@@ -2,7 +2,6 @@ import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, pl
 import { startTurn, endTurn as endTurnPhase } from "../shared/engine/turn.js";
 import * as engine from "../shared/engine/engine.js";
 import { makeRng } from "../shared/engine/rng.js";
-import { getCard } from "../shared/engine/cardDb.js";
 import * as db from "./db/index.js";
 
 const rooms = new Map(); // code -> Room
@@ -89,8 +88,7 @@ class Room {
     drawOpeningHand(this.state, 0, rng);
     drawOpeningHand(this.state, 1, rng);
     for (const p of [0, 1]) {
-      const hand = this.state.players[p].hand.map((id) => getCard(id).name);
-      const wantsMulligan = await this.resolveChoice({ forPlayer: p, type: "CHOOSE_YES_NO", prompt: `Your hand: ${hand.join(", ")}. Mulligan?`, yesLabel: "Mulligan", noLabel: "Keep" });
+      const wantsMulligan = await this.resolveChoice({ forPlayer: p, type: "MULLIGAN_PROMPT", prompt: "Your hand - mulligan (redraw once)?", cardIds: this.state.players[p].hand });
       if (wantsMulligan) mulligan(this.state, p, rng);
       keepHand(this.state, p);
     }

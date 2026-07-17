@@ -90,12 +90,12 @@ test("a deck missing cards is rejected", () => {
 
 // ---- Setup flow ----
 console.log("Setup flow:");
-test("opening hands contain a Player/StarPlayer, score piles have 2 cards", () => {
+test("opening hands contain a Player/StarPlayer, score piles have 4 cards", () => {
   const { state } = freshGame();
   assert.equal(state.players[0].hand.length, 5);
   assert.equal(state.players[1].hand.length, 5);
-  assert.equal(state.players[0].score.length, 2);
-  assert.equal(state.players[1].score.length, 2);
+  assert.equal(state.players[0].score.length, 4);
+  assert.equal(state.players[1].score.length, 4);
 });
 
 test("mulligan reshuffles hand and can only be used once", () => {

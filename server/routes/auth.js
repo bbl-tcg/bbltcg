@@ -15,7 +15,14 @@ function starterCollectionCardIds() {
 }
 
 function publicUser(user) {
-  return { id: user.id, username: user.username, packPoints: user.packPoints };
+  return {
+    id: user.id,
+    username: user.username,
+    packPoints: user.packPoints,
+    packsOpened: user.packsOpened,
+    altArtsPulled: user.altArtsPulled,
+    secretRaresPulled: user.secretRaresPulled,
+  };
 }
 
 authRouter.post("/signup", async (req, res) => {

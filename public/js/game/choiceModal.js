@@ -13,6 +13,9 @@ export function showChoice(request) {
     const overlay = el("div", { class: "choice-overlay" });
     const panel = el("div", { class: "choice-panel bbl-panel" });
     panel.appendChild(el("div", { style: "font-weight:800;font-size:1.05rem;color:var(--bbl-blue);" }, request.prompt || describeType(request.type)));
+    if (request.pendingDamage != null) {
+      panel.appendChild(el("div", { style: "font-weight:700;color:var(--bbl-red);" }, `Incoming damage: ${request.pendingDamage}`));
+    }
 
     const finish = (value) => {
       overlay.remove();
@@ -24,6 +27,24 @@ export function showChoice(request) {
         el("div", { style: "display:flex;gap:10px;justify-content:center;" }, [
           el("button", { class: "bbl-btn", onclick: () => finish(true) }, request.yesLabel || "Yes"),
           el("button", { class: "bbl-btn secondary", onclick: () => finish(false) }, request.noLabel || "No"),
+        ])
+      );
+    } else if (request.type === "MULLIGAN_PROMPT") {
+      // Shows the actual opening hand's card art (each zoomable, per "let me see the real
+      // cards before deciding") rather than a text list of names, then the Mulligan/Keep
+      // decision below it.
+      const cardIds = request.cardIds || [];
+      const grid = el("div", { class: "choice-options" });
+      for (const cardId of cardIds) {
+        grid.appendChild(
+          el("div", { class: "choice-option", onclick: () => showCardZoomWithActions(cardId, []) }, [el("img", { src: cardImg(cardId), alt: getCard(cardId).name })])
+        );
+      }
+      panel.appendChild(grid);
+      panel.appendChild(
+        el("div", { style: "display:flex;gap:10px;justify-content:center;" }, [
+          el("button", { class: "bbl-btn", onclick: () => finish(true) }, "Mulligan"),
+          el("button", { class: "bbl-btn secondary", onclick: () => finish(false) }, "Keep"),
         ])
       );
     } else if (request.type === "CHOOSE_FIRST_OR_SECOND") {
@@ -125,7 +146,16 @@ function isCardOptionRequest(request) {
  */
 function normalizeCardOptions(options, requestType) {
   return (options || []).map((o) => {
-    if (o && o.__enrichedInstance) return { cardId: o.cardId, label: getCard(o.cardId).name, value: o.instanceId, threatened: !!o.threatened };
+    if (o && o.__enrichedInstance) {
+      return {
+        cardId: o.cardId,
+        label: getCard(o.cardId).name,
+        value: o.instanceId,
+        threatened: !!o.threatened,
+        currentHealth: o.currentHealth,
+        maxHealth: o.maxHealth,
+      };
+    }
     if (typeof o === "string") {
       const label = requestType === "CHOOSE_PS_UP" ? "PS UP" : null;
       return { cardId: null, instanceId: o, label, value: o };
@@ -135,13 +165,22 @@ function normalizeCardOptions(options, requestType) {
   });
 }
 
+/** A small "current/max" HP chip overlaid on a choice tile - only rendered when the option
+ * was health-enriched (own/opponent-player picks), so callers with plain cardId options
+ * (e.g. hand-card choices) are unaffected. */
+function hpBadge(opt) {
+  if (opt.currentHealth == null || opt.maxHealth == null) return null;
+  return el("div", { class: "choice-option-hp" }, `${opt.currentHealth}/${opt.maxHealth} HP`);
+}
+
 function buildCardOptionGrid(options, onPick) {
   const grid = el("div", { class: "choice-options" });
   for (const opt of options) {
     if (opt.cardId) {
-      grid.appendChild(
-        el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}`, onclick: () => onPick(opt.value) }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })])
-      );
+      const tile = el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}`, onclick: () => onPick(opt.value) }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })]);
+      const badge = hpBadge(opt);
+      if (badge) tile.appendChild(badge);
+      grid.appendChild(tile);
     } else {
       grid.appendChild(
         el(
@@ -165,6 +204,8 @@ function buildZoomSelectGrid(options, onPick) {
   for (const opt of options) {
     if (!opt.cardId) continue;
     const tile = el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}` }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })]);
+    const badge = hpBadge(opt);
+    if (badge) tile.appendChild(badge);
     tile.onclick = () => {
       const zoomOverlay = el("div", { class: "card-zoom-overlay" });
       zoomOverlay.onclick = (e) => {
@@ -172,6 +213,7 @@ function buildZoomSelectGrid(options, onPick) {
       };
       const wrap = el("div", { style: "display:flex;flex-direction:column;align-items:center;gap:12px;" }, [
         el("img", { src: cardImg(opt.cardId) }),
+        badge ? el("div", { style: "font-weight:700;color:var(--bbl-blue);" }, `${opt.currentHealth}/${opt.maxHealth} HP`) : null,
         el("div", { style: "display:flex;gap:10px;" }, [
           el("button", { class: "bbl-btn", onclick: () => { zoomOverlay.remove(); onPick(opt.value); } }, "Select"),
           el("button", { class: "bbl-btn ghost", onclick: () => zoomOverlay.remove() }, "Cancel"),
@@ -201,6 +243,10 @@ function renderMultiSelect(panel, request, options, finish) {
     const tile = opt.cardId
       ? el("div", { class: `choice-option${opt.threatened ? " threatened" : ""}` }, [el("img", { src: cardImg(opt.cardId), alt: opt.label || "" })])
       : el("div", { class: "choice-option bbl-btn ghost" }, typeof opt.value === "string" ? opt.value : "Option");
+    if (opt.cardId) {
+      const badge = hpBadge(opt);
+      if (badge) tile.appendChild(badge);
+    }
     tile.addEventListener("click", () => {
       if (selected.has(opt)) selected.delete(opt);
       else if (selected.size < max) selected.add(opt);

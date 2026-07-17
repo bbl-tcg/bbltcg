@@ -2,8 +2,8 @@ import { el, showScreen } from "../screens.js";
 import { renderMenu } from "./menu.js";
 
 const TRIGGER_DOCS = [
-  ["YOUR TURN", "Usable any time during your own Main Phase."],
-  ["OPP. TURN", "Usable any time during your opponent's turn - a general reaction window."],
+  ["YOUR TURN", "Usable any time during your own Main Phase - but only once per turn per source."],
+  ["OPP. TURN", "Usable any time during your opponent's turn - a general reaction window, but only once per turn per source."],
   ["DURING ATK", "Usable by a card while it is the one attacking (or, for reactive cards, while it's being attacked), right as that attack is declared."],
   ["OPP. ATK", "A reaction usable specifically when your opponent declares an attack."],
   ["ON PLAY", "Usable immediately when the card is played from your hand to the field."],
@@ -46,13 +46,18 @@ export function renderRulebook() {
 
     el("h2", {}, "Triggers"),
     triggerTable(),
+    el(
+      "p",
+      {},
+      "Any card effect with a trigger (i.e. anything but a passive, always-on effect) can only be activated once per turn per source - a Head Coach, Assistant Coach, or field Player only gets one use of each of its abilities per turn, even a YOUR TURN or OPP. TURN ability that would otherwise stay available all turn long."
+    ),
 
     el("h2", {}, "Setup"),
     el("ol", {}, [
       el("li", {}, "Each player's deck is exactly 60 cards (not counting the Head Coach or PLAYERSCORE UP!), plus 1 Head Coach and 8 PLAYERSCORE UP!."),
       el("li", {}, "Both players roll a die (reroll ties) - the higher roll wins the choice of whether to go first or second."),
       el("li", {}, "Draw 5 cards. You may mulligan once (shuffle your hand back and redraw 5). STAR Players and Players with a Cost of 3 or more cannot be put on the field at setup, so every kept hand is guaranteed to contain at least 1 Player with a Cost of 3 or less."),
-      el("li", {}, "Take the next 2 cards off the top of your deck as your face-down Score."),
+      el("li", {}, "Take the next 4 cards off the top of your deck as your face-down Score."),
       el("li", {}, "Each player plays 1 Player (Cost 3 or less, not a STAR Player) from their hand to the field for free."),
     ]),
 

@@ -39,9 +39,33 @@ db.exec(`
   );
 `);
 
+// users predates these columns, so existing rows/dev DBs need a migration rather than just
+// CREATE TABLE IF NOT EXISTS (which only affects brand-new tables). Ignore "duplicate
+// column" so this is safe to run on every startup.
+for (const [column, ddl] of [
+  ["packs_opened", "INTEGER NOT NULL DEFAULT 0"],
+  ["alt_arts_pulled", "INTEGER NOT NULL DEFAULT 0"],
+  ["secret_rares_pulled", "INTEGER NOT NULL DEFAULT 0"],
+]) {
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN ${column} ${ddl}`);
+  } catch (err) {
+    if (!/duplicate column/i.test(err.message)) throw err;
+  }
+}
+
 function rowToUser(row) {
   if (!row) return null;
-  return { id: row.id, username: row.username, passwordHash: row.password_hash, packPoints: row.pack_points, createdAt: row.created_at };
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    packPoints: row.pack_points,
+    createdAt: row.created_at,
+    packsOpened: row.packs_opened,
+    altArtsPulled: row.alt_arts_pulled,
+    secretRaresPulled: row.secret_rares_pulled,
+  };
 }
 
 export async function createUser(username, passwordHash) {
@@ -125,6 +149,16 @@ export async function hasRedeemedCode(userId, code) {
 
 export async function recordCodeRedemption(userId, code) {
   db.prepare("INSERT INTO redeemed_codes (user_id, code, redeemed_at) VALUES (?, ?, ?)").run(userId, code, new Date().toISOString());
+}
+
+/** Lifetime pack-opening stats shown on the Open a Pack screen - incremented once per pack
+ * opened, never reset (persists for the account's entire existence). */
+export async function recordPackStats(userId, { altArts = 0, secretRares = 0 } = {}) {
+  db.prepare("UPDATE users SET packs_opened = packs_opened + 1, alt_arts_pulled = alt_arts_pulled + ?, secret_rares_pulled = secret_rares_pulled + ? WHERE id = ?").run(
+    altArts,
+    secretRares,
+    userId
+  );
 }
 
 /** Atomically swaps card ownership between two users - used by the trade system. Throws

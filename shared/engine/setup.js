@@ -1,5 +1,5 @@
 import { getCard } from "./cardDb.js";
-import { CARD_TYPE, STARTING_HAND_SIZE, STARTING_SCORE_COUNT } from "./constants.js";
+import { CARD_TYPE, OPENING_FIELD_MAX_COST, STARTING_HAND_SIZE, STARTING_SCORE_COUNT } from "./constants.js";
 import { createPlayerState, createGameState, log } from "./state.js";
 import { shuffle, rollDie } from "./rng.js";
 import { playCardToField } from "./primitives.js";
@@ -9,8 +9,6 @@ export function initializeGame({ playerADef, playerBDef, rng }) {
   const playerB = createPlayerState(playerBDef, rng);
   return createGameState({ playerA, playerB, rng });
 }
-
-const OPENING_FIELD_MAX_COST = 3;
 
 /** STAR Players and Cost 3+ Players can't be put on the field at setup - so a legal
  * opening-field choice requires a Cost <= 3 (non-Star) Player somewhere in hand. */

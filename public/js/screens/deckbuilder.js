@@ -12,6 +12,9 @@ let deck = null; // { id?, name, headCoachId, mainDeck: string[] }
 let filterText = "";
 let savedDecksCache = [];
 let collectionCache = {}; // { [cardId]: quantityOwned }
+// Collapsed by default so the in-progress deck list (the thing actively being edited) gets
+// the visible space; the saved-decks list is opened on demand instead.
+let savedDecksExpanded = false;
 
 /** Only Head Coaches actually in the account's/browser's collection - a Head Coach with
  * 0 copies owned isn't a legal deck foundation, so it shouldn't be offered as one. */
@@ -80,7 +83,8 @@ function renderAll() {
   }
   if (!deck || ownedQty(deck.headCoachId) <= 0) deck = newDeck(headCoaches()[0]?.id);
 
-  const prevScrollTop = root.querySelector(".db-pool")?.scrollTop ?? 0;
+  const prevPoolScrollTop = root.querySelector(".db-pool")?.scrollTop ?? 0;
+  const prevDeckPanelScrollTop = root.querySelector(".db-deck-panel")?.scrollTop ?? 0;
   root.innerHTML = "";
 
   root.appendChild(renderTopbar());
@@ -90,7 +94,9 @@ function renderAll() {
   root.appendChild(body);
 
   const pool = root.querySelector(".db-pool");
-  if (pool) pool.scrollTop = prevScrollTop;
+  if (pool) pool.scrollTop = prevPoolScrollTop;
+  const deckPanel = root.querySelector(".db-deck-panel");
+  if (deckPanel) deckPanel.scrollTop = prevDeckPanelScrollTop;
 }
 
 function renderTopbar() {
@@ -250,13 +256,25 @@ function renderDeckPanel() {
   panel.appendChild(el("div", { style: "font-weight:700;" }, "Deck List"));
   panel.appendChild(list);
 
-  panel.appendChild(el("div", { style: "font-weight:700;margin-top:8px;" }, "Your Saved Decks"));
+  panel.appendChild(
+    el(
+      "div",
+      { class: "db-collapse-header", style: "font-weight:700;margin-top:8px;cursor:pointer;user-select:none;", onclick: () => { savedDecksExpanded = !savedDecksExpanded; renderAll(); } },
+      `${savedDecksExpanded ? "▼" : "▶"} Your Saved Decks (${savedDecksCache.length})`
+    )
+  );
+  if (!savedDecksExpanded) return panel;
   const saved = el(
     "div",
     { class: "db-saved-decks" },
-    savedDecksCache.map((d) =>
-      el("div", { class: "db-deck-row" }, [
-        el("span", { style: "cursor:pointer;", onclick: () => { deck = { ...d }; renderAll(); } }, d.name),
+    savedDecksCache.map((d) => {
+      const dLegal = validateDeck({ headCoachId: d.headCoachId, mainDeck: d.mainDeck, psDeckCount: PS_DECK_SIZE }).legal;
+      return el("div", { class: "db-deck-row" }, [
+        el(
+          "span",
+          { style: `cursor:pointer;${dLegal ? "" : "color:var(--bbl-red);"}`, title: dLegal ? "" : "Incomplete draft - not legal to play yet", onclick: () => { deck = { ...d }; renderAll(); } },
+          `${d.name}${dLegal ? "" : " (draft)"}`
+        ),
         el(
           "button",
           {
@@ -270,8 +288,8 @@ function renderDeckPanel() {
           },
           "Delete"
         ),
-      ])
-    )
+      ]);
+    })
   );
   panel.appendChild(saved);
 

@@ -6,7 +6,11 @@ CREATE TABLE IF NOT EXISTS users (
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   pack_points INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  -- Lifetime pack-opening stats shown on the Open a Pack screen, never reset.
+  packs_opened INTEGER NOT NULL DEFAULT 0,
+  alt_arts_pulled INTEGER NOT NULL DEFAULT 0,
+  secret_rares_pulled INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS collections (

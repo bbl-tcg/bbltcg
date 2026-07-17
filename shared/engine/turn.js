@@ -42,6 +42,10 @@ export function startTurn(state) {
 
   state.turnFlags.attacksAllowed = !firstTurnOfGameForThisPlayer;
   state.turnFlags.eventsPlayedThisTurnBy = [];
+  // A fresh turn re-opens every YOUR_TURN/OPPONENTS_TURN effect source for both players -
+  // see engine.js's ONCE_PER_TURN_TRIGGERS for why this is scoped to "any startTurn()", not
+  // just the active player's own.
+  state.turnFlags.activatedStandingEffectsThisTurn = [];
 
   state.phase = PHASE.MAIN;
   log(state, { type: "MAIN_PHASE_START", playerIndex, attacksAllowed: state.turnFlags.attacksAllowed });

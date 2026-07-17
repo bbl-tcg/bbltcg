@@ -229,6 +229,24 @@
   color: var(--bbl-text);
 }
 
+/* A player affected by "cannot attack until [...]" (e.g. Gragas) - dims the art so it
+   reads as disabled at a glance, plus a small badge since the dimming alone is subtle
+   on already-dark card art. */
+.card-face.stunned {
+  filter: grayscale(65%) brightness(0.75);
+}
+.stun-badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.75rem;
+  background: var(--bbl-white);
+  border: 1.5px solid var(--bbl-black);
+  border-radius: 999px;
+  padding: 0 3px;
+  line-height: 1.3;
+}
+
 .count-badge {
   position: absolute;
   top: -8px;
@@ -362,11 +380,25 @@
 .choice-options .choice-option {
   width: 90px;
   cursor: pointer;
+  position: relative;
 }
 .choice-options .choice-option img {
   width: 100%;
   border-radius: 6px;
   border: 1.5px solid var(--bbl-black);
+}
+.choice-option-hp {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bbl-black);
+  color: var(--bbl-white);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 .choice-options .choice-option.selected img {
   outline: 3px solid var(--bbl-red);

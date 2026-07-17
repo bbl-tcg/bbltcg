@@ -67,7 +67,9 @@ export async function deleteServerDeck(id) {
 
 export async function openPack() {
   const data = await request("POST", "/api/packs/open");
-  cachedUser = cachedUser ? { ...cachedUser, packPoints: data.packPoints } : cachedUser;
+  cachedUser = cachedUser
+    ? { ...cachedUser, packPoints: data.packPoints, packsOpened: data.packsOpened, altArtsPulled: data.altArtsPulled, secretRaresPulled: data.secretRaresPulled }
+    : cachedUser;
   return data;
 }
 

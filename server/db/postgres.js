@@ -36,11 +36,23 @@ await pool.query(`
     redeemed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (user_id, code)
   );
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS packs_opened INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS alt_arts_pulled INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS secret_rares_pulled INTEGER NOT NULL DEFAULT 0;
 `);
 
 function rowToUser(row) {
   if (!row) return null;
-  return { id: row.id, username: row.username, passwordHash: row.password_hash, packPoints: row.pack_points, createdAt: row.created_at };
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    packPoints: row.pack_points,
+    createdAt: row.created_at,
+    packsOpened: row.packs_opened,
+    altArtsPulled: row.alt_arts_pulled,
+    secretRaresPulled: row.secret_rares_pulled,
+  };
 }
 
 function rowToDeck(row) {
@@ -129,6 +141,16 @@ export async function hasRedeemedCode(userId, code) {
 
 export async function recordCodeRedemption(userId, code) {
   await pool.query("INSERT INTO redeemed_codes (user_id, code) VALUES ($1, $2)", [userId, code]);
+}
+
+/** Lifetime pack-opening stats shown on the Open a Pack screen - incremented once per pack
+ * opened, never reset (persists for the account's entire existence). */
+export async function recordPackStats(userId, { altArts = 0, secretRares = 0 } = {}) {
+  await pool.query("UPDATE users SET packs_opened = packs_opened + 1, alt_arts_pulled = alt_arts_pulled + $1, secret_rares_pulled = secret_rares_pulled + $2 WHERE id = $3", [
+    altArts,
+    secretRares,
+    userId,
+  ]);
 }
 
 export async function executeTrade(userAId, userAGives, userBId, userBGives) {

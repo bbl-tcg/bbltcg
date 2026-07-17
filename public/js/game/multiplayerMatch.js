@@ -40,6 +40,14 @@ function connect() {
   return socket;
 }
 
+/** Used by the AFK-kick idle timer (app.js) - lets the server's existing "opponent
+ * disconnected" handling award the win/end the room rather than leaving a live match
+ * silently stuck waiting on a player who's gone. No-op if no multiplayer socket is open. */
+export function disconnectMultiplayer() {
+  socket?.disconnect();
+  socket = null;
+}
+
 export function createMultiplayerRoom(deck, onCode) {
   gameOverShown = false;
   const s = connect();

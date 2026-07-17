@@ -91,6 +91,9 @@ export function getActivatableSources(state, controllerIndex, triggerType, windo
       const inst = state.players[controllerIndex].playerSlots.find((s) => s && s.instanceId === src.instanceId);
       if (inst && isSilenced(inst)) return false;
     }
+    if (ONCE_PER_TURN_TRIGGERS.has(src.effectDef.trigger) && state.turnFlags.activatedStandingEffectsThisTurn.includes(standingEffectKey(controllerIndex, src))) {
+      return false;
+    }
     const ctx = makeEffectContext(state, { controllerIndex, source: src });
     if (src.effectDef.canActivate) return !!src.effectDef.canActivate(ctx, windowCtx);
     return true;
@@ -127,6 +130,9 @@ async function activateSource(state, controllerIndex, source, windowCtx, resolve
   if (source.effectDef.resolve) {
     await runEffect(source.effectDef.resolve(ctx, windowCtx), scopedResolver(resolveChoice, controllerIndex, windowCtx));
   }
+  if (ONCE_PER_TURN_TRIGGERS.has(source.effectDef.trigger)) {
+    state.turnFlags.activatedStandingEffectsThisTurn.push(standingEffectKey(controllerIndex, source));
+  }
   log(state, { type: "EFFECT_ACTIVATED", controllerIndex, cardId: source.cardId, trigger: source.effectDef.trigger, label: source.label });
   processPendingPostEffectHooks(state);
 }
@@ -157,6 +163,21 @@ function sourceKey(src) {
 }
 
 /**
+ * TRIGGER.YOUR_TURN and TRIGGER.OPPONENTS_TURN are the two broad "any time during
+ * [your/their] turn" windows, surfaced to the UI as a standing "Activate" button a player
+ * can click over and over (e.g. Coach Romano, Coach Le Finn) since nothing about them is
+ * naturally consumed like a HAND-zone Event or a KOed/attacking field instance. Every other
+ * trigger is already bounded to a single occurrence per turn by its own nature: ON_PLAY/ON_KO
+ * fire once per play/KO, WHILE_ATTACKING and ON_OPPONENTS_ATTACK are scoped to one attack (and
+ * a given field instance can only attack once per turn), and SACRIFICE consumes its source.
+ */
+const ONCE_PER_TURN_TRIGGERS = new Set([TRIGGER.YOUR_TURN, TRIGGER.OPPONENTS_TURN]);
+
+function standingEffectKey(controllerIndex, src) {
+  return `${controllerIndex}:${sourceKey(src)}`;
+}
+
+/**
  * Open a decision window of a given trigger type for `controllerIndex`. `decide` is called
  * repeatedly with the list of currently-activatable sources and must resolve to either
  * `null` (pass / stop) or one of the sources to activate; `resolveChoice` answers any
@@ -168,12 +189,23 @@ function sourceKey(src) {
  * attacked this turn" doesn't change just from using the ability) would otherwise offer
  * itself again forever. A card that genuinely wants repeat-activations within one window
  * is rare enough to not warrant plumbing an opt-out for it yet.
+ *
+ * A source flagged `effectDef.mandatory` (e.g. Sainz's WHILE_ATTACKING "your opponent may
+ * discard 2 cards... " - not optional for the attacker, only the discard itself is optional,
+ * and only for the *other* player) always fires before `decide` is consulted, so the acting
+ * controller never gets a chance to simply skip triggering it.
  */
 export async function openWindow(state, controllerIndex, triggerType, windowCtx, decide, resolveChoice) {
   const activatedKeys = new Set();
   for (;;) {
     const available = getActivatableSources(state, controllerIndex, triggerType, windowCtx).filter((src) => !activatedKeys.has(sourceKey(src)));
     if (available.length === 0) return;
+    const mandatory = available.find((src) => src.effectDef.mandatory);
+    if (mandatory) {
+      activatedKeys.add(sourceKey(mandatory));
+      await activateSource(state, controllerIndex, mandatory, windowCtx, resolveChoice);
+      continue;
+    }
     const chosen = await decide(available, windowCtx);
     if (!chosen) return;
     activatedKeys.add(sourceKey(chosen));
@@ -191,6 +223,19 @@ export function canPlayCard(state, playerIndex, handIndex) {
   if (card.type === CARD_TYPE.HEAD_COACH) return { ok: false, reason: "HEAD_COACH_NOT_PLAYABLE_FROM_HAND" };
   if (card.type === CARD_TYPE.ASSISTANT_COACH && player.assistantCoach) {
     return { ok: false, reason: "ASSISTANT_COACH_SLOT_OCCUPIED" };
+  }
+  if (card.type === CARD_TYPE.STAR_PLAYER && player.playerSlots.some((s) => s && s.isStarPlayer)) {
+    return { ok: false, reason: "STAR_PLAYER_ALREADY_ON_FIELD" };
+  }
+  // "Only one Chris P. Bacon can be on the field at a time" and any future card with the
+  // same restriction. Checked here (before cost is paid) rather than only at play-time, so
+  // a rejected play never rests PLAYERSCORE UP! for a card that was never actually placed.
+  if (
+    (card.type === CARD_TYPE.PLAYER || card.type === CARD_TYPE.STAR_PLAYER) &&
+    getStaticFlag({ cardId: card.id, buffs: [] }, "uniqueOnField") === true &&
+    player.playerSlots.some((s) => s && s.cardId === card.id)
+  ) {
+    return { ok: false, reason: "UNIQUE_CARD_ALREADY_ON_FIELD" };
   }
   const cost = effectiveHandCost(state, playerIndex, card);
   if (!canAffordCost(player, cost)) return { ok: false, reason: "CANNOT_AFFORD" };
@@ -216,14 +261,6 @@ export async function playCard(state, playerIndex, handIndex, { replaceSlot = nu
   let instance = null;
   let instanceSlot = null;
   if (card.type === CARD_TYPE.PLAYER || card.type === CARD_TYPE.STAR_PLAYER) {
-    if (card.type === CARD_TYPE.STAR_PLAYER && player.playerSlots.some((s) => s && s.isStarPlayer)) {
-      return { ok: false, reason: "STAR_PLAYER_ALREADY_ON_FIELD" };
-    }
-    // "Only one Chris P. Bacon can be on the field at a time" and any future card with the
-    // same restriction.
-    if (getStaticFlag({ cardId: card.id, buffs: [] }, "uniqueOnField") === true && player.playerSlots.some((s) => s && s.cardId === card.id)) {
-      return { ok: false, reason: "UNIQUE_CARD_ALREADY_ON_FIELD" };
-    }
     let slot = findEmptySlot(player);
     if (slot === -1) {
       if (replaceSlot === null) return { ok: false, reason: "NEEDS_REPLACE_SLOT" };

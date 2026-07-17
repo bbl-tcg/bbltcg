@@ -49,10 +49,15 @@ export const ZONE = {
   ASSISTANT_COACH: "ASSISTANT_COACH",
 };
 
+// Also the deckbuilding legality threshold (a deck needs at least 1 Player at this cost or
+// below) - both rules exist so a legal deck is always guaranteed to produce a legal opening
+// hand, per setup.js's drawOpeningHand().
+export const OPENING_FIELD_MAX_COST = 3;
+
 export const MAIN_DECK_SIZE = 60;
 export const MAX_COPIES_PER_NAME = 5;
 export const PS_DECK_SIZE = 8;
 export const PLAYER_SLOT_COUNT = 3;
-export const STARTING_SCORE_COUNT = 2;
+export const STARTING_SCORE_COUNT = 4;
 export const STARTING_HAND_SIZE = 5;
 export const STARTING_PACK_POINTS = 5;

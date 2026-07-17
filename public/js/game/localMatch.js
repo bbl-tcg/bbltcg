@@ -68,8 +68,7 @@ export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice =
 async function maybeOfferMulligan(playerIndex, rng) {
   if (isBotSeat(playerIndex)) return; // bots always keep for now
   const hand = G.state.players[playerIndex].hand;
-  const names = hand.map((id) => getCard(id).name).join(", ");
-  const wantsMulligan = await showChoice({ type: "CHOOSE_YES_NO", prompt: `Player ${playerIndex + 1}'s hand: ${names}. Mulligan (redraw once)?`, yesLabel: "Mulligan", noLabel: "Keep" });
+  const wantsMulligan = await showChoice({ type: "MULLIGAN_PROMPT", prompt: `Player ${playerIndex + 1}'s hand - mulligan (redraw once)?`, cardIds: hand });
   if (wantsMulligan) mulligan(G.state, playerIndex, rng);
 }
 

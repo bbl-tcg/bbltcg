@@ -1,6 +1,7 @@
 import { getCard } from "/shared/engine/cardDb.js";
 import * as engine from "/shared/engine/engine.js";
-import { effectiveAttack, effectiveSpeed, speedTriangleBonus } from "/shared/engine/stats.js";
+import { effectiveAttack, effectiveCost, effectiveSpeed, speedTriangleBonus } from "/shared/engine/stats.js";
+import { pendingAttackDamage } from "/shared/engine/combat.js";
 import { animateAttackSwipe } from "../game/animations.js";
 
 const STEP_DELAY_MS = 650;
@@ -118,6 +119,12 @@ function pickWorstOwnSlot(state, playerIndex) {
   return worst;
 }
 
+/**
+ * Prefers a kill over a non-kill, and among ties prefers the more valuable (higher-Cost)
+ * target - e.g. between two lethal targets, finish off the expensive threat rather than
+ * whichever happens to have marginally lower Health, and between two non-lethal targets,
+ * chip down the bigger long-term problem rather than just the closest-to-death one.
+ */
 function pickBestTarget(state, attackerIndex, attackerSlot, defenderIndex) {
   const attacker = state.players[attackerIndex].playerSlots[attackerSlot];
   const defenderSlots = state.players[defenderIndex].playerSlots;
@@ -127,7 +134,8 @@ function pickBestTarget(state, attackerIndex, attackerSlot, defenderIndex) {
     if (!inst) return;
     const dmg = effectiveAttack(state, attackerIndex, attacker) + speedTriangleBonus(effectiveSpeed(attacker), effectiveSpeed(inst));
     const lethal = inst.currentHealth <= dmg;
-    const score = (lethal ? 1000 : 0) - inst.currentHealth;
+    const value = effectiveCost(inst);
+    const score = (lethal ? 10000 : 0) + value * 10 - inst.currentHealth;
     if (score > bestScore) {
       bestScore = score;
       best = slot;
@@ -166,10 +174,27 @@ export function autoResolveForBot(request) {
   }
 }
 
-/** Decides whether/which reactive card the bot uses when it's the defending seat during a
- * human's attack. Simple heuristic: react if anything is available and there's a real
- * decision to make; a full "is this attack lethal" read isn't worth the complexity here. */
+/**
+ * Decides whether/which reactive source the bot uses at a reactive window. When the bot is
+ * the one attacking, an available WHILE_ATTACKING source is the bot's own optional bonus
+ * (e.g. a conditional +Attack) - there's no downside to just taking it. When the bot is
+ * defending against the opponent's attack, reactive cards (Rebound/Save/redirects, etc.)
+ * are a limited resource - burning one on every single attack regardless of how much
+ * damage is actually incoming is exactly the "plays anything it can" behavior that makes
+ * the bot feel unstrategic, so only react when the attack in progress would actually KO the
+ * threatened player. Non-attack windows (e.g. the broad OPPONENTS_TURN check at end of
+ * turn, with no attacker/target in windowCtx at all) fall back to the old always-take-it
+ * behavior, since those are standing abilities rather than spent resources.
+ */
 export function chooseBotReaction(state, controllerIndex, available, windowCtx) {
   if (available.length === 0) return null;
+  const botIsDefender = windowCtx?.attackerPlayerIndex !== undefined && windowCtx.attackerPlayerIndex !== controllerIndex;
+  if (botIsDefender) {
+    const threatened = state.players[windowCtx.targetPlayerIndex]?.playerSlots[windowCtx.targetSlot];
+    if (threatened) {
+      const dmg = pendingAttackDamage(state, windowCtx);
+      if (dmg != null && threatened.currentHealth > dmg) return null; // not lethal - save the resource for a real threat
+    }
+  }
   return available[0];
 }

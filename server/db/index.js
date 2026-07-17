@@ -18,6 +18,7 @@ export const {
   executeTrade,
   hasRedeemedCode,
   recordCodeRedemption,
+  recordPackStats,
 } = impl;
 
 export const usingPostgres = !!process.env.DATABASE_URL;
