@@ -98,6 +98,29 @@ test("opening hands contain a Player/StarPlayer, score piles have 4 cards", () =
   assert.equal(state.players[1].score.length, 4);
 });
 
+test("drawOpeningHand never loses cards even when it needs multiple reshuffle retries", () => {
+  // Only 1 of 60 cards is eligible for the opening field (Player, Cost <= 3) - forces the
+  // "reshuffle until eligible" loop to retry often across these seeds. Regression test for
+  // the bug where each rejected retry silently dropped 5 cards from the deck (see
+  // drawOpeningHand's comment in setup.js) - deck+hand must always sum to 60, no matter how
+  // many retries a given seed happens to need.
+  const skewedDeck = ["001-004", ...Array(59).fill("001-001")];
+  for (let seed = 1; seed <= 200; seed++) {
+    const rng = makeRng(seed);
+    const state = initializeGame({
+      playerADef: { id: "A", name: "Player A", headCoachId: "001-007", mainDeck: skewedDeck },
+      playerBDef: { id: "B", name: "Player B", headCoachId: "001-007", mainDeck: skewedDeck },
+      rng,
+    });
+    drawOpeningHand(state, 0, rng);
+    assert.equal(
+      state.players[0].deck.length + state.players[0].hand.length,
+      60,
+      `seed ${seed}: deck(${state.players[0].deck.length}) + hand(${state.players[0].hand.length}) should total 60`
+    );
+  }
+});
+
 test("mulligan reshuffles hand and can only be used once", () => {
   const { state, rng } = freshGameBeforeMulliganDecision();
   const ok1 = mulligan(state, 0, rng);

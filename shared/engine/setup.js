@@ -23,16 +23,26 @@ function hasEligibleOpeningFieldCard(hand) {
 
 /** Draws 5, silently reshuffling until the mandatory "at least 1 opening-field-eligible
  * Player" rule is met (a Cost 3 or less Player, since Star Players and Cost 3+ Players
- * can't be played to the field for free at setup). */
+ * can't be played to the field for free at setup).
+ *
+ * The combined deck+hand pool is captured ONCE before the retry loop, not rebuilt from
+ * `player.deck`/`player.hand` on every iteration - those aren't updated until a winning
+ * hand is found, so re-reading them mid-loop would silently drop each rejected attempt's
+ * 5 cards into the void (they'd be in neither the shrinking `player.deck` nor the
+ * still-stale `player.hand`), permanently shrinking the deck by 5 per retry. This was the
+ * root cause of decks randomly ending up short by some multiple of 5 cards. */
 export function drawOpeningHand(state, playerIndex, rng) {
   const player = state.players[playerIndex];
+  const fullPool = [...player.deck, ...player.hand];
   let hand;
+  let remainingDeck;
   do {
-    const pool = shuffle([...player.deck, ...player.hand], rng);
+    const pool = shuffle(fullPool, rng);
     hand = pool.slice(0, STARTING_HAND_SIZE);
-    player.deck = pool.slice(STARTING_HAND_SIZE);
+    remainingDeck = pool.slice(STARTING_HAND_SIZE);
   } while (!hasEligibleOpeningFieldCard(hand));
   player.hand = hand;
+  player.deck = remainingDeck;
   log(state, { type: "OPENING_HAND", playerIndex });
   return hand;
 }
