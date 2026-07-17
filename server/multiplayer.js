@@ -2,7 +2,16 @@ import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, pl
 import { startTurn, endTurn as endTurnPhase } from "../shared/engine/turn.js";
 import * as engine from "../shared/engine/engine.js";
 import { makeRng } from "../shared/engine/rng.js";
+import { validateDeck } from "../shared/engine/deckLegality.js";
+import { PS_DECK_SIZE } from "../shared/engine/constants.js";
 import * as db from "./db/index.js";
+
+/** The client already blocks starting/joining with an illegal deck, but a room is a
+ * real multiplayer match affecting another player - re-check here too rather than trusting
+ * a stale client build or a hand-crafted socket payload. */
+function isLegalDeck(deck) {
+  return !!deck && validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: deck.psDeckCount ?? PS_DECK_SIZE }).legal;
+}
 
 const rooms = new Map(); // code -> Room
 
@@ -188,6 +197,7 @@ export function attachMultiplayer(io) {
 
   mp.on("connection", (socket) => {
     socket.on("create-room", ({ deck, userId }, ack) => {
+      if (!isLegalDeck(deck)) return ack?.({ ok: false, reason: "Your deck isn't legal to play with." });
       const code = generateInviteCode();
       const room = new Room(code, mp);
       room.sockets[0] = socket;
@@ -203,6 +213,7 @@ export function attachMultiplayer(io) {
       const room = rooms.get(code);
       if (!room) return ack?.({ ok: false, reason: "No room with that invite code." });
       if (room.sockets[1]) return ack?.({ ok: false, reason: "That room is already full." });
+      if (!isLegalDeck(deck)) return ack?.({ ok: false, reason: "Your deck isn't legal to play with." });
       room.sockets[1] = socket;
       room.userIds[1] = userId || null;
       room.decks[1] = deck;

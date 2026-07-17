@@ -272,7 +272,17 @@ function renderDeckPanel() {
       return el("div", { class: "db-deck-row" }, [
         el(
           "span",
-          { style: `cursor:pointer;${dLegal ? "" : "color:var(--bbl-red);"}`, title: dLegal ? "" : "Incomplete draft - not legal to play yet", onclick: () => { deck = { ...d }; renderAll(); } },
+          {
+            style: `cursor:pointer;${dLegal ? "" : "color:var(--bbl-red);"}`,
+            title: dLegal ? "" : "Incomplete draft - not legal to play yet",
+            // Deep-copy mainDeck - `{ ...d }` alone would leave deck.mainDeck as the SAME
+            // array reference living in savedDecksCache, so editing this "copy" (add/removeCard
+            // both push/splice in place) would silently corrupt the cached saved deck even
+            // without hitting Save, and persist that corruption to the next Save. This is the
+            // root cause of decks randomly ending up with the wrong card count after being
+            // loaded, tweaked, and abandoned or re-saved.
+            onclick: () => { deck = { ...d, mainDeck: [...d.mainDeck] }; renderAll(); },
+          },
           `${d.name}${dLegal ? "" : " (draft)"}`
         ),
         el(

@@ -19,7 +19,9 @@ export async function allDeckOptions() {
       key: `custom:${d.name}`,
       label: `${d.name} (custom)${legal ? "" : " - INCOMPLETE"}`,
       legal,
-      resolve: () => ({ headCoachId: d.headCoachId, mainDeck: d.mainDeck, psDeckCount: PS_DECK_SIZE, name: d.name }),
+      // mainDeck is copied (not handed out by reference) so nothing downstream can ever
+      // mutate the cached/saved deck data just by touching the array it gets to play with.
+      resolve: () => ({ headCoachId: d.headCoachId, mainDeck: [...d.mainDeck], psDeckCount: PS_DECK_SIZE, name: d.name }),
     };
   });
   return [...starters, ...custom];
