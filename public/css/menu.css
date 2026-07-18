@@ -108,12 +108,17 @@
   align-items: center;
 }
 .pack-reveal-card {
-  width: min(60vw, 220px);
-  aspect-ratio: var(--card-aspect-w) / var(--card-aspect-h);
+  width: min(78vw, 260px);
+  /* The board/hand/choice card slots elsewhere use --card-aspect-w/h (5:7), a deliberately
+     squatter box than the actual card art (~590:1000) so those small slots crop tightly -
+     fine at that size, but this is a "show off the pull" moment, so use the art's real
+     aspect ratio instead. background-position: top means any crop from float rounding
+     lands at the bottom (a couple px at most), never into the name/effect text. */
+  aspect-ratio: 590 / 1000;
   border-radius: 12px;
   border: 2px solid var(--bbl-black);
   background-size: cover;
-  background-position: center;
+  background-position: top;
   box-shadow: 0 10px 30px var(--bbl-shadow);
   cursor: pointer;
   transition: transform 0.18s ease;

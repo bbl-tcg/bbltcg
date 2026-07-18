@@ -102,6 +102,20 @@ export function renderPacks() {
     cardEl.onclick = () => revealCurrent(cardEl, card, isSpecial);
     stage.appendChild(cardEl);
     stage.appendChild(el("div", { style: "color:#666;margin-top:8px;text-align:center;" }, `Card ${revealedCount + 1} of ${cardIds.length}`));
+    stage.appendChild(
+      el(
+        "button",
+        {
+          class: "bbl-btn ghost",
+          style: "margin-top:10px;",
+          onclick: () => {
+            revealedCount = cardIds.length;
+            renderStack();
+          },
+        },
+        "Skip Reveal"
+      )
+    );
   }
 
   function revealCurrent(cardEl, card, isSpecial) {
