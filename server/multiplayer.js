@@ -223,6 +223,25 @@ export function attachMultiplayer(io) {
       room.runSetup().catch((err) => mp.to(code).emit("room-error", String(err.message || err)));
     });
 
+    // A client that had an active room stored (see multiplayerMatch.js's localStorage use)
+    // sends this right after connecting, whether the disconnect was a network blip or a
+    // full page reload. Re-associates the new socket with its old seat and immediately
+    // pushes the room's current state - if the game already ended while this player was
+    // gone (the disconnect handler below awards the win to whoever's left), that state
+    // has gameOver/winner set, so the client's normal state-update handling shows the
+    // real result instead of leaving a stale pre-disconnect board frozen on screen forever.
+    socket.on("rejoin-room", ({ code, playerIndex, userId }, ack) => {
+      const room = rooms.get(code);
+      if (!room) return ack?.({ ok: false, reason: "That match is no longer available." });
+      if (playerIndex !== 0 && playerIndex !== 1) return ack?.({ ok: false, reason: "Invalid seat." });
+      room.sockets[playerIndex] = socket;
+      if (userId) room.userIds[playerIndex] = userId;
+      socket.data.roomCode = code;
+      socket.data.playerIndex = playerIndex;
+      ack?.({ ok: true });
+      if (room.state) room.broadcastState();
+    });
+
     socket.on("disconnect", () => {
       const code = socket.data.roomCode;
       const room = code && rooms.get(code);

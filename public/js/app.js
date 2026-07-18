@@ -4,7 +4,7 @@ import { showScreen, currentScreenKind, el } from "./screens.js";
 import { renderMenu } from "./screens/menu.js";
 import { ensureFirstRunBonus } from "./storage.js";
 import { fetchMe, sendHeartbeat, isLoggedIn } from "./api.js";
-import { disconnectMultiplayer } from "./game/multiplayerMatch.js";
+import { disconnectMultiplayer, tryResumeActiveMultiplayerGame } from "./game/multiplayerMatch.js";
 
 const HEARTBEAT_INTERVAL_MS = 30 * 1000;
 // Render's free tier is billed by server uptime, and the heartbeat above (plus any open
@@ -59,6 +59,11 @@ async function boot() {
   await fetchMe(); // silently no-ops if not logged in
   renderMenu();
   showScreen("menu-screen");
+  // If this browser was mid-multiplayer-match when it lost its connection (network blip,
+  // or the page was reloaded/reopened outright), try to pick back up where it left off
+  // instead of leaving the player stuck on the menu with no idea what happened to that
+  // game - see multiplayerMatch.js's rejoin-room flow. A no-op if there's nothing to resume.
+  tryResumeActiveMultiplayerGame();
 
   heartbeatIntervalId = setInterval(() => {
     if (isLoggedIn()) sendHeartbeat(currentScreenKind());

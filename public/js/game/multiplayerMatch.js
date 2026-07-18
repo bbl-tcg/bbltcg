@@ -16,6 +16,51 @@ let you = null;
 let armedSlot = null;
 let gameOverShown = false;
 
+// Remembers which room/seat this browser is (or was) in, so a dropped connection - a
+// network blip, or the player reloading/reopening the page mid-game - can be resumed
+// instead of leaving a stale pre-disconnect board frozen on screen forever. Cleared once
+// the game genuinely ends (see showGameOver).
+const ACTIVE_ROOM_KEY = "bbltcg_active_mp_room";
+function saveActiveRoom(code, playerIndex) {
+  try {
+    localStorage.setItem(ACTIVE_ROOM_KEY, JSON.stringify({ code, playerIndex }));
+  } catch {
+    /* storage unavailable (private browsing, etc.) - resume just won't be offered */
+  }
+}
+function loadActiveRoom() {
+  try {
+    return JSON.parse(localStorage.getItem(ACTIVE_ROOM_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+function clearActiveRoom() {
+  try {
+    localStorage.removeItem(ACTIVE_ROOM_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Called once at app startup (see app.js) - if this browser was mid-match when it lost
+ * its connection, silently try to rejoin that room. Does nothing if there's no stored
+ * room, so it's always safe to call. */
+export function tryResumeActiveMultiplayerGame() {
+  const active = loadActiveRoom();
+  if (!active) return;
+  const s = connect();
+  s.emit("rejoin-room", { code: active.code, playerIndex: active.playerIndex, userId: currentUser()?.id }, (res) => {
+    if (!res?.ok) {
+      clearActiveRoom();
+      return;
+    }
+    // A successful rejoin's state-update (sent automatically by the server right after)
+    // handles everything from here - normal board if the game's still going, showGameOver
+    // if it already ended while this player was disconnected.
+  });
+}
+
 function connect() {
   if (socket) return socket;
   socket = io("/multiplayer", { withCredentials: true });
@@ -59,6 +104,7 @@ export function createMultiplayerRoom(deck, onCode) {
   const s = connect();
   s.emit("create-room", { deck, userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason || "Failed to create room.");
+    saveActiveRoom(res.code, 0);
     onCode(res.code);
   });
 }
@@ -68,6 +114,7 @@ export function joinMultiplayerRoom(code, deck, onJoined) {
   const s = connect();
   s.emit("join-room", { code, deck, userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason || "Failed to join room.");
+    saveActiveRoom(code, 1);
     onJoined();
   });
 }
@@ -302,6 +349,7 @@ function showDiscardViewer(playerIndex) {
 }
 
 function showGameOver(state, me) {
+  clearActiveRoom();
   const youWon = state.winner === me;
   reportGameResult(youWon ? "win" : "loss").catch(() => {});
   const overlay = document.createElement("div");
