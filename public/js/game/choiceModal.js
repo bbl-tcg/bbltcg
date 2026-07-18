@@ -16,6 +16,17 @@ export function showChoice(request) {
     if (request.pendingDamage != null) {
       panel.appendChild(el("div", { style: "font-weight:700;color:var(--bbl-red);" }, `Incoming damage: ${request.pendingDamage}`));
     }
+    // Which of your own players is actually under attack right now - shown at the "pick a
+    // reaction card, or pass" step too (not just the later "apply it to which player?" step)
+    // since that's the moment the decision to react at all actually gets made.
+    if (request.threatenedCardId) {
+      panel.appendChild(
+        el("div", { style: "display:flex;align-items:center;gap:8px;justify-content:center;" }, [
+          el("img", { src: cardImg(request.threatenedCardId), style: "width:44px;border-radius:4px;border:1.5px solid var(--bbl-black);" }),
+          el("div", { style: "font-weight:700;color:var(--bbl-text);" }, `${getCard(request.threatenedCardId).name}: ${request.threatenedCurrentHealth}/${request.threatenedMaxHealth} HP`),
+        ])
+      );
+    }
 
     const finish = (value) => {
       overlay.remove();

@@ -4,7 +4,7 @@ import { getStaticFlag } from "/shared/engine/stats.js";
 import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
 import { showCardZoomWithActions } from "./cardZoom.js";
-import { enrichChoiceRequest } from "./choiceEnrich.js";
+import { enrichChoiceRequest, windowThreatInfo } from "./choiceEnrich.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { toast, confirmDialog } from "../ui.js";
 import { currentUser, reportGameResult } from "../api.js";
@@ -32,7 +32,13 @@ function connect() {
   socket.on("window-request", async ({ options, windowCtx }, ack) => {
     if (options.length === 0) return ack(null);
     const choiceOptions = options.map((o) => ({ cardId: o.cardId, label: `${getCard(o.cardId).name}${o.label !== "main" ? ` (${o.label})` : ""}`, value: o }));
-    const chosen = await showChoice({ type: "CHOOSE_EFFECT_SOURCE", prompt: "You may react with one of these cards, or pass.", options: choiceOptions, allowNone: true });
+    const chosen = await showChoice({
+      type: "CHOOSE_EFFECT_SOURCE",
+      prompt: "You may react with one of these cards, or pass.",
+      options: choiceOptions,
+      allowNone: true,
+      ...windowThreatInfo(latestState, windowCtx),
+    });
     ack(chosen || null);
   });
   socket.on("opponent-disconnected", () => toast("Your opponent disconnected."));

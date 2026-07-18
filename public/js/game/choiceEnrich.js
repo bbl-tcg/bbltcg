@@ -46,3 +46,22 @@ function getThreatenedInstanceId(state, windowCtx) {
   const inst = targetPlayer?.playerSlots[windowCtx.targetSlot];
   return inst ? inst.instanceId : null;
 }
+
+/**
+ * Same "incoming damage + who's under threat" context as enrichChoiceRequest, but for the
+ * earlier "which card do you want to react with, or pass?" prompt (CHOOSE_EFFECT_SOURCE) -
+ * that step has no instance-array options to enrich (its options are the reactive cards
+ * themselves), so it needs this info attached directly rather than derived from options.
+ * Returns null fields when there's no attack in progress (e.g. a YOUR_TURN window).
+ */
+export function windowThreatInfo(state, windowCtx) {
+  const threatenedInstanceId = getThreatenedInstanceId(state, windowCtx);
+  const pendingDamage = pendingAttackDamage(state, windowCtx);
+  const found = threatenedInstanceId ? findInstance(state, threatenedInstanceId) : null;
+  return {
+    pendingDamage,
+    threatenedCardId: found ? found.instance.cardId : null,
+    threatenedCurrentHealth: found ? effectiveHealth(found.instance) : null,
+    threatenedMaxHealth: found ? effectiveMaxHealth(state, found.playerIndex, found.instance) : null,
+  };
+}

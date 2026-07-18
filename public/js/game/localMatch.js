@@ -7,7 +7,7 @@ import { getStaticFlag } from "/shared/engine/stats.js";
 import { renderBoard, cardImg } from "./render.js";
 import { showChoice } from "./choiceModal.js";
 import { showCardZoomWithActions } from "./cardZoom.js";
-import { enrichChoiceRequest } from "./choiceEnrich.js";
+import { enrichChoiceRequest, windowThreatInfo } from "./choiceEnrich.js";
 import { runBotTurn, autoResolveForBot, chooseBotReaction } from "../bot/ai.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { isLoggedIn, reportGameResult } from "../api.js";
@@ -118,6 +118,7 @@ async function decideWindow(controllerIndex, available, windowCtx) {
     prompt: "You may react with one of these cards, or pass.",
     options,
     allowNone: true,
+    ...windowThreatInfo(G.state, windowCtx),
   });
   return chosen || null;
 }
