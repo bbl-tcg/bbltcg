@@ -93,6 +93,15 @@ export function attachTrading(io) {
       ack?.({ ok: true });
     });
 
+    socket.on("chat-message", ({ text }) => {
+      const room = tradeRooms.get(socket.data.tradeCode);
+      if (!room) return;
+      const trimmed = String(text || "").slice(0, 300).trim();
+      if (!trimmed) return;
+      const other = socket.data.tradeSide === 0 ? 1 : 0;
+      room.sockets[other]?.emit("chat-message", { text: trimmed });
+    });
+
     socket.on("disconnect", () => {
       const room = tradeRooms.get(socket.data.tradeCode);
       if (!room) return;

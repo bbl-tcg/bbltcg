@@ -9,6 +9,7 @@ import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { toast, confirmDialog } from "../ui.js";
 import { currentUser, reportGameResult } from "../api.js";
 import { showScreen } from "../screens.js";
+import { resetChat, addChatMessage, renderChatWidget } from "../chatWidget.js";
 
 let socket = null;
 let latestState = null;
@@ -88,6 +89,10 @@ function connect() {
   });
   socket.on("opponent-disconnected", () => toast("Your opponent disconnected."));
   socket.on("room-error", (msg) => toast("Room error: " + msg));
+  socket.on("chat-message", ({ text }) => {
+    addChatMessage("them", text);
+    if (latestState) render();
+  });
   return socket;
 }
 
@@ -101,6 +106,7 @@ export function disconnectMultiplayer() {
 
 export function createMultiplayerRoom(deck, onCode) {
   gameOverShown = false;
+  resetChat();
   const s = connect();
   s.emit("create-room", { deck, userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason || "Failed to create room.");
@@ -111,6 +117,7 @@ export function createMultiplayerRoom(deck, onCode) {
 
 export function joinMultiplayerRoom(code, deck, onJoined) {
   gameOverShown = false;
+  resetChat();
   const s = connect();
   s.emit("join-room", { code, deck, userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason || "Failed to join room.");
@@ -174,6 +181,14 @@ function render() {
     onHandCardClick: (handIndex, cardId) => onHandCardClick(handIndex, cardId, isMyTurn, me),
     onFieldCardClick: (playerIndex, slot, inst) => onFieldCardClick(playerIndex, slot, inst, isMyTurn, me),
   });
+
+  container.appendChild(
+    renderChatWidget((text) => {
+      addChatMessage("me", text);
+      connect().emit("chat-message", { text });
+      render();
+    })
+  );
 
   if (state.gameOver && !gameOverShown) {
     gameOverShown = true;

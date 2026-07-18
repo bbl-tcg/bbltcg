@@ -223,6 +223,16 @@ export function attachMultiplayer(io) {
       room.runSetup().catch((err) => mp.to(code).emit("room-error", String(err.message || err)));
     });
 
+    socket.on("chat-message", ({ text }) => {
+      const code = socket.data.roomCode;
+      const room = code && rooms.get(code);
+      if (!room) return;
+      const trimmed = String(text || "").slice(0, 300).trim();
+      if (!trimmed) return;
+      const otherIndex = socket.data.playerIndex === 0 ? 1 : 0;
+      room.sockets[otherIndex]?.emit("chat-message", { text: trimmed });
+    });
+
     // A client that had an active room stored (see multiplayerMatch.js's localStorage use)
     // sends this right after connecting, whether the disconnect was a network blip or a
     // full page reload. Re-associates the new socket with its old seat and immediately

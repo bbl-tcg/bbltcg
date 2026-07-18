@@ -4,6 +4,7 @@ import { getCollection, currentUser } from "../api.js";
 import { toast } from "../ui.js";
 import { showCardZoomWithActions } from "../game/cardZoom.js";
 import { renderMenu } from "./menu.js";
+import { resetChat, addChatMessage, renderChatWidget } from "../chatWidget.js";
 
 let socket = null;
 let myCollection = {};
@@ -31,6 +32,10 @@ function connect() {
     showScreen("menu-screen");
   });
   socket.on("opponent-disconnected", () => toast("Your trade partner disconnected."));
+  socket.on("chat-message", ({ text }) => {
+    addChatMessage("them", text);
+    renderBody();
+  });
   return socket;
 }
 
@@ -42,6 +47,7 @@ export async function renderTrade() {
   theirSelection = [];
   mySubmitted = false;
   theirSubmitted = false;
+  resetChat();
 
   try {
     myCollection = await getCollection();
@@ -137,6 +143,13 @@ function renderBody() {
   body.appendChild(previewPanel);
 
   root.appendChild(body);
+  root.appendChild(
+    renderChatWidget((text) => {
+      addChatMessage("me", text);
+      connect().emit("chat-message", { text });
+      renderBody();
+    })
+  );
 }
 
 function broadcastSelection() {
