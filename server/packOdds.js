@@ -44,3 +44,19 @@ export function openPack(rng = Math.random) {
   cardIds.push(pickUniform(byRarity[rarity], rng).id);
   return cardIds;
 }
+
+/**
+ * The !GODPACK! community code's reward pack: the first 7 slots are Rare or Alternative
+ * Art (equal weight across every card in either rarity, not weighted by rarity first), and
+ * the 8th slot is a guaranteed Secret Rare.
+ */
+export function openGodPack(rng = Math.random) {
+  const byRarity = cardsByRarity();
+  const rareAndAltArtPool = [...(byRarity["Rare"] || []), ...(byRarity["Alternative Art"] || [])];
+  const cardIds = [];
+  for (let i = 0; i < 7; i++) {
+    cardIds.push(pickUniform(rareAndAltArtPool, rng).id);
+  }
+  cardIds.push(pickUniform(byRarity["Secret Rare"], rng).id);
+  return cardIds;
+}

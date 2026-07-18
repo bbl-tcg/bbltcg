@@ -8,6 +8,7 @@ export const {
   getUserByUsername,
   getUserById,
   setPackPoints,
+  setGodPackPending,
   addPackPoints,
   getCollection,
   addToCollection,

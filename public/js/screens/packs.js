@@ -35,8 +35,17 @@ export function renderPacks() {
 
   const pointsLine = el("div", { style: "font-weight:800;color:var(--bbl-blue);font-size:1.1rem;" }, `Pack Points: ${currentUser()?.packPoints ?? 0}`);
   const statsLine = el("div", { style: "color:#666;font-size:0.85rem;" }, statsText());
+  const godPackLine = el(
+    "div",
+    { style: "font-weight:800;color:#b8860b;font-size:0.95rem;display:" + (currentUser()?.godPackPending ? "block" : "none") + ";" },
+    "✨ GOD PACK pending - your next pack is guaranteed rares/alt arts + a secret rare!"
+  );
   const stage = el("div", { class: "pack-stage" });
-  const hint = el("div", { style: "color:#666;text-align:center;" }, `Click the pack to open it (costs ${PACK_COST} Pack Points)`);
+  const hint = el(
+    "div",
+    { style: "color:#666;text-align:center;" },
+    currentUser()?.godPackPending ? `Click the pack to open your GOD PACK! (costs ${PACK_COST} Pack Points)` : `Click the pack to open it (costs ${PACK_COST} Pack Points)`
+  );
 
   let cardIds = null;
   let revealedCount = 0;
@@ -62,6 +71,7 @@ export function renderPacks() {
     }
     pointsLine.textContent = `Pack Points: ${currentUser().packPoints}`;
     statsLine.textContent = statsText();
+    godPackLine.style.display = currentUser()?.godPackPending ? "block" : "none";
     // Preload all 8 card images while the rip animation plays, so revealing each one shows
     // it instantly instead of a blank beat while it downloads for the first time. Runs
     // alongside (not after) the animation delay - only adds real wait time if a card image
@@ -72,7 +82,7 @@ export function renderPacks() {
     revealedCount = 0;
     packImg.style.display = "none";
     packImg.classList.remove("pack-ripping");
-    hint.textContent = "Click the card to reveal it";
+    hint.textContent = result.isGodPack ? "GOD PACK! Click each card to reveal it" : "Click the card to reveal it";
     renderStack();
   }
 
@@ -101,7 +111,9 @@ export function renderPacks() {
               revealedCount = 0;
               packImg.style.display = "";
               packImg.onclick = onOpenPack;
-              hint.textContent = `Click the pack to open it (costs ${PACK_COST} Pack Points)`;
+              hint.textContent = currentUser()?.godPackPending
+                ? `Click the pack to open your GOD PACK! (costs ${PACK_COST} Pack Points)`
+                : `Click the pack to open it (costs ${PACK_COST} Pack Points)`;
               renderStack();
             },
           },
@@ -157,6 +169,7 @@ export function renderPacks() {
   root.appendChild(el("div", { class: "menu-title" }, "Open a Pack!"));
   root.appendChild(pointsLine);
   root.appendChild(statsLine);
+  root.appendChild(godPackLine);
   root.appendChild(packImg);
   root.appendChild(stage);
   root.appendChild(hint);

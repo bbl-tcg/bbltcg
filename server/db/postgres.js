@@ -39,6 +39,7 @@ await pool.query(`
   ALTER TABLE users ADD COLUMN IF NOT EXISTS packs_opened INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE users ADD COLUMN IF NOT EXISTS alt_arts_pulled INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE users ADD COLUMN IF NOT EXISTS secret_rares_pulled INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS god_pack_pending BOOLEAN NOT NULL DEFAULT FALSE;
 `);
 
 function rowToUser(row) {
@@ -52,6 +53,7 @@ function rowToUser(row) {
     packsOpened: row.packs_opened,
     altArtsPulled: row.alt_arts_pulled,
     secretRaresPulled: row.secret_rares_pulled,
+    godPackPending: !!row.god_pack_pending,
   };
 }
 
@@ -76,6 +78,10 @@ export async function getUserById(id) {
 
 export async function setPackPoints(userId, points) {
   await pool.query("UPDATE users SET pack_points = $1 WHERE id = $2", [Math.max(0, points), userId]);
+}
+
+export async function setGodPackPending(userId, pending) {
+  await pool.query("UPDATE users SET god_pack_pending = $1 WHERE id = $2", [!!pending, userId]);
 }
 
 export async function addPackPoints(userId, delta) {

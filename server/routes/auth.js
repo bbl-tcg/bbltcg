@@ -22,6 +22,7 @@ function publicUser(user) {
     packsOpened: user.packsOpened,
     altArtsPulled: user.altArtsPulled,
     secretRaresPulled: user.secretRaresPulled,
+    godPackPending: user.godPackPending,
   };
 }
 

@@ -46,6 +46,7 @@ for (const [column, ddl] of [
   ["packs_opened", "INTEGER NOT NULL DEFAULT 0"],
   ["alt_arts_pulled", "INTEGER NOT NULL DEFAULT 0"],
   ["secret_rares_pulled", "INTEGER NOT NULL DEFAULT 0"],
+  ["god_pack_pending", "INTEGER NOT NULL DEFAULT 0"],
 ]) {
   try {
     db.exec(`ALTER TABLE users ADD COLUMN ${column} ${ddl}`);
@@ -65,6 +66,7 @@ function rowToUser(row) {
     packsOpened: row.packs_opened,
     altArtsPulled: row.alt_arts_pulled,
     secretRaresPulled: row.secret_rares_pulled,
+    godPackPending: !!row.god_pack_pending,
   };
 }
 
@@ -84,6 +86,10 @@ export async function getUserById(id) {
 
 export async function setPackPoints(userId, points) {
   db.prepare("UPDATE users SET pack_points = ? WHERE id = ?").run(Math.max(0, points), userId);
+}
+
+export async function setGodPackPending(userId, pending) {
+  db.prepare("UPDATE users SET god_pack_pending = ? WHERE id = ?").run(pending ? 1 : 0, userId);
 }
 
 export async function addPackPoints(userId, delta) {

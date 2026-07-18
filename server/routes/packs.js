@@ -1,7 +1,7 @@
 import express from "express";
 import * as db from "../db/index.js";
 import { requireAuth } from "../middleware/requireAuth.js";
-import { openPack } from "../packOdds.js";
+import { openPack, openGodPack } from "../packOdds.js";
 import { getCard } from "../../shared/engine/cardDb.js";
 
 export const packsRouter = express.Router();
@@ -13,19 +13,23 @@ packsRouter.post("/open", async (req, res) => {
   const user = await db.getUserById(req.session.userId);
   if (user.packPoints < PACK_COST) return res.status(400).json({ error: `Not enough Pack Points (costs ${PACK_COST}).` });
 
-  const cardIds = openPack();
+  const isGodPack = user.godPackPending;
+  const cardIds = isGodPack ? openGodPack() : openPack();
   await db.addToCollection(user.id, cardIds);
   await db.addPackPoints(user.id, -PACK_COST);
+  if (isGodPack) await db.setGodPackPending(user.id, false);
   const altArts = cardIds.filter((id) => getCard(id).rarity === "Alternative Art").length;
   const secretRares = cardIds.filter((id) => getCard(id).rarity === "Secret Rare").length;
   await db.recordPackStats(user.id, { altArts, secretRares });
   const fresh = await db.getUserById(user.id);
   res.json({
     cardIds,
+    isGodPack,
     packPoints: fresh.packPoints,
     packsOpened: fresh.packsOpened,
     altArtsPulled: fresh.altArtsPulled,
     secretRaresPulled: fresh.secretRaresPulled,
+    godPackPending: fresh.godPackPending,
   });
 });
 

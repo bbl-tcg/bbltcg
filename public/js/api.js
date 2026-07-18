@@ -68,7 +68,14 @@ export async function deleteServerDeck(id) {
 export async function openPack() {
   const data = await request("POST", "/api/packs/open");
   cachedUser = cachedUser
-    ? { ...cachedUser, packPoints: data.packPoints, packsOpened: data.packsOpened, altArtsPulled: data.altArtsPulled, secretRaresPulled: data.secretRaresPulled }
+    ? {
+        ...cachedUser,
+        packPoints: data.packPoints,
+        packsOpened: data.packsOpened,
+        altArtsPulled: data.altArtsPulled,
+        secretRaresPulled: data.secretRaresPulled,
+        godPackPending: data.godPackPending,
+      }
     : cachedUser;
   return data;
 }
@@ -81,7 +88,7 @@ export async function reportGameResult(result) {
 
 export async function redeemCode(code) {
   const data = await request("POST", "/api/codes/redeem", { code });
-  cachedUser = cachedUser ? { ...cachedUser, packPoints: data.packPoints } : cachedUser;
+  cachedUser = cachedUser ? { ...cachedUser, packPoints: data.packPoints, godPackPending: data.godPackPending } : cachedUser;
   return data;
 }
 

@@ -32,10 +32,18 @@ codesRouter.post("/redeem", async (req, res) => {
     if (user.username !== "EXDF" && user.username !== "test") return res.status(400).json({ error: "That code isn't valid for your account." });
     await db.addPackPoints(user.id, 99);
     message = "+99 Pack Points!";
+  } else if (code === "!GODPACK!") {
+    // Normally one-time per account, but EXDF can redeem it as many times as they want.
+    if (user.username !== "EXDF") {
+      if (await db.hasRedeemedCode(user.id, code)) return res.status(400).json({ error: "You've already redeemed this code." });
+      await db.recordCodeRedemption(user.id, code);
+    }
+    await db.setGodPackPending(user.id, true);
+    message = "Your next pack is a GOD PACK! 7 Rares/Alt Arts + a guaranteed Secret Rare!";
   } else {
     return res.status(400).json({ error: "That code isn't valid." });
   }
 
   const fresh = await db.getUserById(user.id);
-  res.json({ ok: true, message, packPoints: fresh.packPoints });
+  res.json({ ok: true, message, packPoints: fresh.packPoints, godPackPending: fresh.godPackPending });
 });
