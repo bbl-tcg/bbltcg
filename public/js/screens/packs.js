@@ -15,6 +15,19 @@ function statsText() {
   return `Packs Opened: ${u?.packsOpened ?? 0} | Alt Arts Pulled: ${u?.altArtsPulled ?? 0} | Secret Rares Pulled: ${u?.secretRaresPulled ?? 0}`;
 }
 
+/** Resolves once the browser has actually fetched `src` (or failed to - either way, callers
+ * shouldn't hang forever on one bad image). Used to warm the cache for the 8 pulled cards
+ * before the reveal stack becomes clickable, so flipping a card shows it instantly instead
+ * of a blank/white beat while the image downloads for the first time. */
+function preloadImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = resolve;
+    img.onerror = resolve;
+    img.src = src;
+  });
+}
+
 export function renderPacks() {
   const root = document.getElementById("packs-screen");
   root.innerHTML = "";
@@ -49,7 +62,12 @@ export function renderPacks() {
     }
     pointsLine.textContent = `Pack Points: ${currentUser().packPoints}`;
     statsLine.textContent = statsText();
-    await new Promise((r) => setTimeout(r, 550)); // let the rip animation finish playing
+    // Preload all 8 card images while the rip animation plays, so revealing each one shows
+    // it instantly instead of a blank beat while it downloads for the first time. Runs
+    // alongside (not after) the animation delay - only adds real wait time if a card image
+    // is unusually slow to fetch.
+    const preload = Promise.all(result.cardIds.map((id) => preloadImage(`/${getCard(id).image}`)));
+    await Promise.all([preload, new Promise((r) => setTimeout(r, 550))]);
     cardIds = result.cardIds;
     revealedCount = 0;
     packImg.style.display = "none";
