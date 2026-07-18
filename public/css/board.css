@@ -101,6 +101,21 @@
   border: 2px dashed var(--bbl-slot-bg-dark);
 }
 
+.sector-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--bbl-text);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .sector-score {
   grid-column: 1;
   grid-row: 1;
@@ -138,8 +153,13 @@
   grid-column: 2;
   grid-row: 3;
   gap: 3px;
-  padding: 4px;
+  padding: 4px 4px 4px 36px;
   flex-wrap: wrap;
+  align-content: flex-start;
+  /* On narrow screens more PS UPs can be on the field than fit in one row - scroll them
+     inside their own sector box instead of overflowing past it (which used to render
+     underneath the hand bar below, making anything past the first ~4 hard to see/reach). */
+  overflow-y: auto;
 }
 .sector-discard {
   grid-column: 3;
@@ -408,4 +428,41 @@
 .choice-options .choice-option.threatened img {
   outline: 3px solid var(--bbl-red);
   box-shadow: 0 0 14px 3px rgba(153, 34, 43, 0.85);
+}
+
+/* Mobile: the hand bar and topbar chrome eat a lot of vertical space on a phone-height
+   viewport, leaving too little room for the actual board - trim both down and shrink a
+   few of the smallest UI elements so everything still fits without overlapping. */
+@media (max-width: 600px) {
+  .game-topbar {
+    flex-wrap: wrap;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+  .game-topbar .bbl-btn {
+    padding: 0.3em 0.7em;
+    font-size: 0.75rem;
+  }
+  .player-hand-bar {
+    min-height: 118px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .player-hand-bar .hand-card {
+    width: 74px;
+  }
+  .sector-label {
+    font-size: 0.48rem;
+  }
+  .ps-up-slot {
+    width: 32px;
+  }
+  .sector-psfield {
+    padding-left: 30px;
+  }
+  .health-pill,
+  .attack-pill,
+  .cost-pill {
+    font-size: 0.55rem;
+  }
 }

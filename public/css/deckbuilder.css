@@ -125,3 +125,38 @@
   flex-direction: column;
   gap: 4px;
 }
+
+/* Mobile: the desktop layout puts the card pool and the deck panel side by side (deck
+   panel a fixed 320px wide) - on a phone-width screen that leaves almost no room for
+   either, so stack them instead. Both stacked sections scroll together as a single unit
+   (only `.db-body` scrolls - the pool's own independent scroll is turned off) rather than
+   nesting two independently-scrollable boxes, which is a common source of scroll/repaint
+   glitches on mobile browsers. The topbar's select/inputs also get a min-width so they wrap
+   onto their own rows instead of shrinking down to an unusable sliver. */
+@media (max-width: 700px) {
+  .db-topbar {
+    padding: 6px 10px;
+  }
+  .db-topbar select,
+  .db-topbar input {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+  .db-body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .db-pool {
+    flex: 0 0 auto;
+    overflow-y: visible;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 8px;
+  }
+  .db-deck-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    overflow-y: visible;
+    border-left: none;
+    border-top: 2px solid var(--bbl-black);
+  }
+}

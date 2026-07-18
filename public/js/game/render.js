@@ -54,22 +54,31 @@ function countBadge(count, styleObj = {}) {
   return badge;
 }
 
+/** A small always-on caption identifying what a sector is (Score, Deck, PS Field, ...) -
+ * counter-rotated for the opponent's mirrored board so the text itself still reads upright
+ * even though the whole grid (and this label along with it) is flipped 180deg. */
+function sectorLabel(text, mirrored) {
+  return el("div", { class: "sector-label", style: mirrored ? "transform:rotate(180deg);" : "" }, text);
+}
+
 function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   const player = state.players[playerIndex];
   const grid = el("div", { class: `field-grid${mirrored ? " mirrored" : ""}` });
 
-  // Top-left: Score
+  // Top-left: Score - shown as a single face-down card (like Deck/PS Deck) with the true
+  // count on a badge, rather than up to 2 separate slots, so it stays legible at small sizes.
   const scoreSector = el("div", { class: "sector sector-score" });
+  scoreSector.appendChild(sectorLabel("Score", mirrored));
   const totalScore = player.scoreCount ?? player.score.length;
-  const scoreCount = Math.min(totalScore, 2);
-  for (let i = 0; i < scoreCount; i++) {
+  if (totalScore > 0) {
     scoreSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
+    scoreSector.appendChild(countBadge(totalScore));
   }
-  if (totalScore > 2) scoreSector.appendChild(countBadge(totalScore));
   grid.appendChild(scoreSector);
 
   // Top-center: 3 player slots
   const playersSector = el("div", { class: "sector sector-players" });
+  playersSector.appendChild(sectorLabel("Field", mirrored));
   player.playerSlots.forEach((inst, slot) => {
     playersSector.appendChild(renderFieldCardSlot(state, playerIndex, slot, inst, handlers));
   });
@@ -80,6 +89,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
 
   // Middle-center: Head Coach + Assistant Coach
   const coachSector = el("div", { class: "sector sector-coaches" });
+  coachSector.appendChild(sectorLabel("Coaches", mirrored));
   coachSector.appendChild(
     el("div", { class: "slot" }, [
       el("div", {
@@ -106,6 +116,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
 
   // Middle-right: Deck
   const deckSector = el("div", { class: "sector sector-deck" });
+  deckSector.appendChild(sectorLabel("Deck", mirrored));
   const deckCount = player.deckCount ?? player.deck.length;
   if (deckCount > 0) {
     deckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
@@ -115,6 +126,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
 
   // Bottom-left: PS Deck
   const psDeckSector = el("div", { class: "sector sector-psdeck" });
+  psDeckSector.appendChild(sectorLabel("PS Deck", mirrored));
   if (player.psDeckCount > 0) {
     psDeckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
     psDeckSector.appendChild(countBadge(player.psDeckCount));
@@ -123,6 +135,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
 
   // Bottom-center: PS Field (8 slots)
   const psFieldSector = el("div", { class: "sector sector-psfield" });
+  psFieldSector.appendChild(sectorLabel("PS Field", mirrored));
   for (const psUp of player.psField) {
     if (psUp.attachedTo) continue; // shown under its owner instead
     psFieldSector.appendChild(
@@ -136,6 +149,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   // Bottom-right: Discard - the count badge always shows (even at 0) so both players can
   // see it at a glance; the clickable top-card face only appears once there's a card to show.
   const discardSector = el("div", { class: "sector sector-discard" });
+  discardSector.appendChild(sectorLabel("Discard", mirrored));
   if (player.discard.length > 0) {
     const topCardId = player.discard[player.discard.length - 1];
     discardSector.appendChild(
