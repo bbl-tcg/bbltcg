@@ -71,8 +71,25 @@ export function renderRulebook() {
     el("h2", {}, "The Field"),
     el("p", {}, "Each side of the board is its own 3x3 grid of sectors, laid out like this (the center column is wider - that's where all the action happens):"),
     fieldDiagram(),
+
+    el("h2", {}, "Tutorial Video"),
+    videoEmbed(),
   ]);
   root.appendChild(content);
+}
+
+/** 16:9-responsive iframe wrapper - the padding-top:56.25% trick keeps the aspect ratio
+ * without JS, since a plain <iframe> ignores CSS aspect-ratio inconsistently across browsers. */
+function videoEmbed() {
+  return el("div", { class: "rulebook-video-wrap" }, [
+    el("iframe", {
+      src: "https://www.youtube.com/embed/fbaeQsHo3ec",
+      title: "BBLTCG Tutorial Video",
+      frameborder: "0",
+      allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+      allowfullscreen: "true",
+    }),
+  ]);
 }
 
 function cardTypeTable() {
