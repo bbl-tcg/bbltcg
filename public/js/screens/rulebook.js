@@ -72,24 +72,41 @@ export function renderRulebook() {
     el("p", {}, "Each side of the board is its own 3x3 grid of sectors, laid out like this (the center column is wider - that's where all the action happens):"),
     fieldDiagram(),
 
-    el("h2", {}, "Tutorial Video"),
-    videoEmbed(),
+    el("h2", {}, "Tutorial Videos"),
+    videoGrid(),
   ]);
   root.appendChild(content);
 }
 
-/** 16:9-responsive iframe wrapper - the padding-top:56.25% trick keeps the aspect ratio
- * without JS, since a plain <iframe> ignores CSS aspect-ratio inconsistently across browsers. */
-function videoEmbed() {
-  return el("div", { class: "rulebook-video-wrap" }, [
-    el("iframe", {
-      src: "https://www.youtube.com/embed/fbaeQsHo3ec",
-      title: "BBLTCG Tutorial Video",
-      frameborder: "0",
-      allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
-      allowfullscreen: "true",
-    }),
-  ]);
+const TUTORIAL_VIDEOS = [
+  ["Rulebook Run-Through", "lA-ZT3rhGOI"],
+  ["Deckbuilder Tutorial", "oZrDgx9s-Es"],
+  ["Demo Game", "NXrUrZ5_TKA"],
+  ["Other Functionality", "Z5cajKZY0P8"],
+];
+
+/** 2x2 grid of tutorial videos, each with its title above a 16:9-responsive embed - the
+ * padding-top:56.25% trick keeps the aspect ratio without JS, since a plain <iframe> ignores
+ * CSS aspect-ratio inconsistently across browsers. */
+function videoGrid() {
+  return el(
+    "div",
+    { class: "rulebook-video-grid" },
+    TUTORIAL_VIDEOS.map(([title, videoId]) =>
+      el("div", { class: "rulebook-video-cell" }, [
+        el("div", { class: "rulebook-video-title" }, title),
+        el("div", { class: "rulebook-video-wrap" }, [
+          el("iframe", {
+            src: `https://www.youtube.com/embed/${videoId}`,
+            title,
+            frameborder: "0",
+            allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+            allowfullscreen: "true",
+          }),
+        ]),
+      ])
+    )
+  );
 }
 
 function cardTypeTable() {

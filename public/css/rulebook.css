@@ -88,11 +88,27 @@
   font-weight: 400;
 }
 
+.rulebook-video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 16px;
+  margin: 16px 0 8px;
+}
+@media (max-width: 640px) {
+  .rulebook-video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.rulebook-video-title {
+  font-weight: 700;
+  color: var(--bbl-blue);
+  text-align: center;
+  margin-bottom: 6px;
+}
 .rulebook-video-wrap {
   position: relative;
   width: 100%;
   padding-top: 56.25%;
-  margin: 16px 0 8px;
   border: 2px solid var(--bbl-black);
   border-radius: 8px;
   overflow: hidden;
