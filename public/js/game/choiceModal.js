@@ -239,8 +239,13 @@ function buildZoomSelectGrid(options, onPick) {
 }
 
 function renderMultiSelect(panel, request, options, finish) {
-  const min = request.min ?? request.count ?? 0;
-  const max = request.max ?? request.count ?? options.length;
+  // CHOOSE_TWO_OWN_PLAYERS is always exactly 2 by definition (Coach Ale, Coach Cap) - the
+  // effects that yield it don't bother passing min/max/count themselves, so default it here
+  // rather than falling through to the generic 0..options.length range below (which let a
+  // player confirm with 0, 1, or 3+ selected and crash/no-op the effect on resolve).
+  const isExactlyTwo = request.type === "CHOOSE_TWO_OWN_PLAYERS";
+  const min = request.min ?? request.count ?? (isExactlyTwo ? 2 : 0);
+  const max = request.max ?? request.count ?? (isExactlyTwo ? 2 : options.length);
   const selected = new Set();
   const grid = el("div", { class: "choice-options" });
 
@@ -273,10 +278,14 @@ function renderMultiSelect(panel, request, options, finish) {
       class: "bbl-btn",
       onclick: () => {
         if (selected.size < min) return;
-        // Resolve to plain cardId strings when the option represents a card (matches the
-        // convention every "discard N cards" effect and the bot's auto-resolver expect),
-        // otherwise fall back to whatever raw value the option carried (e.g. instanceIds).
-        finish([...selected].map((opt) => opt.cardId ?? opt.value));
+        // CHOOSE_OPPONENT_PLAYERS/CHOOSE_TWO_OWN_PLAYERS pick specific *field instances*
+        // (ctx.findInstance(instanceId) on the effect side) - resolving those to the card id
+        // instead would collide whenever two of the same card are on the field, and never
+        // match at all since options.value already *is* the instanceId. CHOOSE_CARDS options
+        // are hand cards instead, where every other "discard N cards" effect and the bot's
+        // auto-resolver expect plain cardId strings back.
+        const useInstanceId = request.type === "CHOOSE_OPPONENT_PLAYERS" || request.type === "CHOOSE_TWO_OWN_PLAYERS";
+        finish([...selected].map((opt) => (useInstanceId ? opt.value : opt.cardId ?? opt.value)));
       },
     },
     `Confirm (min ${min}${max !== min ? `, max ${max}` : ""})`
