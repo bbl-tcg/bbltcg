@@ -220,6 +220,11 @@ export function attachMultiplayer(io) {
       socket.data.roomCode = code;
       socket.data.playerIndex = 1;
       ack?.({ ok: true, code });
+      // The creator has been sitting on the "waiting for them to join" room-setup screen -
+      // give them a signal to switch over now, since the server won't broadcastState()
+      // until the whole setup flow (mulligan, first/second pick, opening card) finishes,
+      // and they aren't necessarily the one asked something first.
+      room.sockets[0]?.emit("opponent-joined");
       room.runSetup().catch((err) => mp.to(code).emit("room-error", String(err.message || err)));
     });
 

@@ -71,6 +71,17 @@ function connect() {
     showScreen("game-screen");
     render();
   });
+  // The room-creator's socket has no other signal that their opponent has actually shown
+  // up: the server doesn't broadcastState() until the whole setup flow (mulligan, first/
+  // second pick, opening card) finishes, and this player isn't necessarily the one being
+  // asked anything first. Without this, they'd sit on the stale "waiting for them to
+  // join..." room-setup screen for that entire stretch even though the match is already
+  // under way. The joiner instead gets this same waiting screen the moment their own
+  // join-room call succeeds - see joinMultiplayerRoom below.
+  socket.on("opponent-joined", () => {
+    showScreen("game-screen");
+    renderWaitingForOpponent();
+  });
   socket.on("choice-request", async (request, ack) => {
     const answer = await showChoice(enrichChoiceRequest(latestState, request));
     ack(answer);
@@ -122,12 +133,36 @@ export function joinMultiplayerRoom(code, deck, onJoined) {
   s.emit("join-room", { code, deck, userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason || "Failed to join room.");
     saveActiveRoom(code, 1);
+    // Setup (mulligan, first/second pick, opening card) runs on the server before the
+    // first real state-update - render a placeholder now rather than leave #game-screen
+    // blank for that whole stretch (the game-screen div has no content of its own yet).
+    showScreen("game-screen");
+    renderWaitingForOpponent();
     onJoined();
   });
 }
 
 function sendAction(action) {
   return new Promise((resolve) => connect().emit("game-action", action, resolve));
+}
+
+/** Shown on #game-screen for whichever player isn't the one currently being asked a
+ * mulligan/first-pick/opening-card question during pre-game setup - see the "opponent-
+ * joined" socket handler and joinMultiplayerRoom above. Stays up underneath this player's
+ * own choice-request/window-request modals too (those are just an overlay on top, so
+ * nothing needs to re-show it after each one closes) until the real board takes over at
+ * the first state-update. */
+function renderWaitingForOpponent() {
+  const container = document.getElementById("game-screen");
+  container.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "flex:1 1 auto;display:flex;align-items:center;justify-content:center;";
+  const panel = document.createElement("div");
+  panel.className = "bbl-panel";
+  panel.style.cssText = "padding:32px;text-align:center;font-weight:700;color:var(--bbl-blue);font-size:1.1rem;";
+  panel.textContent = "Waiting for opponent...";
+  wrap.appendChild(panel);
+  container.appendChild(wrap);
 }
 
 function render() {
