@@ -12,7 +12,17 @@ registerStarPlayerEffect(
   {
     trigger: TRIGGER.YOUR_TURN,
     canActivate(ctx) {
-      return !ctx.state.turnFlags.attackedThisGameByInstance[ctx.source.instanceId] && ctx.player(ctx.opponent).hand.length > 0;
+      // In multiplayer, the client only ever sees a redacted copy of the opponent's hand
+      // (contents hidden, `hand: []` with a `handCount` standing in for the real length -
+      // see server/multiplayer.js's redactStateFor) - this canActivate() runs client-side
+      // just to decide whether to show the "Activate" button, so reading `.hand.length`
+      // directly always saw 0 there and hid the button even when the server-side (real,
+      // unredacted) check would have allowed it. `handCount` is undefined on the real state
+      // objects canActivate also runs against (both singleplayer and the server's own
+      // authoritative check), so this falls through to the real length there.
+      const opponent = ctx.player(ctx.opponent);
+      const opponentHandSize = opponent.handCount ?? opponent.hand.length;
+      return !ctx.state.turnFlags.attackedThisGameByInstance[ctx.source.instanceId] && opponentHandSize > 0;
     },
     *resolve(ctx) {
       const oppHand = ctx.player(ctx.opponent).hand;
