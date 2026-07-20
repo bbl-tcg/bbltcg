@@ -1140,7 +1140,7 @@
     "cost": 5,
     "health": 5,
     "attack": 1,
-    "tier": 2,
+    "tier": 3,
     "speed": "MIDSPEED",
     "trigger": "SACRIFICE",
     "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
@@ -1209,13 +1209,13 @@
     ],
     "rarity": "Common",
     "image": "assets/cards/001-069.png",
-    "cost": 8,
+    "cost": 6,
     "health": 1,
     "attack": 1,
-    "tier": 3,
+    "tier": 2,
     "speed": "FAST",
     "trigger": null,
-    "effect": "This player cannot be removed from the field by any of your opponent's player, coach, or event effects, and it cannot be attacked or KOed. If it is the only player on your field at the start of your turn, move this player from your field to your Score face-up (gain 1 life). Only one Chris P. Bacon can be on the field at a time."
+    "effect": "This player cannot be attacked or KOed. If it is the only player on your field at the start of your turn, move this player from your field to your Score face-up (gain 1 life). When this card is drawn from the Score, move it directly to the discard pile. Only one Chris P. Bacon can be on the field at a time."
   },
   {
     "id": "001-070",

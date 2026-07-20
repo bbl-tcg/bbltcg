@@ -1,7 +1,7 @@
 import { getCard } from "./cardDb.js";
 import { CARD_TYPE, PLAYER_SLOT_COUNT } from "./constants.js";
 import { nextInstanceId, log, opponentIndex } from "./state.js";
-import { effectiveMaxHealth } from "./stats.js";
+import { effectiveMaxHealth, getStaticFlag } from "./stats.js";
 
 export function createFieldInstance(cardId, turnNumber) {
   const card = getCard(cardId);
@@ -191,6 +191,14 @@ export function drawFromScore(state, playerIndex) {
     return;
   }
   const cardId = player.score.shift();
+  // "When this card is drawn from the Score, move it directly to the discard pile" (Chris
+  // P. Bacon) - checked via a static flag (not a hardcoded cardId) so any future card with
+  // the same clause is covered for free.
+  if (getStaticFlag({ cardId, buffs: [] }, "discardIfDrawnFromScore") === true) {
+    player.discard.push(cardId);
+    log(state, { type: "SCORE_DRAWN_TO_DISCARD", playerIndex, cardId });
+    return;
+  }
   player.hand.push(cardId);
   log(state, { type: "SCORE_DRAWN", playerIndex, cardId });
 }
