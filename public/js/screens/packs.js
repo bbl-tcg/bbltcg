@@ -70,7 +70,10 @@ export function renderPacks() {
       return;
     }
     pointsLine.textContent = `Pack Points: ${currentUser().packPoints}`;
-    statsLine.textContent = statsText();
+    // NOT statsLine here: the account's alt-art/secret-rare counts are already updated
+    // server-side the instant the pack is opened, but showing that on screen this early
+    // would spoil/pre-empt the big reveal - statsLine only catches up once the player
+    // actually flips the last (only-special-eligible) card, in revealCurrent() below.
     godPackLine.style.display = currentUser()?.godPackPending ? "block" : "none";
     // Preload all 8 card images while the rip animation plays, so revealing each one shows
     // it instantly instead of a blank beat while it downloads for the first time. Runs
@@ -91,6 +94,10 @@ export function renderPacks() {
     if (!cardIds) return;
 
     if (revealedCount >= cardIds.length) {
+      // Only now (the last card flipped, or "Skip Reveal" jumping straight to seeing every
+      // card at once) catch the displayed counter up to the account's real, already-updated
+      // totals - see the comment in onOpenPack().
+      statsLine.textContent = statsText();
       hint.textContent = "Pack complete!";
       const doneRow = el("div", { style: "display:flex;gap:8px;justify-content:center;flex-wrap:wrap;max-width:96vw;" });
       for (const cardId of cardIds) {
@@ -154,6 +161,12 @@ export function renderPacks() {
     setTimeout(() => {
       cardEl.style.backgroundImage = `url(/${card.image})`;
       cardEl.classList.remove("flipping");
+      // The 8th slot is the only one that can roll Alt Art/Secret Rare (see
+      // server/packOdds.js) - catch the displayed counter up to the account's real,
+      // already-updated totals right as its face is revealed, not a click later. The
+      // "pack complete" branch in renderStack() covers the Skip Reveal path, which never
+      // flips any card individually.
+      if (revealedCount === cardIds.length - 1) statsLine.textContent = statsText();
       // Every non-Common pull gets a sparkle; the rare 8th-slot Alt Art/Secret Rare pulls
       // additionally get a full spin, since those are the ones worth celebrating loudly.
       if (isSpecial) cardEl.classList.add("spin-rare");
