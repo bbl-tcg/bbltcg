@@ -4,7 +4,7 @@ import { effectiveCost } from "../engine/stats.js";
 
 // Hal Lewis (Star Player).
 // Main (YOUR_TURN, win condition): "If this player has not yet attacked in this game,
-// there are 2 8-Cost players on the field, and Goodbye, R1P1... is played, you win."
+// there are 3 8-Cost players on the field, and Goodbye, R1P1... is played, you win."
 // ("On the field" read as your own field, matching every other card's default when it
 // doesn't say "your opponent's.") "...is played" checked against this same turn.
 // Star Power (AFTERMATH, ON_KO): "If, after this Hal Lewis is KOed, you have fewer Score
@@ -21,7 +21,7 @@ registerStarPlayerEffect(
     canActivate(ctx) {
       if (ctx.state.turnFlags.attackedThisGameByInstance[ctx.source.instanceId]) return false;
       const eightCostCount = ctx.player().playerSlots.filter((s) => s && effectiveCost(s) === 8).length;
-      return eightCostCount >= 2 && goodbyeR1P1PlayedThisTurn(ctx);
+      return eightCostCount >= 3 && goodbyeR1P1PlayedThisTurn(ctx);
     },
     *resolve(ctx) {
       ctx.state.gameOver = true;

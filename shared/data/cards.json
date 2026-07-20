@@ -1515,7 +1515,7 @@
     "tier": 1,
     "speed": "SLOW",
     "trigger": "YOUR_TURN",
-    "effect": "If this player has not yet attacked in this game, there are 2 8-Cost players on the field, and Goodbye, R1P1... is played, you win.",
+    "effect": "If this player has not yet attacked in this game, there are 3 8-Cost players on the field, and Goodbye, R1P1... is played, you win.",
     "starPower": {
       "trigger": "ON_KO",
       "effect": "AFTERMATH: If, after this Hal Lewis is KOed, you have fewer Score cards remaining than your opponent, your opponent may discard 2 cards from their hand. If they don't, choose 1 of the players on their field to KO."
@@ -2457,7 +2457,7 @@
     "tier": 1,
     "speed": "SLOW",
     "trigger": "YOUR_TURN",
-    "effect": "If this player has not yet attacked in this game, there are 2 8-Cost players on the field, and Goodbye, R1P1... is played, you win.",
+    "effect": "If this player has not yet attacked in this game, there are 3 8-Cost players on the field, and Goodbye, R1P1... is played, you win.",
     "starPower": {
       "trigger": "ON_KO",
       "effect": "AFTERMATH: If, after this Hal Lewis is KOed, you have fewer Score cards remaining than your opponent, your opponent may discard 2 cards from their hand. If they don't, choose 1 of the players on their field to KO."
