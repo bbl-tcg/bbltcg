@@ -22,7 +22,7 @@ import { effectiveMaxHealth } from "./stats.js";
  * Build the helper object passed to an effect's canActivate()/resolve(). `controllerIndex`
  * is whoever controls the card the effect belongs to; `source` identifies the card itself.
  */
-export function makeEffectContext(state, { controllerIndex, source }) {
+export function makeEffectContext(state, { controllerIndex, source, refund = null }) {
   const self = controllerIndex;
   const opponent = opponentIndex(controllerIndex);
 
@@ -34,6 +34,28 @@ export function makeEffectContext(state, { controllerIndex, source }) {
 
     player: (i = self) => state.players[i],
     card: (cardId) => getCard(cardId),
+
+    /**
+     * "Back out" of a defensive Event that's only played this far to reach a targeting
+     * question the player then decided not to answer (e.g. Save/Rebound's "give +Health to
+     * which player?" once they realize they don't actually want to spend it) - undoes the
+     * cost payment and returns the card to hand as if it were never played, rather than
+     * making them commit to some target just to get past the prompt. Only meaningful for a
+     * HAND-zone (Event) source; a no-op otherwise. Effects should call this and `return`
+     * immediately after, without applying any of their own changes.
+     */
+    cancelEventAndRefund: () => {
+      if (!refund) return false;
+      const player = state.players[refund.controllerIndex];
+      const idx = player.discard.lastIndexOf(refund.cardId);
+      if (idx !== -1) player.discard.splice(idx, 1);
+      player.hand.push(refund.cardId);
+      for (const psUp of refund.paidPsUp) psUp.isActive = true;
+      const playedIdx = state.turnFlags.eventsPlayedThisTurnBy.lastIndexOf(refund.controllerIndex);
+      if (playedIdx !== -1) state.turnFlags.eventsPlayedThisTurnBy.splice(playedIdx, 1);
+      log(state, { type: "EVENT_CANCELLED", playerIndex: refund.controllerIndex, cardId: refund.cardId });
+      return true;
+    },
 
     draw: (playerIndex, count = 1) => drawCard(state, playerIndex, count),
 

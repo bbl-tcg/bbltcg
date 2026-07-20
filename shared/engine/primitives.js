@@ -43,15 +43,20 @@ export function canAffordCost(player, cost) {
   return payablePsUp(player).length >= cost;
 }
 
-/** Rest `cost` active unattached PS UP cards to pay for something. Returns false if unaffordable. */
+/** Rest `cost` active unattached PS UP cards to pay for something. Returns false if
+ * unaffordable, otherwise the specific PS UP objects that were rested to pay it - callers
+ * that might need to refund this exact payment later (see effectContext.js's
+ * cancelEventAndRefund) can re-activate those same objects rather than guessing which ones
+ * were "the ones used for this". */
 export function payCost(state, playerIndex, cost) {
   const player = state.players[playerIndex];
-  if (cost === 0) return true;
+  if (cost === 0) return [];
   const available = payablePsUp(player);
   if (available.length < cost) return false;
-  for (let i = 0; i < cost; i++) available[i].isActive = false;
+  const used = available.slice(0, cost);
+  for (const psUp of used) psUp.isActive = false;
   log(state, { type: "PAY_COST", playerIndex, cost });
-  return true;
+  return used;
 }
 
 export function drawPsUpFromDeck(state, playerIndex, count) {

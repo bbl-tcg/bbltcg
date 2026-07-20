@@ -121,12 +121,14 @@ function scopedResolver(resolveChoice, controllerIndex, windowCtx) {
 
 /** Runs one chosen source's effect: pays cost + discards from hand first for Events, then resolves. */
 async function activateSource(state, controllerIndex, source, windowCtx, resolveChoice) {
+  let refund = null;
   if (source.zone === "HAND") {
-    payCost(state, controllerIndex, effectiveHandCost(state, controllerIndex, source.card));
-    playEvent(state, controllerIndex, source.handIndex);
+    const paidPsUp = payCost(state, controllerIndex, effectiveHandCost(state, controllerIndex, source.card));
+    const cardId = playEvent(state, controllerIndex, source.handIndex);
     state.turnFlags.eventsPlayedThisTurnBy.push(controllerIndex);
+    refund = { cardId, paidPsUp: paidPsUp || [], controllerIndex };
   }
-  const ctx = makeEffectContext(state, { controllerIndex, source });
+  const ctx = makeEffectContext(state, { controllerIndex, source, refund });
   if (source.effectDef.resolve) {
     await runEffect(source.effectDef.resolve(ctx, windowCtx), scopedResolver(resolveChoice, controllerIndex, windowCtx));
   }

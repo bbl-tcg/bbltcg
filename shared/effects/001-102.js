@@ -25,7 +25,17 @@ registerEffect("001-102", {
       .player()
       .playerSlots.map((s, slot) => ({ s, slot }))
       .filter((e) => e.s && e.slot !== windowCtx.targetSlot);
-    const chosen = options.length === 1 ? options[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Discard which other player instead?", options: options.map((e) => e.s.instanceId) };
+    const chosen =
+      options.length === 1
+        ? options[0]
+        : yield {
+            type: "CHOOSE_OWN_PLAYER",
+            prompt: "Discard which other player instead?",
+            options: options.map((e) => e.s.instanceId),
+            allowNone: true,
+            cancelLabel: "Don't use this",
+          };
+    if (!chosen) return ctx.cancelEventAndRefund();
     const slot = options.length === 1 ? chosen.slot : ctx.player().playerSlots.findIndex((s) => s && s.instanceId === chosen);
     windowCtx.cancelled = true;
     ctx.discardFieldSlot(ctx.self, slot);

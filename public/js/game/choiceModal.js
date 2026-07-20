@@ -109,6 +109,9 @@ export function showChoice(request) {
       const zoomSelect = request.type === "CHOOSE_OWN_PLAYER" || request.type === "CHOOSE_OPPONENT_PLAYER";
       if (zoomSelect) {
         panel.appendChild(buildZoomSelectGrid(options, (value) => finish(value)));
+        if (request.allowNone) {
+          panel.appendChild(el("button", { class: "bbl-btn ghost", style: "margin-top:10px;", onclick: () => finish(null) }, request.cancelLabel || "Cancel"));
+        }
       } else if (!multi) {
         panel.appendChild(buildCardOptionGrid(options, (value) => finish(value)));
       } else {

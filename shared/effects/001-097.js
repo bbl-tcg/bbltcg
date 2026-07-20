@@ -9,7 +9,14 @@ registerEffect("001-097", {
   },
   *resolve(ctx) {
     const options = ctx.player().playerSlots.filter((s) => s).map((s) => s.instanceId);
-    const targetInstanceId = yield { type: "CHOOSE_OWN_PLAYER", prompt: "Give +2 Health to which player?", options };
+    const targetInstanceId = yield {
+      type: "CHOOSE_OWN_PLAYER",
+      prompt: "Give +2 Health to which player?",
+      options,
+      allowNone: true,
+      cancelLabel: "Don't use this",
+    };
+    if (!targetInstanceId) return ctx.cancelEventAndRefund();
     ctx.healCurrent(targetInstanceId, 2);
   },
 });

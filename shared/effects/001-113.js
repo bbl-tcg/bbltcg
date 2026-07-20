@@ -11,7 +11,17 @@ registerEffect("001-113", {
   },
   *resolve(ctx) {
     const options = ctx.player().playerSlots.filter((s) => s && !s.isStarPlayer).map((s) => s.instanceId);
-    const targetInstanceId = options.length === 1 ? options[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Give +3 Health to which non-Star player?", options };
+    const targetInstanceId =
+      options.length === 1
+        ? options[0]
+        : yield {
+            type: "CHOOSE_OWN_PLAYER",
+            prompt: "Give +3 Health to which non-Star player?",
+            options,
+            allowNone: true,
+            cancelLabel: "Don't use this",
+          };
+    if (!targetInstanceId) return ctx.cancelEventAndRefund();
     ctx.healCurrent(targetInstanceId, 3);
   },
 });

@@ -11,7 +11,17 @@ registerEffect("001-103", {
   },
   *resolve(ctx) {
     const options = ctx.player().playerSlots.filter((s) => s && !s.isStarPlayer).map((s) => s.instanceId);
-    const targetInstanceId = options.length === 1 ? options[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Give +1 permanent Health to which player?", options };
+    const targetInstanceId =
+      options.length === 1
+        ? options[0]
+        : yield {
+            type: "CHOOSE_OWN_PLAYER",
+            prompt: "Give +1 permanent Health to which player?",
+            options,
+            allowNone: true,
+            cancelLabel: "Don't use this",
+          };
+    if (!targetInstanceId) return ctx.cancelEventAndRefund();
     ctx.addBuff(targetInstanceId, { source: "001-103", health: 1, expires: "permanent" });
     ctx.healCurrent(targetInstanceId, 1);
   },

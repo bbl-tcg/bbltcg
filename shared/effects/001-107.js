@@ -22,7 +22,11 @@ registerEffect("001-107", {
     // PLAYERSCORE UP! cards are fungible - no need to ask which active one to use.
     const psUpId = available[0].id;
     const playerOptions = ctx.player().playerSlots.filter((s) => s).map((s) => s.instanceId);
-    const targetInstanceId = playerOptions.length === 1 ? playerOptions[0] : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Attach it to which player?", options: playerOptions };
+    const targetInstanceId =
+      playerOptions.length === 1
+        ? playerOptions[0]
+        : yield { type: "CHOOSE_OWN_PLAYER", prompt: "Attach it to which player?", options: playerOptions, allowNone: true, cancelLabel: "Don't use this" };
+    if (!targetInstanceId) return ctx.cancelEventAndRefund();
     // "+2 Health for each PLAYERSCORE UP! attached in this way" is tied to that specific PS
     // UP staying attached (see attachPsUpForced's bonusPerAttach doc comment), not a
     // permanent buff - it disappears once the PS UP detaches (Recover, etc).
