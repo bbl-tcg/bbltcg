@@ -32,6 +32,18 @@
   padding: 0.35em 0.9em;
   font-size: 0.85rem;
 }
+.turn-timer {
+  background: var(--bbl-white);
+  color: var(--bbl-blue);
+  border: 2px solid var(--bbl-black);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-variant-numeric: tabular-nums;
+}
+.turn-timer.low {
+  background: var(--bbl-red);
+  color: var(--bbl-text-inverse);
+}
 
 .fields-wrap {
   flex: 1 1 auto;

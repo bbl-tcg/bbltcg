@@ -13,6 +13,11 @@ function isLegalDeck(deck) {
   return !!deck && validateDeck({ headCoachId: deck.headCoachId, mainDeck: deck.mainDeck, psDeckCount: deck.psDeckCount ?? PS_DECK_SIZE }).legal;
 }
 
+// A player's own turn (from startTurn to End Turn, including whatever they do mid-turn) has
+// a 2-minute clock; running it out force-ends the turn. Two run-outs in a row (no normal
+// end-turn in between) is an automatic loss - see Room#waitForTurnActions.
+const TURN_TIME_MS = 2 * 60 * 1000;
+
 const rooms = new Map(); // code -> Room
 
 function generateInviteCode() {
@@ -51,6 +56,15 @@ class Room {
     this.sockets = [null, null]; // socket per playerIndex
     this.userIds = [null, null];
     this.ready = false;
+    this.consecutiveTimeouts = [0, 0]; // per playerIndex - reset on a voluntary endTurn
+    this.turnTimer = null;
+  }
+
+  clearTurnTimer() {
+    if (this.turnTimer) {
+      clearTimeout(this.turnTimer);
+      this.turnTimer = null;
+    }
   }
 
   broadcastState() {
@@ -127,34 +141,74 @@ class Room {
   async runTurnLoop() {
     while (!this.state.gameOver) {
       startTurn(this.state);
+      // Set before broadcastState() so the very first state-update of this turn already
+      // carries the real deadline, rather than clients briefly showing a stale one.
+      if (!this.state.gameOver) this.state.turnDeadline = Date.now() + TURN_TIME_MS;
       this.broadcastState();
       if (this.state.gameOver) break;
       await this.waitForTurnActions(this.state.activePlayerIndex);
       if (this.state.gameOver) break;
     }
+    this.clearTurnTimer();
     this.broadcastState();
     await this.awardResults();
   }
 
-  /** Listens for this player's action events until they end their turn. */
+  /** Listens for this player's action events until they end their turn *or* their clock
+   * runs out. Timing out twice in a row (no voluntary endTurn action in between) is an
+   * automatic loss - see the class-level TURN_TIME_MS comment. */
   waitForTurnActions(activeIndex) {
+    const sock = this.sockets[activeIndex];
     return new Promise((resolve) => {
-      const sock = this.sockets[activeIndex];
-      if (!sock) return resolve();
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        this.clearTurnTimer();
+        this.finishTurnWait = null;
+        if (sock) sock.off("game-action", handler);
+        resolve();
+      };
+      // The disconnect handler ends the game immediately on its own (awarding the win to
+      // whoever's left) without going through a normal action or this promise at all -
+      // without this hook, runTurnLoop would stay stuck awaiting this turn for up to
+      // TURN_TIME_MS after the room already knows the game is over.
+      this.finishTurnWait = finish;
+
       const handler = async (action, ack) => {
         try {
           const result = await this.applyAction(activeIndex, action);
           ack?.(result);
+          if (action.type === "endTurn") this.consecutiveTimeouts[activeIndex] = 0;
           this.broadcastState();
-          if (action.type === "endTurn" || this.state.gameOver) {
-            sock.off("game-action", handler);
-            resolve();
-          }
+          if (action.type === "endTurn" || this.state.gameOver) finish();
         } catch (err) {
           ack?.({ ok: false, reason: String(err.message || err) });
         }
       };
+
+      if (!sock) {
+        finish();
+        return;
+      }
       sock.on("game-action", handler);
+
+      this.turnTimer = setTimeout(async () => {
+        if (settled || this.state.gameOver) return;
+        this.consecutiveTimeouts[activeIndex] += 1;
+        if (this.consecutiveTimeouts[activeIndex] >= 2) {
+          // Leave awarding results to runTurnLoop's own post-loop call - it always runs
+          // once the loop notices gameOver, so awarding here too would double-pay.
+          this.state.gameOver = true;
+          this.state.winner = activeIndex === 0 ? 1 : 0;
+          this.broadcastState();
+          finish();
+          return;
+        }
+        await engine.endTurn(this.state, activeIndex, this.resolveChoice, this.decideWindow).catch(() => {});
+        this.broadcastState();
+        finish();
+      }, Math.max(0, this.state.turnDeadline - Date.now()));
     });
   }
 
@@ -271,6 +325,7 @@ export function attachMultiplayer(io) {
         room.state.winner = otherIndex;
         room.broadcastState();
         room.awardResults().catch(() => {});
+        room.finishTurnWait?.(); // unstick runTurnLoop's pending waitForTurnActions, if any
       }
       // Room is left in place (not deleted) so the same code can be used to reconnect;
       // a stale/abandoned room is harmless since it's only kept in memory, not the DB.

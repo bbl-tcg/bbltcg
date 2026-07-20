@@ -14,6 +14,12 @@ import { isLoggedIn, reportGameResult } from "../api.js";
 import { confirmDialog } from "../ui.js";
 
 let G = null;
+let turnTimerInterval = null;
+
+// A player's own turn (from startTurn to End Turn, including whatever they do mid-turn) has
+// a 2-minute clock; running it out force-ends the turn. Two run-outs in a row (no normal
+// end-turn in between) is an automatic loss - see waitForHumanTurn.
+const TURN_TIME_MS = 2 * 60 * 1000;
 
 export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice = "random" }) {
   const rng = makeRng((Date.now() % 1e9) + Math.floor(Math.random() * 1e6));
@@ -23,7 +29,7 @@ export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice =
     rng,
   });
 
-  G = { state, vsBot, humanIndex: 0, armedSlot: null, gameOverShown: false };
+  G = { state, vsBot, humanIndex: 0, armedSlot: null, gameOverShown: false, turnDeadline: null, consecutiveTimeouts: [0, 0] };
 
   drawOpeningHand(state, 0, rng);
   drawOpeningHand(state, 1, rng);
@@ -126,11 +132,15 @@ async function decideWindow(controllerIndex, available, windowCtx) {
 async function runTurnLoop() {
   while (!G.state.gameOver) {
     startTurn(G.state);
-    render();
-    if (G.state.gameOver) break;
+    if (G.state.gameOver) {
+      render();
+      break;
+    }
 
     const me = G.state.activePlayerIndex;
     if (isBotSeat(me)) {
+      G.turnDeadline = null; // bots act near-instantly - no clock needed
+      render();
       toast("Opponent's turn...");
       await runBotTurn(G.state, me, render, makeResolver(me), decideWindow);
       if (G.state.gameOver) break;
@@ -139,6 +149,10 @@ async function runTurnLoop() {
       continue;
     }
 
+    // Set the deadline *before* the render() inside waitForHumanTurn so the very first
+    // paint of this turn already shows the real countdown instead of a stale one.
+    G.turnDeadline = Date.now() + TURN_TIME_MS;
+    render();
     await waitForHumanTurn(me);
     if (G.state.gameOver) break;
   }
@@ -146,16 +160,40 @@ async function runTurnLoop() {
   showGameOver();
 }
 
-/** Resolves once the human playing seat `me` clicks "End Turn". All the interim actions
- * (playing cards, attacking, activating effects) are wired as click handlers in render()
- * and call back into engine functions directly; this promise just waits for the button. */
+/** Resolves once the human playing seat `me` clicks "End Turn" *or* their clock runs out.
+ * All the interim actions (playing cards, attacking, activating effects) are wired as click
+ * handlers in render() and call back into engine functions directly; this promise just
+ * waits for one of those two ways a turn can end. Timing out twice in a row (no voluntary
+ * end-turn in between) is an automatic loss - a player who runs the clock out once gets a
+ * warning-by-example, not immediate elimination, but doing it again right after is treated
+ * as having walked away from the game. */
 function waitForHumanTurn(me) {
   return new Promise((resolve) => {
-    G.endTurnResolve = async () => {
+    let settled = false;
+    const finish = async (timedOut) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      G.endTurnResolve = null;
+      if (timedOut) {
+        G.consecutiveTimeouts[me] += 1;
+        if (G.consecutiveTimeouts[me] >= 2) {
+          G.state.gameOver = true;
+          G.state.winner = me === 0 ? 1 : 0;
+          render();
+          resolve();
+          return;
+        }
+      } else {
+        G.consecutiveTimeouts[me] = 0;
+      }
       await engine.endTurn(G.state, me, makeResolver(me), decideWindow);
       render();
       resolve();
     };
+
+    G.endTurnResolve = () => finish(false);
+    const timer = setTimeout(() => finish(true), Math.max(0, G.turnDeadline - Date.now()));
   });
 }
 
@@ -163,12 +201,29 @@ function render() {
   const container = document.getElementById("game-screen");
   container.innerHTML = "";
 
+  if (turnTimerInterval) {
+    clearInterval(turnTimerInterval);
+    turnTimerInterval = null;
+  }
+
   const topbar = document.createElement("div");
   topbar.className = "game-topbar";
   const me = G.state.activePlayerIndex;
   const viewerIndex = G.vsBot ? G.humanIndex : me;
   const isMyTurn = me === viewerIndex;
   topbar.innerHTML = `<div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${G.state.turnNumber}</div>`;
+  if (G.turnDeadline && !G.state.gameOver) {
+    const timerEl = document.createElement("div");
+    timerEl.className = "turn-timer";
+    const updateTimer = () => {
+      const remainingSecs = Math.max(0, Math.ceil((G.turnDeadline - Date.now()) / 1000));
+      timerEl.textContent = `⏱ ${Math.floor(remainingSecs / 60)}:${String(remainingSecs % 60).padStart(2, "0")}`;
+      timerEl.classList.toggle("low", remainingSecs <= 15);
+    };
+    updateTimer();
+    turnTimerInterval = setInterval(updateTimer, 1000);
+    topbar.appendChild(timerEl);
+  }
   const actions = document.createElement("div");
   actions.className = "topbar-actions";
   const concedeBtn = mkBtn("Concede", onConcede);

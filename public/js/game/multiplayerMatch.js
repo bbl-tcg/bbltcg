@@ -16,6 +16,7 @@ let latestState = null;
 let you = null;
 let armedSlot = null;
 let gameOverShown = false;
+let turnTimerInterval = null;
 
 // Remembers which room/seat this browser is (or was) in, so a dropped connection - a
 // network blip, or the player reloading/reopening the page mid-game - can be resumed
@@ -171,10 +172,27 @@ function render() {
   const state = latestState;
   const me = you;
 
+  if (turnTimerInterval) {
+    clearInterval(turnTimerInterval);
+    turnTimerInterval = null;
+  }
+
   const topbar = document.createElement("div");
   topbar.className = "game-topbar";
   const isMyTurn = state.activePlayerIndex === me;
   topbar.innerHTML = `<div>${isMyTurn ? "Your turn" : "Opponent's turn"} - Turn ${state.turnNumber}</div>`;
+  if (state.turnDeadline && !state.gameOver) {
+    const timerEl = document.createElement("div");
+    timerEl.className = "turn-timer";
+    const updateTimer = () => {
+      const remainingSecs = Math.max(0, Math.ceil((state.turnDeadline - Date.now()) / 1000));
+      timerEl.textContent = `⏱ ${Math.floor(remainingSecs / 60)}:${String(remainingSecs % 60).padStart(2, "0")}`;
+      timerEl.classList.toggle("low", remainingSecs <= 15);
+    };
+    updateTimer();
+    turnTimerInterval = setInterval(updateTimer, 1000);
+    topbar.appendChild(timerEl);
+  }
   const actions = document.createElement("div");
   actions.className = "topbar-actions";
   const concedeBtn = mkBtn("Concede", onConcede);
