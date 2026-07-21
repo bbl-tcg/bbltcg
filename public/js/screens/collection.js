@@ -75,8 +75,15 @@ export async function renderCollection() {
   ]);
   root.appendChild(topbar);
 
+  // The mobile (max-width:700px) rule for .db-pool assumes a .db-body wrapper handles
+  // scrolling instead (see deckbuilder.css) - without it here too, .db-pool's overflow gets
+  // set to visible on mobile with no scrollable ancestor to catch it, so the grid was
+  // completely unscrollable on phones even though it scrolled fine on desktop (where
+  // .db-pool scrolls itself).
+  const body = el("div", { class: "db-body" });
   const grid = el("div", { class: "db-pool" });
-  root.appendChild(grid);
+  body.appendChild(grid);
+  root.appendChild(body);
 
   function cardsToShow() {
     if (sortBy === "altArt") return owned.filter((c) => c.rarity === "Alternative Art");
