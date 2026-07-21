@@ -197,10 +197,11 @@ function standingEffectKey(controllerIndex, src) {
  * and only for the *other* player) always fires before `decide` is consulted, so the acting
  * controller never gets a chance to simply skip triggering it.
  */
-export async function openWindow(state, controllerIndex, triggerType, windowCtx, decide, resolveChoice) {
+export async function openWindow(state, controllerIndex, triggerType, windowCtx, decide, resolveChoice, filterSources) {
   const activatedKeys = new Set();
   for (;;) {
-    const available = getActivatableSources(state, controllerIndex, triggerType, windowCtx).filter((src) => !activatedKeys.has(sourceKey(src)));
+    let available = getActivatableSources(state, controllerIndex, triggerType, windowCtx).filter((src) => !activatedKeys.has(sourceKey(src)));
+    if (filterSources) available = available.filter(filterSources);
     if (available.length === 0) return;
     const mandatory = available.find((src) => src.effectDef.mandatory);
     if (mandatory) {
@@ -338,22 +339,23 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
 
   await openWindow(state, attackerPlayerIndex, TRIGGER.WHILE_ATTACKING, windowCtx, decideFor(attackerPlayerIndex), resolveChoice);
 
-  // "Attacks not affected by your opponent's player or coach effects" (e.g. Chef Luis)
-  // blocks the defender's reactive windows for this specific attack.
+  // "Attacks not affected by your opponent's player or coach effects" (e.g. Chef Luis) only
+  // blocks reactions sourced from the defender's own field Players/Star Players or their
+  // Head/Assistant Coach - Event cards (HAND zone) are a different source entirely and still
+  // apply normally, so the windows always open; only which sources are offered changes.
   const attackerIsImmune = getStaticFlag(attackerInst, "attacksImmuneToOpponentEffects") === true;
-  if (!attackerIsImmune) {
-    // OPPONENTS_TURN is the broad "any time during my opponent's turn" window; it's also
-    // offered here (in addition to its own end-of-turn checkpoint in endTurn()) so cards
-    // that specifically need to react to *this* attack (e.g. Santiago Rivera negating it)
-    // get a chance to, even though their trigger label isn't the narrower ON_OPPONENTS_ATTACK.
-    await openWindow(state, defenderIndex, TRIGGER.OPPONENTS_TURN, windowCtx, decideFor(defenderIndex), resolveChoice);
-    if (!windowCtx.cancelled) {
-      await openWindow(state, defenderIndex, TRIGGER.ON_OPPONENTS_ATTACK, windowCtx, decideFor(defenderIndex), resolveChoice);
-    }
-    // Only relevant when the target belongs to the defender (not a teammate-targeting attack).
-    if (!windowCtx.cancelled && windowCtx.targetPlayerIndex === defenderIndex) {
-      await openWindow(state, defenderIndex, TRIGGER.SACRIFICE, windowCtx, decideFor(defenderIndex), resolveChoice);
-    }
+  const reactionFilter = attackerIsImmune ? (src) => src.zone === "HAND" : undefined;
+  // OPPONENTS_TURN is the broad "any time during my opponent's turn" window; it's also
+  // offered here (in addition to its own end-of-turn checkpoint in endTurn()) so cards that
+  // specifically need to react to *this* attack (e.g. Santiago Rivera negating it) get a
+  // chance to, even though their trigger label isn't the narrower ON_OPPONENTS_ATTACK.
+  await openWindow(state, defenderIndex, TRIGGER.OPPONENTS_TURN, windowCtx, decideFor(defenderIndex), resolveChoice, reactionFilter);
+  if (!windowCtx.cancelled) {
+    await openWindow(state, defenderIndex, TRIGGER.ON_OPPONENTS_ATTACK, windowCtx, decideFor(defenderIndex), resolveChoice, reactionFilter);
+  }
+  // Only relevant when the target belongs to the defender (not a teammate-targeting attack).
+  if (!windowCtx.cancelled && windowCtx.targetPlayerIndex === defenderIndex) {
+    await openWindow(state, defenderIndex, TRIGGER.SACRIFICE, windowCtx, decideFor(defenderIndex), resolveChoice, reactionFilter);
   }
 
   if (windowCtx.cancelled) {
