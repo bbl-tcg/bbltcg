@@ -296,8 +296,11 @@ async function playFieldCardFromHand(handIndex, cardId, card, me) {
         type: "CHOOSE_OWN_PLAYER",
         prompt: "Your 3 player slots are full - replace which one?",
         options: latestState.players[me].playerSlots.map((s) => s.instanceId),
+        allowNone: true,
+        cancelLabel: "Don't play this card",
       })
     );
+    if (!chosen) return; // cancelled - card stays in hand, nothing paid
     replaceSlot = latestState.players[me].playerSlots.findIndex((s) => s.instanceId === chosen);
   }
 
