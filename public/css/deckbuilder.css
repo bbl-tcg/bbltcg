@@ -126,6 +126,56 @@
   gap: 4px;
 }
 
+.playmat-preview-swatch {
+  width: 56px;
+  aspect-ratio: 8 / 3;
+  border: 1.5px solid var(--bbl-black);
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bbl-slot-bg);
+  flex: 0 0 auto;
+}
+
+.playmat-editor-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 130;
+  padding: 16px;
+}
+.playmat-editor-panel {
+  width: min(94vw, 560px);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.playmat-hint {
+  font-size: 0.8rem;
+  color: #666;
+}
+.playmat-crop-frame {
+  width: 100%;
+  aspect-ratio: 8 / 3;
+  background-color: #222;
+  background-repeat: no-repeat;
+  border: 2px solid var(--bbl-black);
+  border-radius: 8px;
+  cursor: grab;
+  touch-action: none;
+  overflow: hidden;
+  position: relative;
+}
+.playmat-crop-frame.dragging {
+  cursor: grabbing;
+}
+
 /* Mobile: the desktop layout puts the card pool and the deck panel side by side (deck
    panel a fixed 320px wide) - on a phone-width screen that leaves almost no room for
    either, so stack them instead. Both stacked sections scroll together as a single unit

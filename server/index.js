@@ -22,7 +22,10 @@ const ROOT = path.resolve(__dirname, "..");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Default 100kb is too small for a saved deck carrying an uploaded/cropped playmat image as
+// a data: URL (see server/routes/decks.js, which separately caps that field at ~2MB) -
+// raised with headroom for the base64 + JSON-escaping overhead on top of that.
+app.use(express.json({ limit: "3mb" }));
 app.use(
   cookieSession({
     name: "bbltcg_session",

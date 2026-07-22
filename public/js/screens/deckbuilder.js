@@ -6,9 +6,10 @@ import { loadCustomDecks, saveCustomDeck, deleteCustomDeck, loadCollection } fro
 import { toast, confirmDialog } from "../ui.js";
 import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck, getCollection } from "../api.js";
 import { showCardZoomWithActions } from "../game/cardZoom.js";
+import { openPlaymatEditor } from "./playmatEditor.js";
 import { renderMenu } from "./menu.js";
 
-let deck = null; // { id?, name, headCoachId, mainDeck: string[] }
+let deck = null; // { id?, name, headCoachId, mainDeck: string[], playmatUrl: string|null }
 let filterText = "";
 let savedDecksCache = [];
 let collectionCache = {}; // { [cardId]: quantityOwned }
@@ -23,7 +24,7 @@ function headCoaches() {
 }
 
 function newDeck(headCoachId) {
-  return { name: "New Deck", headCoachId, mainDeck: [] };
+  return { name: "New Deck", headCoachId, mainDeck: [], playmatUrl: null };
 }
 
 /** Server-backed decks when logged in (synced across devices); localStorage otherwise. */
@@ -130,12 +131,31 @@ function renderTopbar() {
     },
   });
 
+  const playmatSwatch = el("div", { class: "playmat-preview-swatch", title: "Current playmat" });
+  if (deck.playmatUrl) playmatSwatch.style.backgroundImage = `url(${deck.playmatUrl})`;
+
+  const playmatControls = el("div", { style: "display:flex;align-items:center;gap:6px;" }, [
+    playmatSwatch,
+    el(
+      "button",
+      {
+        class: "bbl-btn ghost",
+        onclick: () => openPlaymatEditor((dataUrl) => { deck.playmatUrl = dataUrl; renderAll(); }),
+      },
+      deck.playmatUrl ? "Change Playmat" : "Set Playmat"
+    ),
+    ...(deck.playmatUrl
+      ? [el("button", { class: "bbl-btn secondary", onclick: () => { deck.playmatUrl = null; renderAll(); } }, "Remove")]
+      : []),
+  ]);
+
   const topbar = el("div", { class: "db-topbar" }, [
     el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"),
     el("span", { style: "font-weight:800;" }, "Head Coach:"),
     hcSelect,
     nameInput,
     filterInput,
+    playmatControls,
     el("button", { class: "bbl-btn", onclick: onSaveDeck }, "Save Deck"),
     el("button", { class: "bbl-btn secondary", onclick: onClearDeck }, "Clear"),
     ...(isLoggedIn() ? [] : [el("span", { style: "color:var(--bbl-red);font-weight:700;font-size:0.85rem;" }, "Not logged in - decks save to this browser only")]),

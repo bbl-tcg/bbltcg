@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS decks (
   name TEXT NOT NULL,
   head_coach_id TEXT NOT NULL,
   main_deck_json TEXT NOT NULL,
+  -- A data: URL of the player's uploaded/cropped playmat image, or NULL for the default
+  -- background - see public/js/screens/deckbuilder.js.
+  playmat_url TEXT,
   updated_at TEXT NOT NULL
 );
 

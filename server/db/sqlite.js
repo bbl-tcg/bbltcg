@@ -39,17 +39,18 @@ db.exec(`
   );
 `);
 
-// users predates these columns, so existing rows/dev DBs need a migration rather than just
-// CREATE TABLE IF NOT EXISTS (which only affects brand-new tables). Ignore "duplicate
+// users/decks predate these columns, so existing rows/dev DBs need a migration rather than
+// just CREATE TABLE IF NOT EXISTS (which only affects brand-new tables). Ignore "duplicate
 // column" so this is safe to run on every startup.
-for (const [column, ddl] of [
-  ["packs_opened", "INTEGER NOT NULL DEFAULT 0"],
-  ["alt_arts_pulled", "INTEGER NOT NULL DEFAULT 0"],
-  ["secret_rares_pulled", "INTEGER NOT NULL DEFAULT 0"],
-  ["god_pack_pending", "INTEGER NOT NULL DEFAULT 0"],
+for (const [table, column, ddl] of [
+  ["users", "packs_opened", "INTEGER NOT NULL DEFAULT 0"],
+  ["users", "alt_arts_pulled", "INTEGER NOT NULL DEFAULT 0"],
+  ["users", "secret_rares_pulled", "INTEGER NOT NULL DEFAULT 0"],
+  ["users", "god_pack_pending", "INTEGER NOT NULL DEFAULT 0"],
+  ["decks", "playmat_url", "TEXT"],
 ]) {
   try {
-    db.exec(`ALTER TABLE users ADD COLUMN ${column} ${ddl}`);
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
   } catch (err) {
     if (!/duplicate column/i.test(err.message)) throw err;
   }
@@ -123,16 +124,25 @@ export async function listDecks(userId) {
 }
 
 function rowToDeck(row) {
-  return { id: row.id, userId: row.user_id, name: row.name, headCoachId: row.head_coach_id, mainDeck: JSON.parse(row.main_deck_json), updatedAt: row.updated_at };
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    headCoachId: row.head_coach_id,
+    mainDeck: JSON.parse(row.main_deck_json),
+    playmatUrl: row.playmat_url ?? null,
+    updatedAt: row.updated_at,
+  };
 }
 
 export async function saveDeck(userId, deck) {
   const now = new Date().toISOString();
   if (deck.id) {
-    db.prepare("UPDATE decks SET name = ?, head_coach_id = ?, main_deck_json = ?, updated_at = ? WHERE id = ? AND user_id = ?").run(
+    db.prepare("UPDATE decks SET name = ?, head_coach_id = ?, main_deck_json = ?, playmat_url = ?, updated_at = ? WHERE id = ? AND user_id = ?").run(
       deck.name,
       deck.headCoachId,
       JSON.stringify(deck.mainDeck),
+      deck.playmatUrl ?? null,
       now,
       deck.id,
       userId
@@ -140,8 +150,8 @@ export async function saveDeck(userId, deck) {
     return deck.id;
   }
   const info = db
-    .prepare("INSERT INTO decks (user_id, name, head_coach_id, main_deck_json, updated_at) VALUES (?, ?, ?, ?, ?)")
-    .run(userId, deck.name, deck.headCoachId, JSON.stringify(deck.mainDeck), now);
+    .prepare("INSERT INTO decks (user_id, name, head_coach_id, main_deck_json, playmat_url, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .run(userId, deck.name, deck.headCoachId, JSON.stringify(deck.mainDeck), deck.playmatUrl ?? null, now);
   return Number(info.lastInsertRowid);
 }
 

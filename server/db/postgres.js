@@ -40,6 +40,7 @@ await pool.query(`
   ALTER TABLE users ADD COLUMN IF NOT EXISTS alt_arts_pulled INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE users ADD COLUMN IF NOT EXISTS secret_rares_pulled INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE users ADD COLUMN IF NOT EXISTS god_pack_pending BOOLEAN NOT NULL DEFAULT FALSE;
+  ALTER TABLE decks ADD COLUMN IF NOT EXISTS playmat_url TEXT;
 `);
 
 function rowToUser(row) {
@@ -58,7 +59,15 @@ function rowToUser(row) {
 }
 
 function rowToDeck(row) {
-  return { id: row.id, userId: row.user_id, name: row.name, headCoachId: row.head_coach_id, mainDeck: JSON.parse(row.main_deck_json), updatedAt: row.updated_at };
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    headCoachId: row.head_coach_id,
+    mainDeck: JSON.parse(row.main_deck_json),
+    playmatUrl: row.playmat_url ?? null,
+    updatedAt: row.updated_at,
+  };
 }
 
 export async function createUser(username, passwordHash) {
@@ -118,20 +127,22 @@ export async function listDecks(userId) {
 
 export async function saveDeck(userId, deck) {
   if (deck.id) {
-    await pool.query("UPDATE decks SET name = $1, head_coach_id = $2, main_deck_json = $3, updated_at = NOW() WHERE id = $4 AND user_id = $5", [
+    await pool.query("UPDATE decks SET name = $1, head_coach_id = $2, main_deck_json = $3, playmat_url = $4, updated_at = NOW() WHERE id = $5 AND user_id = $6", [
       deck.name,
       deck.headCoachId,
       JSON.stringify(deck.mainDeck),
+      deck.playmatUrl ?? null,
       deck.id,
       userId,
     ]);
     return deck.id;
   }
-  const { rows } = await pool.query("INSERT INTO decks (user_id, name, head_coach_id, main_deck_json) VALUES ($1, $2, $3, $4) RETURNING id", [
+  const { rows } = await pool.query("INSERT INTO decks (user_id, name, head_coach_id, main_deck_json, playmat_url) VALUES ($1, $2, $3, $4, $5) RETURNING id", [
     userId,
     deck.name,
     deck.headCoachId,
     JSON.stringify(deck.mainDeck),
+    deck.playmatUrl ?? null,
   ]);
   return rows[0].id;
 }
