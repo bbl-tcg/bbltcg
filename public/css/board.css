@@ -59,6 +59,11 @@
   min-height: 0;
   display: flex;
   position: relative;
+  /* Set from render() (localMatch.js/multiplayerMatch.js) per-side from each player's saved
+     playmat (see deckbuilder.js) - background-color is the fallback for a side with none. */
+  background-color: var(--bbl-bg);
+  background-size: cover;
+  background-position: center;
 }
 
 .opponent-hand-fan {
@@ -98,7 +103,11 @@
 }
 
 .sector {
-  background: var(--bbl-slot-bg);
+  /* Translucent (not solid) so a playmat set on the containing .opponent-area/.player-area
+     shows through underneath the sectors - see deckbuilder.js/render() background-image
+     wiring. Looks effectively identical to the old solid --bbl-slot-bg on the default page
+     background (a similarly light gray) when no playmat is set. */
+  background: rgba(217, 220, 226, 0.6);
   border: 2px solid var(--bbl-black);
   border-radius: 8px;
   display: flex;
@@ -107,10 +116,6 @@
   position: relative;
   min-width: 0;
   min-height: 0;
-}
-.sector.empty-sector {
-  background: transparent;
-  border: 2px dashed var(--bbl-slot-bg-dark);
 }
 
 .sector-label {

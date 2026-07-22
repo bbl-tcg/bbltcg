@@ -13,6 +13,7 @@ import { resetChat, addChatMessage, renderChatWidget } from "../chatWidget.js";
 
 let socket = null;
 let latestState = null;
+let latestPlaymats = [null, null];
 let you = null;
 let armedSlot = null;
 let gameOverShown = false;
@@ -66,9 +67,10 @@ export function tryResumeActiveMultiplayerGame() {
 function connect() {
   if (socket) return socket;
   socket = io("/multiplayer", { withCredentials: true });
-  socket.on("state-update", ({ state, you: viewer }) => {
+  socket.on("state-update", ({ state, you: viewer, playmats }) => {
     latestState = state;
     you = viewer;
+    if (playmats) latestPlaymats = playmats;
     showScreen("game-screen");
     render();
   });
@@ -234,6 +236,7 @@ function render() {
     onHandCardClick: (handIndex, cardId) => onHandCardClick(handIndex, cardId, isMyTurn, me),
     onFieldCardClick: (playerIndex, slot, inst) => onFieldCardClick(playerIndex, slot, inst, isMyTurn, me),
   });
+  applyPlaymats(boardArea, me);
 
   container.appendChild(
     renderChatWidget((text) => {
@@ -247,6 +250,20 @@ function render() {
     gameOverShown = true;
     showGameOver(state, me);
   }
+}
+
+/** Sets each side's field background from its deck's saved playmat (see deckbuilder.js) -
+ * applied here rather than threaded through renderBoard()'s own signature, since only the
+ * caller knows which playmat belongs to which visible side. `latestPlaymats` arrives
+ * alongside `state` in every state-update (see connect() above), indexed by player index
+ * (not "you"/opponent), same as `state.players[]` itself. No-op (falls back to the default
+ * CSS background) for a side with no playmat set. */
+function applyPlaymats(boardArea, viewerIndex) {
+  const opponentIndex = viewerIndex === 0 ? 1 : 0;
+  const opponentArea = boardArea.querySelector(".opponent-area");
+  const playerArea = boardArea.querySelector(".player-area");
+  if (opponentArea) opponentArea.style.backgroundImage = latestPlaymats[opponentIndex] ? `url(${latestPlaymats[opponentIndex]})` : "";
+  if (playerArea) playerArea.style.backgroundImage = latestPlaymats[viewerIndex] ? `url(${latestPlaymats[viewerIndex]})` : "";
 }
 
 function mkBtn(label, onClick) {

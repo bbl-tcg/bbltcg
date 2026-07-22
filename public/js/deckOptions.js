@@ -21,7 +21,7 @@ export async function allDeckOptions() {
       legal,
       // mainDeck is copied (not handed out by reference) so nothing downstream can ever
       // mutate the cached/saved deck data just by touching the array it gets to play with.
-      resolve: () => ({ headCoachId: d.headCoachId, mainDeck: [...d.mainDeck], psDeckCount: PS_DECK_SIZE, name: d.name }),
+      resolve: () => ({ headCoachId: d.headCoachId, mainDeck: [...d.mainDeck], psDeckCount: PS_DECK_SIZE, name: d.name, playmatUrl: d.playmatUrl ?? null }),
     };
   });
   return [...starters, ...custom];

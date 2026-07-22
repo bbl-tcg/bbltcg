@@ -68,8 +68,13 @@ class Room {
   }
 
   broadcastState() {
+    // Playmats are cosmetic-only and never touch the engine's own state (createPlayerState
+    // only destructures the fields it actually knows about) - sent as a sibling of `state`
+    // instead, sourced from the room's own un-redacted deck objects (this.decks), which are
+    // never subject to redactStateFor()'s hiding of opponent info in the first place.
+    const playmats = [this.decks[0]?.playmatUrl ?? null, this.decks[1]?.playmatUrl ?? null];
     for (let i = 0; i < 2; i++) {
-      if (this.sockets[i]) this.sockets[i].emit("state-update", { state: redactStateFor(this.state, i), you: i });
+      if (this.sockets[i]) this.sockets[i].emit("state-update", { state: redactStateFor(this.state, i), you: i, playmats });
     }
   }
 

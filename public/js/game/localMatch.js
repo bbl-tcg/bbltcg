@@ -29,7 +29,19 @@ export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice =
     rng,
   });
 
-  G = { state, vsBot, humanIndex: 0, armedSlot: null, gameOverShown: false, turnDeadline: null, consecutiveTimeouts: [0, 0] };
+  // Playmats are cosmetic-only and never reach the engine's own state (createPlayerState
+  // only destructures the fields it actually knows about), so they're carried here instead
+  // and applied directly to the board DOM in render() below.
+  G = {
+    state,
+    vsBot,
+    humanIndex: 0,
+    armedSlot: null,
+    gameOverShown: false,
+    turnDeadline: null,
+    consecutiveTimeouts: [0, 0],
+    playmats: [deckA.playmatUrl ?? null, deckB.playmatUrl ?? null],
+  };
 
   drawOpeningHand(state, 0, rng);
   drawOpeningHand(state, 1, rng);
@@ -265,6 +277,19 @@ function render() {
     onHandCardClick: (handIndex, cardId) => onHandCardClick(handIndex, cardId, isMyTurn, me),
     onFieldCardClick: (playerIndex, slot, inst) => onFieldCardClick(playerIndex, slot, inst, isMyTurn, me),
   });
+  applyPlaymats(boardArea, viewerIndex);
+}
+
+/** Sets each side's field background from its deck's saved playmat (see deckbuilder.js) -
+ * applied here rather than threaded through renderBoard()'s own signature, since only the
+ * caller knows which playmat belongs to which visible side. No-op (falls back to the default
+ * CSS background) for a side with no playmat set. */
+function applyPlaymats(boardArea, viewerIndex) {
+  const opponentIndex = viewerIndex === 0 ? 1 : 0;
+  const opponentArea = boardArea.querySelector(".opponent-area");
+  const playerArea = boardArea.querySelector(".player-area");
+  if (opponentArea) opponentArea.style.backgroundImage = G.playmats[opponentIndex] ? `url(${G.playmats[opponentIndex]})` : "";
+  if (playerArea) playerArea.style.backgroundImage = G.playmats[viewerIndex] ? `url(${G.playmats[viewerIndex]})` : "";
 }
 
 function mkBtn(label, onClick) {
