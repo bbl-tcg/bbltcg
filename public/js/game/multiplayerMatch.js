@@ -262,8 +262,14 @@ function applyPlaymats(boardArea, viewerIndex) {
   const opponentIndex = viewerIndex === 0 ? 1 : 0;
   const opponentArea = boardArea.querySelector(".opponent-area");
   const playerArea = boardArea.querySelector(".player-area");
+  const handBar = boardArea.querySelector(".player-hand-bar");
+  const ownPlaymat = latestPlaymats[viewerIndex] ? `url(${latestPlaymats[viewerIndex]})` : "";
   if (opponentArea) opponentArea.style.backgroundImage = latestPlaymats[opponentIndex] ? `url(${latestPlaymats[opponentIndex]})` : "";
-  if (playerArea) playerArea.style.backgroundImage = latestPlaymats[viewerIndex] ? `url(${latestPlaymats[viewerIndex]})` : "";
+  if (playerArea) playerArea.style.backgroundImage = ownPlaymat;
+  // The hand bar isn't part of .player-area (it's a sibling below it), so the same playmat
+  // is applied here too - lets it visually continue down into the hand instead of stopping
+  // at the field.
+  if (handBar) handBar.style.backgroundImage = ownPlaymat;
 }
 
 function mkBtn(label, onClick) {

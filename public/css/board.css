@@ -92,7 +92,7 @@
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 3fr 1fr;
-  grid-template-rows: 1.7fr 0.9fr;
+  grid-template-rows: 2.2fr 0.8fr;
   gap: 4px;
   width: 100%;
   height: 100%;
@@ -107,7 +107,7 @@
      shows through underneath the sectors - see deckbuilder.js/render() background-image
      wiring. Looks effectively identical to the old solid --bbl-slot-bg on the default page
      background (a similarly light gray) when no playmat is set. */
-  background: rgba(217, 220, 226, 0.6);
+  background: rgba(217, 220, 226, 0.32);
   border: 2px solid var(--bbl-black);
   border-radius: 8px;
   display: flex;
@@ -142,8 +142,15 @@
 .sector-players {
   grid-column: 2;
   grid-row: 1;
+  justify-content: space-between;
+  padding: 4px 8px;
+}
+.player-slot-group {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 4px;
 }
 .sector-deck {
   grid-column: 3;
@@ -172,13 +179,11 @@
   grid-row: 2;
 }
 
-/* Head Coach/Assistant Coach flanking the 3 player slots in .sector-players - noticeably
-   smaller than a full player .slot since they're secondary to the players themselves.
-   ".slot.coach-slot" (not just ".coach-slot") so this reliably beats .slot's own
-   height:100% regardless of source order - same specificity otherwise, and .slot happens
-   to be declared later below. */
+/* Head Coach/Assistant Coach flanking the 3 player slots in .sector-players - same size as
+   a regular player .slot, anchored to the sector's own far edges (.sector-players uses
+   justify-content:space-between, with the 3 player slots grouped in their own
+   .player-slot-group in the middle) rather than sitting snug against the player cards. */
 .slot.coach-slot {
-  height: 68%;
   flex: 0 1 auto;
 }
 
@@ -296,14 +301,19 @@
   align-items: flex-end;
   gap: 6px;
   padding: 8px 12px;
-  background: var(--bbl-white);
+  /* background-color is the fallback for no playmat set; background-image is set inline
+     from render() (localMatch.js/multiplayerMatch.js) alongside .player-area, so the
+     playmat visually continues down into the hand row instead of stopping at the field. */
+  background-color: var(--bbl-white);
+  background-size: cover;
+  background-position: center top;
   border-top: 2px solid var(--bbl-black);
   overflow-x: auto;
-  min-height: 160px;
+  min-height: 200px;
   position: relative;
 }
 .player-hand-bar .hand-card {
-  width: 104px;
+  width: 132px;
   aspect-ratio: var(--card-aspect-w) / var(--card-aspect-h);
   flex: 0 0 auto;
 }
@@ -460,12 +470,12 @@
     font-size: 0.75rem;
   }
   .player-hand-bar {
-    min-height: 118px;
+    min-height: 148px;
     padding: 6px 8px;
     gap: 4px;
   }
   .player-hand-bar .hand-card {
-    width: 74px;
+    width: 92px;
   }
   .sector-label {
     font-size: 0.48rem;
@@ -477,21 +487,20 @@
     padding-left: 30px;
   }
   .sector-players {
+    padding: 2px 4px;
+  }
+  .player-slot-group {
     gap: 2px;
-    padding: 2px;
   }
   /* Desktop sizes these 5 slots off the row's height (aspect-ratio fills in the width),
      which is fine when the row is short relative to the viewport - but on a narrow phone
      screen that produces cards wide enough to overflow the sector entirely. Switch to
-     sizing off width instead so all 5 always fit side by side. */
+     sizing off width instead so all 5 always fit side by side. Coach slots match the
+     player slots' width now (same card size, just anchored to the sector's far edges). */
   .sector-players .slot {
     height: auto;
     width: 19%;
     flex: 0 1 19%;
-  }
-  .sector-players .slot.coach-slot {
-    width: 13%;
-    flex: 0 1 13%;
   }
   .health-pill,
   .attack-pill,

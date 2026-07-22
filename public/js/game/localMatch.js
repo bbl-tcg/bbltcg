@@ -17,9 +17,9 @@ let G = null;
 let turnTimerInterval = null;
 
 // A player's own turn (from startTurn to End Turn, including whatever they do mid-turn) has
-// a 2-minute clock; running it out force-ends the turn. Two run-outs in a row (no normal
+// a 2.5-minute clock; running it out force-ends the turn. Two run-outs in a row (no normal
 // end-turn in between) is an automatic loss - see waitForHumanTurn.
-const TURN_TIME_MS = 2 * 60 * 1000;
+const TURN_TIME_MS = 2.5 * 60 * 1000;
 
 export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice = "random" }) {
   const rng = makeRng((Date.now() % 1e9) + Math.floor(Math.random() * 1e6));
@@ -288,8 +288,14 @@ function applyPlaymats(boardArea, viewerIndex) {
   const opponentIndex = viewerIndex === 0 ? 1 : 0;
   const opponentArea = boardArea.querySelector(".opponent-area");
   const playerArea = boardArea.querySelector(".player-area");
+  const handBar = boardArea.querySelector(".player-hand-bar");
+  const ownPlaymat = G.playmats[viewerIndex] ? `url(${G.playmats[viewerIndex]})` : "";
   if (opponentArea) opponentArea.style.backgroundImage = G.playmats[opponentIndex] ? `url(${G.playmats[opponentIndex]})` : "";
-  if (playerArea) playerArea.style.backgroundImage = G.playmats[viewerIndex] ? `url(${G.playmats[viewerIndex]})` : "";
+  if (playerArea) playerArea.style.backgroundImage = ownPlaymat;
+  // The hand bar isn't part of .player-area (it's a sibling below it), so the same playmat
+  // is applied here too - lets it visually continue down into the hand instead of stopping
+  // at the field.
+  if (handBar) handBar.style.backgroundImage = ownPlaymat;
 }
 
 function mkBtn(label, onClick) {
@@ -306,6 +312,7 @@ async function onConcede() {
   const oppIndex = viewerIndex === 0 ? 1 : 0;
   G.state.gameOver = true;
   G.state.winner = oppIndex;
+  G.state.winReason = "concede";
   showGameOver();
 }
 
@@ -515,8 +522,10 @@ function showGameOver() {
   const viewerIndex = G.vsBot ? G.humanIndex : 0;
   const youWon = G.state.winner === viewerIndex;
   // Hot-seat has no single "you" to credit (it's typically one account playing both
-  // sides locally), so only vs-bot games report a Pack Points result.
-  if (G.vsBot && isLoggedIn()) reportGameResult(youWon ? "win" : "loss").catch(() => {});
+  // sides locally), so only vs-bot games report a Pack Points result. A loss by conceding
+  // gets 0 Pack Points instead of the normal 2 - see server/routes/packs.js.
+  const result = youWon ? "win" : G.state.winReason === "concede" ? "concede" : "loss";
+  if (G.vsBot && isLoggedIn()) reportGameResult(result).catch(() => {});
   const overlay = document.createElement("div");
   overlay.className = "card-zoom-overlay";
   overlay.innerHTML = `

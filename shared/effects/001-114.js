@@ -12,7 +12,8 @@ registerEffect("001-114", {
   },
   *resolve(ctx) {
     const maxCount = Math.min(2, ctx.player().psField.filter((p) => p.isActive && !p.attachedTo).length, ctx.player().discard.length);
-    const count = maxCount <= 1 ? maxCount : yield { type: "CHOOSE_NUMBER", prompt: `Rest how many PLAYERSCORE UP! (0-${maxCount})?`, min: 0, max: maxCount };
+    if (maxCount <= 0) return;
+    const count = yield { type: "CHOOSE_NUMBER", prompt: `Rest how many additional PLAYERSCORE UP! (0-${maxCount})? Draw 1 card from your Discard Pile for each.`, min: 0, max: maxCount };
     if (!count) return;
     ctx.payCost(ctx.self, count);
     for (let i = 0; i < count; i++) {

@@ -6,9 +6,15 @@ import { el } from "../screens.js";
 // server's per-deck playmat size cap - see server/routes/decks.js).
 const OUTPUT_W = 1600;
 const OUTPUT_H = 600;
-// UI crop frame - same aspect ratio as the output, just sized for on-screen editing.
-const FRAME_W = 480;
-const FRAME_H = 180;
+// UI crop frame - same aspect ratio as the output (locked via CSS's aspect-ratio:8/3 on
+// .playmat-crop-frame), but the frame itself is sized responsively (width:100% of the
+// panel) rather than at a fixed pixel size - these are just fallback values until the
+// actual rendered box is measured once an image is loaded (see fileInput.onchange below).
+// Using these fixed numbers directly in the crop math used to leave a gap of the frame's
+// own background color on the right/bottom whenever the real rendered frame came out
+// larger than 480x180 (e.g. a wide desktop panel).
+let FRAME_W = 480;
+let FRAME_H = 180;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
 
@@ -89,6 +95,13 @@ export function openPlaymatEditor(onSave) {
         img = loaded;
         iw = img.naturalWidth;
         ih = img.naturalHeight;
+        // Measure the frame's actual on-screen size now rather than trusting the fallback
+        // constants above - it's responsively sized via CSS, not fixed at 480x180.
+        const rect = frame.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          FRAME_W = rect.width;
+          FRAME_H = rect.height;
+        }
         baseScale = Math.max(FRAME_W / iw, FRAME_H / ih);
         zoom = 1;
         zoomSlider.value = "100";

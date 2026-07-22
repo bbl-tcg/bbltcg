@@ -14,9 +14,9 @@ function isLegalDeck(deck) {
 }
 
 // A player's own turn (from startTurn to End Turn, including whatever they do mid-turn) has
-// a 2-minute clock; running it out force-ends the turn. Two run-outs in a row (no normal
+// a 2.5-minute clock; running it out force-ends the turn. Two run-outs in a row (no normal
 // end-turn in between) is an automatic loss - see Room#waitForTurnActions.
-const TURN_TIME_MS = 2 * 60 * 1000;
+const TURN_TIME_MS = 2.5 * 60 * 1000;
 
 const rooms = new Map(); // code -> Room
 
@@ -235,6 +235,7 @@ class Room {
       case "concede":
         this.state.gameOver = true;
         this.state.winner = me === 0 ? 1 : 0;
+        this.state.winReason = "concede";
         return { ok: true };
       default:
         return { ok: false, reason: "UNKNOWN_ACTION" };
@@ -243,10 +244,14 @@ class Room {
 
   async awardResults() {
     if (this.state.winner === null || this.state.winner === undefined) return;
+    // A loss by conceding or disconnecting gets 0 Pack Points instead of the normal 2 -
+    // see the "concede" action and the "disconnect" socket handler above, which are the
+    // only two places that set winReason.
+    const loserGained = this.state.winReason === "concede" || this.state.winReason === "disconnect" ? 0 : 2;
     for (let i = 0; i < 2; i++) {
       const userId = this.userIds[i];
       if (!userId) continue;
-      await db.addPackPoints(userId, i === this.state.winner ? 4 : 2);
+      await db.addPackPoints(userId, i === this.state.winner ? 4 : loserGained);
     }
   }
 }
@@ -328,6 +333,7 @@ export function attachMultiplayer(io) {
       if (room.state && !room.state.gameOver) {
         room.state.gameOver = true;
         room.state.winner = otherIndex;
+        room.state.winReason = "disconnect";
         room.broadcastState();
         room.awardResults().catch(() => {});
         room.finishTurnWait?.(); // unstick runTurnLoop's pending waitForTurnActions, if any

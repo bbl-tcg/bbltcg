@@ -82,9 +82,11 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   const playersSector = el("div", { class: "sector sector-players" });
   playersSector.appendChild(sectorLabel("Field", mirrored));
   playersSector.appendChild(renderCoachSlot(playerIndex, "HEAD_COACH", player.headCoach.cardId, handlers));
+  const playerGroup = el("div", { class: "player-slot-group" });
   player.playerSlots.forEach((inst, slot) => {
-    playersSector.appendChild(renderFieldCardSlot(state, playerIndex, slot, inst, handlers));
+    playerGroup.appendChild(renderFieldCardSlot(state, playerIndex, slot, inst, handlers));
   });
+  playersSector.appendChild(playerGroup);
   playersSector.appendChild(
     player.assistantCoach
       ? renderCoachSlot(playerIndex, "ASSISTANT_COACH", player.assistantCoach.cardId, handlers)

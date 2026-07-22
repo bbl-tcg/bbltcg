@@ -35,15 +35,16 @@ packsRouter.post("/open", async (req, res) => {
 
 /**
  * Single-player games run entirely client-side (no server-authoritative state to hook a
- * win/loss into), so the client self-reports the outcome here to collect the +2 (loss) /
- * +4 (win) Pack Points. Trusting the client is an accepted tradeoff for a casual,
- * non-competitive economy; multiplayer results are instead awarded directly server-side
- * by the authoritative game room (see server/multiplayer.js), which doesn't have this gap.
+ * win/loss into), so the client self-reports the outcome here to collect the +2 (normal
+ * loss) / +4 (win) / +0 (conceded) Pack Points. Trusting the client is an accepted
+ * tradeoff for a casual, non-competitive economy; multiplayer results are instead awarded
+ * directly server-side by the authoritative game room (see server/multiplayer.js), which
+ * doesn't have this gap.
  */
 packsRouter.post("/report-result", async (req, res) => {
   const { result } = req.body || {};
-  if (result !== "win" && result !== "loss") return res.status(400).json({ error: "result must be 'win' or 'loss'." });
-  const gained = result === "win" ? 4 : 2;
+  if (result !== "win" && result !== "loss" && result !== "concede") return res.status(400).json({ error: "result must be 'win', 'loss', or 'concede'." });
+  const gained = result === "win" ? 4 : result === "loss" ? 2 : 0;
   const user = await db.addPackPoints(req.session.userId, gained);
   res.json({ packPoints: user.packPoints });
 });
