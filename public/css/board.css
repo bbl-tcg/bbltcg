@@ -301,12 +301,7 @@
   align-items: flex-end;
   gap: 6px;
   padding: 8px 12px;
-  /* background-color is the fallback for no playmat set; background-image is set inline
-     from render() (localMatch.js/multiplayerMatch.js) alongside .player-area, so the
-     playmat visually continues down into the hand row instead of stopping at the field. */
-  background-color: var(--bbl-white);
-  background-size: cover;
-  background-position: center top;
+  background: var(--bbl-white);
   border-top: 2px solid var(--bbl-black);
   overflow-x: auto;
   min-height: 200px;
