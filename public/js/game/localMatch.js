@@ -1,6 +1,6 @@
 import { getCard } from "/shared/engine/cardDb.js";
 import { makeRng } from "/shared/engine/rng.js";
-import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "/shared/engine/setup.js";
+import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, drawSecondPlayerBonusCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "/shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "/shared/engine/turn.js";
 import * as engine from "/shared/engine/engine.js";
 import { getStaticFlag } from "/shared/engine/stats.js";
@@ -79,6 +79,13 @@ export async function startLocalMatch({ deckA, deckB, vsBot, firstPlayerChoice =
   for (const p of [0, 1]) {
     await pickOpeningCard(p);
   }
+
+  // Balance change: the player going second gets a 2nd guaranteed Cost <= 3 Player, drawn
+  // and played to the field for free right alongside their first - see
+  // drawSecondPlayerBonusCard's doc comment (setup.js) for why.
+  const secondPlayerIndex = state.firstPlayerIndex === 0 ? 1 : 0;
+  drawSecondPlayerBonusCard(state, secondPlayerIndex, rng);
+  playOpeningCard(state, secondPlayerIndex, state.players[secondPlayerIndex].hand.length - 1);
 
   await runTurnLoop();
 }

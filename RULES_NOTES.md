@@ -65,3 +65,12 @@ any of these to me if I guessed wrong and I'll change it — nothing here is fin
     3 or more can no longer be played to the field for free at setup - only a Player with
     Cost <= 3. `drawOpeningHand` (setup.js) now reshuffles until the hand contains at
     least one such card, guaranteeing setup is always possible.
+
+11. **Second-player balance change (explicit instruction):** going first was too strong -
+    free to attach PLAYERSCORE UP! onto the opening Player and often KO the second
+    player's only field card before they'd had a real turn. The player going second now
+    gets a 2nd guaranteed Cost <= 3 Player, drawn as an extra card (not part of the
+    mulligan-eligible opening hand) and played to the field for free alongside their
+    normal opening card - see `drawSecondPlayerBonusCard` in setup.js. Deck legality
+    (`MIN_OPENING_ELIGIBLE_PLAYERS` in constants.js) now requires 2 such Players instead
+    of 1, since either seat can end up going second.

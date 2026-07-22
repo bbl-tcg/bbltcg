@@ -107,7 +107,20 @@ export function makeEffectContext(state, { controllerIndex, source, refund = nul
       const target = p.playerSlots.find((s) => s && s.instanceId === targetInstanceId);
       if (!psUp || !target || psUp.attachedTo) return false;
       psUp.attachedTo = targetInstanceId;
-      if (bonusPerAttach) psUp.bonusPerAttach = bonusPerAttach;
+      if (bonusPerAttach) {
+        psUp.bonusPerAttach = bonusPerAttach;
+        // An Attack bonus needs nothing further - effectiveAttack always sums this tag
+        // live off whichever PS UPs are *currently* attached, every time it's queried.
+        // Health has no such live read path though: combat/KO/display all use
+        // instance.currentHealth directly (a stored, mutable value), and the one place
+        // that *does* read the live bonus - recoverPlayer's full-heal-to-max snapshot -
+        // detaches every PS UP (clearing this same tag) before recomputing, so the bonus
+        // is already gone by the time it would matter. Applying it to currentHealth right
+        // now is the only way it actually does anything; recoverPlayer naturally "takes it
+        // back" the moment this PS UP detaches, since it resets currentHealth to the
+        // (by-then bonus-free) max in that same pass.
+        if (bonusPerAttach.health) target.currentHealth += bonusPerAttach.health;
+      }
       target.attachedPsUp.push(psUpId);
       log(state, { type: "ATTACH_PS_UP", playerIndex, psUpId, targetInstanceId, forced: true });
       return true;

@@ -261,17 +261,18 @@ function renderDeckPanel() {
   );
   panel.appendChild(status);
 
-  // Group by name for a compact list.
+  // Group by name for a compact list, sorted by card ID rather than insertion order.
   const grouped = new Map();
   for (const id of deck.mainDeck) {
     const card = getCard(id);
     const existing = grouped.get(card.name);
     grouped.set(card.name, { card, id, count: (existing?.count || 0) + 1 });
   }
+  const sortedGroups = [...grouped.values()].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
   const list = el(
     "div",
     { class: "db-deck-list" },
-    [...grouped.values()].map((g) =>
+    sortedGroups.map((g) =>
       el("div", { class: "db-deck-row" }, [
         el("span", {}, `${g.card.name} x${g.count}`),
         el("div", { style: "display:flex;gap:4px;" }, [

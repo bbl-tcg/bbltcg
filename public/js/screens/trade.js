@@ -61,6 +61,17 @@ export async function renderTrade() {
 
 function renderBody() {
   const root = document.getElementById("trade-screen");
+  // Adding/removing a card from either offer re-renders this whole screen (root.innerHTML
+  // = "" below tears down and rebuilds the DOM), which would otherwise silently reset
+  // scroll position back to the top on every single click - preserve it across the
+  // rebuild, same as deckbuilder.js's renderAll() already does. .db-pool/.db-deck-panel
+  // scroll independently at desktop widths, but under deckbuilder.css's mobile breakpoint
+  // they don't (only the shared .db-body wrapper does) - save/restore all three so this
+  // works at both sizes; restoring a scrollTop on a not-actually-scrollable element is a
+  // harmless no-op.
+  const prevPoolScrollTop = root.querySelector(".db-pool")?.scrollTop ?? 0;
+  const prevDeckPanelScrollTop = root.querySelector(".db-deck-panel")?.scrollTop ?? 0;
+  const prevBodyScrollTop = root.querySelector(".db-body")?.scrollTop ?? 0;
   root.innerHTML = "";
 
   const codeInput = el("input", { type: "text", placeholder: "Invite code", maxlength: "6", style: "padding:6px;border-radius:6px;border:2px solid var(--bbl-black);" });
@@ -151,6 +162,13 @@ function renderBody() {
       renderBody();
     })
   );
+
+  const pool = root.querySelector(".db-pool");
+  if (pool) pool.scrollTop = prevPoolScrollTop;
+  const deckPanel = root.querySelector(".db-deck-panel");
+  if (deckPanel) deckPanel.scrollTop = prevDeckPanelScrollTop;
+  const bodyEl = root.querySelector(".db-body");
+  if (bodyEl) bodyEl.scrollTop = prevBodyScrollTop;
 }
 
 function broadcastSelection() {

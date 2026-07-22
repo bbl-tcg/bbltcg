@@ -59,6 +59,11 @@ export function renderRulebook() {
       el("li", {}, "Draw 5 cards. You may mulligan once (shuffle your hand back and redraw 5). STAR Players and Players with a Cost of 3 or more cannot be put on the field at setup, so every kept hand is guaranteed to contain at least 1 Player with a Cost of 3 or less."),
       el("li", {}, "Take the next 4 cards off the top of your deck as your face-down Score."),
       el("li", {}, "Each player plays 1 Player (Cost 3 or less, not a STAR Player) from their hand to the field for free."),
+      el(
+        "li",
+        {},
+        "The player going second then draws 1 additional Player (Cost 3 or less) and plays it to the field for free as well, going into the game with 2 field Players to the first player's 1 - a bonus to offset the first player's turn-order advantage."
+      ),
     ]),
 
     el("h2", {}, "Turn Phases"),

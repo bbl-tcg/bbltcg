@@ -1,5 +1,5 @@
 import { getCard } from "./cardDb.js";
-import { CARD_TYPE, MAIN_DECK_SIZE, MAX_COPIES_PER_NAME, OPENING_FIELD_MAX_COST, PS_DECK_SIZE } from "./constants.js";
+import { CARD_TYPE, MAIN_DECK_SIZE, MAX_COPIES_PER_NAME, MIN_OPENING_ELIGIBLE_PLAYERS, OPENING_FIELD_MAX_COST, PS_DECK_SIZE } from "./constants.js";
 
 /**
  * Validate a constructed deck.
@@ -35,7 +35,7 @@ export function validateDeck(deck) {
 
   const nameCounts = new Map();
   const hcMonths = new Set(headCoach.months || []);
-  let hasOpeningEligiblePlayer = false;
+  let openingEligiblePlayerCount = 0;
 
   for (const cardId of deck.mainDeck) {
     let card;
@@ -52,7 +52,7 @@ export function validateDeck(deck) {
     }
 
     nameCounts.set(card.name, (nameCounts.get(card.name) || 0) + 1);
-    if (card.type === CARD_TYPE.PLAYER && card.cost <= OPENING_FIELD_MAX_COST) hasOpeningEligiblePlayer = true;
+    if (card.type === CARD_TYPE.PLAYER && card.cost <= OPENING_FIELD_MAX_COST) openingEligiblePlayerCount += 1;
 
     // Events are month-unlocked in this set (see RULES_NOTES.md #4); everything else
     // must match one of the Head Coach's months.
@@ -72,8 +72,10 @@ export function validateDeck(deck) {
     }
   }
 
-  if (!hasOpeningEligiblePlayer) {
-    errors.push(`Deck must contain at least 1 Player with a Cost of ${OPENING_FIELD_MAX_COST} or less.`);
+  if (openingEligiblePlayerCount < MIN_OPENING_ELIGIBLE_PLAYERS) {
+    errors.push(
+      `Deck must contain at least ${MIN_OPENING_ELIGIBLE_PLAYERS} Players with a Cost of ${OPENING_FIELD_MAX_COST} or less (has ${openingEligiblePlayerCount}).`
+    );
   }
 
   return { legal: errors.length === 0, errors };

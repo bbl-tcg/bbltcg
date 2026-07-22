@@ -2,7 +2,7 @@ import { getCard } from "./cardDb.js";
 import { CARD_TYPE, OPENING_FIELD_MAX_COST, STARTING_HAND_SIZE, STARTING_SCORE_COUNT } from "./constants.js";
 import { createPlayerState, createGameState, log } from "./state.js";
 import { shuffle, rollDie } from "./rng.js";
-import { playCardToField } from "./primitives.js";
+import { playCardToField, findEmptySlot } from "./primitives.js";
 
 export function initializeGame({ playerADef, playerBDef, rng }) {
   const playerA = createPlayerState(playerADef, rng);
@@ -76,8 +76,35 @@ export function playOpeningCard(state, playerIndex, handIndex) {
   if (!isEligibleForOpeningField(cardId)) {
     return { ok: false, reason: "NOT_ELIGIBLE_FOR_OPENING_FIELD" };
   }
-  const inst = playCardToField(state, playerIndex, handIndex, 0, 0);
+  // Not hardcoded to slot 0: the player going second plays a 2nd opening card (see
+  // drawSecondPlayerBonusCard) right after their first, which needs the next open slot.
+  const slot = findEmptySlot(player);
+  const inst = playCardToField(state, playerIndex, handIndex, slot, 0);
   return { ok: true, instance: inst };
+}
+
+/**
+ * Balance change (explicit instruction, see RULES_NOTES.md #11): going first is a big
+ * enough advantage - free to attach PLAYERSCORE UP! and often KO the second player's only
+ * field card before they've had a real turn - that the player going second now gets a 2nd
+ * guaranteed Cost <= 3 Player, drawn and played to the field for free alongside their
+ * normal opening card, so a single alpha strike can't wipe them down to 0 field players.
+ *
+ * Drawn as one extra card on top of the already-dealt opening hand (not part of it, so it
+ * isn't subject to the mulligan) - reshuffles the remaining deck and pulls the first
+ * eligible card, same "guaranteed to exist" reasoning as drawOpeningHand: deck legality
+ * (see deckLegality.js) now requires at least 2 Cost <= 3 Players, and the normal opening
+ * hand can have used up at most 1 of them.
+ */
+export function drawSecondPlayerBonusCard(state, playerIndex, rng) {
+  const player = state.players[playerIndex];
+  const shuffled = shuffle(player.deck, rng);
+  const idx = shuffled.findIndex(isEligibleForOpeningField);
+  const [cardId] = shuffled.splice(idx, 1);
+  player.hand.push(cardId);
+  player.deck = shuffled;
+  log(state, { type: "SECOND_PLAYER_BONUS_CARD", playerIndex });
+  return cardId;
 }
 
 /** Die roll to decide who picks turn order; rerolls automatically on a tie. */

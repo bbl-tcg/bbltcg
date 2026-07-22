@@ -1,4 +1,4 @@
-import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "../shared/engine/setup.js";
+import { initializeGame, drawOpeningHand, mulligan, keepHand, drawScoreCards, playOpeningCard, drawSecondPlayerBonusCard, rollForFirstPick, setFirstPlayer, isEligibleForOpeningField } from "../shared/engine/setup.js";
 import { startTurn, endTurn as endTurnPhase } from "../shared/engine/turn.js";
 import * as engine from "../shared/engine/engine.js";
 import { makeRng } from "../shared/engine/rng.js";
@@ -138,6 +138,13 @@ class Room {
           : (await this.resolveChoice({ forPlayer: p, type: "CHOOSE_HAND_CARD", prompt: "Choose your opening Player (Cost 3 or less)", options: candidates })).handIndex;
       playOpeningCard(this.state, p, handIndex);
     }
+
+    // Balance change: the player going second gets a 2nd guaranteed Cost <= 3 Player,
+    // drawn and played to the field for free right alongside their first - see
+    // drawSecondPlayerBonusCard's doc comment (setup.js) for why.
+    const secondPlayerIndex = firstPlayerIndex === 0 ? 1 : 0;
+    drawSecondPlayerBonusCard(this.state, secondPlayerIndex, rng);
+    playOpeningCard(this.state, secondPlayerIndex, this.state.players[secondPlayerIndex].hand.length - 1);
 
     this.broadcastState();
     await this.runTurnLoop();
