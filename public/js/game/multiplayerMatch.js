@@ -129,6 +129,14 @@ export function createMultiplayerRoom(deck, onCode) {
   });
 }
 
+/** Lets the room creator swap their deck while still on the "waiting for opponent to
+ * join" screen - the server only accepts this before runSetup() has actually used the
+ * deck (see the "update-deck" handler in server/multiplayer.js), so it's a no-op once the
+ * opponent has joined and the match is already under way. */
+export function updateRoomDeck(deck, onResult) {
+  connect().emit("update-deck", { deck }, (res) => onResult(res.ok, res.reason));
+}
+
 export function joinMultiplayerRoom(code, deck, onJoined) {
   gameOverShown = false;
   resetChat();

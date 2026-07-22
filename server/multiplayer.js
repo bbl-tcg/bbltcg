@@ -292,6 +292,20 @@ export function attachMultiplayer(io) {
       room.runSetup().catch((err) => mp.to(code).emit("room-error", String(err.message || err)));
     });
 
+    // Lets the room creator swap their deck while still waiting for an opponent - rejected
+    // once runSetup() has actually consumed the old deck (room.state exists by then), so a
+    // change made after the opponent joins is silently ignored rather than corrupting an
+    // in-progress match.
+    socket.on("update-deck", ({ deck }, ack) => {
+      const code = socket.data.roomCode;
+      const room = code && rooms.get(code);
+      if (!room) return ack?.({ ok: false, reason: "No active room." });
+      if (room.state) return ack?.({ ok: false, reason: "The match has already started." });
+      if (!isLegalDeck(deck)) return ack?.({ ok: false, reason: "Your deck isn't legal to play with." });
+      room.decks[socket.data.playerIndex] = deck;
+      ack?.({ ok: true });
+    });
+
     socket.on("chat-message", ({ text }) => {
       const code = socket.data.roomCode;
       const room = code && rooms.get(code);

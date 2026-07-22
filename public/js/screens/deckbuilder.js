@@ -8,6 +8,7 @@ import { isLoggedIn, listServerDecks, saveServerDeck, deleteServerDeck, getColle
 import { showCardZoomWithActions } from "../game/cardZoom.js";
 import { openPlaymatEditor } from "./playmatEditor.js";
 import { renderMenu } from "./menu.js";
+import { nameWithRarity } from "../cardDisplay.js";
 
 let deck = null; // { id?, name, headCoachId, mainDeck: string[], playmatUrl: string|null }
 let filterText = "";
@@ -109,7 +110,13 @@ function renderTopbar() {
         renderAll();
       },
     },
-    headCoaches().map((hc) => el("option", { value: hc.id, selected: hc.id === deck.headCoachId ? "selected" : undefined }, `${hc.name} (${hc.months.join("/")})`))
+    headCoaches().map((hc) => el("option", { value: hc.id, selected: hc.id === deck.headCoachId ? "selected" : undefined }, `${nameWithRarity(hc)} (${hc.months.join("/")})`))
+  );
+
+  const viewHeadCoachBtn = el(
+    "button",
+    { class: "bbl-btn ghost", onclick: () => showCardZoomWithActions(deck.headCoachId) },
+    "View"
   );
 
   const nameInput = el("input", {
@@ -153,6 +160,7 @@ function renderTopbar() {
     el("button", { class: "bbl-btn ghost", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"),
     el("span", { style: "font-weight:800;" }, "Head Coach:"),
     hcSelect,
+    viewHeadCoachBtn,
     nameInput,
     filterInput,
     playmatControls,

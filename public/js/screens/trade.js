@@ -5,6 +5,7 @@ import { toast } from "../ui.js";
 import { showCardZoomWithActions } from "../game/cardZoom.js";
 import { renderMenu } from "./menu.js";
 import { resetChat, addChatMessage, renderChatWidget } from "../chatWidget.js";
+import { nameWithRarity } from "../cardDisplay.js";
 
 let socket = null;
 let myCollection = {};
@@ -69,7 +70,7 @@ function renderBody() {
     codeInput,
     el("button", { class: "bbl-btn secondary", onclick: () => onJoinTrade(codeInput.value.trim().toUpperCase()) }, "Join Trade"),
     el("span", { style: "font-weight:800;" }, "Your Offer:"),
-    el("span", {}, mySelection.length ? mySelection.map((id) => getCard(id).name).join(", ") : "(nothing selected)"),
+    el("span", {}, mySelection.length ? mySelection.map((id) => nameWithRarity(getCard(id))).join(", ") : "(nothing selected)"),
     el("button", { class: "bbl-btn", onclick: onSubmit, disabled: mySelection.length === 0 || mySubmitted ? "disabled" : undefined }, mySubmitted ? "Submitted ✓" : "Submit Trade"),
   ]);
   root.appendChild(topbar);
@@ -112,7 +113,7 @@ function renderBody() {
   const previewList = el("div", { class: "db-deck-list" });
   if (theirSelection.length === 0) previewList.appendChild(el("div", {}, "(nothing selected yet)"));
   for (const cardId of theirSelection) {
-    previewList.appendChild(el("div", { class: "db-deck-row" }, [el("span", {}, getCard(cardId).name)]));
+    previewList.appendChild(el("div", { class: "db-deck-row" }, [el("span", {}, nameWithRarity(getCard(cardId)))]));
   }
   previewPanel.appendChild(previewList);
 
@@ -122,7 +123,7 @@ function renderBody() {
   mySelection.forEach((cardId, i) => {
     myList.appendChild(
       el("div", { class: "db-deck-row" }, [
-        el("span", {}, getCard(cardId).name),
+        el("span", {}, nameWithRarity(getCard(cardId))),
         el(
           "button",
           {

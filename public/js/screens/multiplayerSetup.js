@@ -1,7 +1,7 @@
 import { el, showScreen } from "../screens.js";
 import { allDeckOptions } from "../deckOptions.js";
 import { validateDeck } from "/shared/engine/deckLegality.js";
-import { createMultiplayerRoom, joinMultiplayerRoom } from "../game/multiplayerMatch.js";
+import { createMultiplayerRoom, joinMultiplayerRoom, updateRoomDeck } from "../game/multiplayerMatch.js";
 import { toast } from "../ui.js";
 import { renderMenu } from "./menu.js";
 
@@ -14,11 +14,27 @@ export async function renderMultiplayerSetup() {
   const options = await allDeckOptions();
   const deckSelect = el(
     "select",
-    { style: rowStyle() },
+    {
+      style: rowStyle(),
+      onchange: () => {
+        if (!createdRoomCode) return;
+        const deck = resolveLegalDeck();
+        if (!deck) return;
+        updateRoomDeck(deck, (ok, reason) => {
+          statusLine.textContent = ok
+            ? `Invite code: ${createdRoomCode} - share it with your opponent. Waiting for them to join...`
+            : `Invite code: ${createdRoomCode} - couldn't switch deck: ${reason || "unknown error"}`;
+        });
+      },
+    },
     options.map((o) => el("option", { value: o.key }, o.label))
   );
   const codeInput = el("input", { type: "text", placeholder: "Invite code", maxlength: "6", style: rowStyle() });
   const statusLine = el("div", { style: "font-weight:700;color:var(--bbl-blue);min-height:1.4em;" }, "");
+  // Set once "Create Room" succeeds, so a later change to deckSelect can push the new deck
+  // to the room instead of silently doing nothing while the invite code is displayed
+  // underneath - see updateRoomDeck's doc comment for why this only works pre-opponent.
+  let createdRoomCode = null;
 
   function resolveDeck() {
     return options.find((o) => o.key === deckSelect.value)?.resolve();
@@ -56,6 +72,7 @@ export async function renderMultiplayerSetup() {
             if (!deck) return;
             statusLine.textContent = "Creating room...";
             createMultiplayerRoom(deck, (code) => {
+              createdRoomCode = code;
               statusLine.textContent = `Invite code: ${code} - share it with your opponent. Waiting for them to join...`;
             });
           },
