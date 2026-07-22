@@ -180,7 +180,9 @@ function broadcastSelection() {
 function onCreateTrade() {
   connect().emit("create-trade", { userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason);
-    toast(`Trade invite code: ${res.code} - share it with your trade partner.`);
+    // Longer than the default 3.2s - the player needs time to actually read/copy/share the
+    // code with their trade partner before it disappears.
+    toast(`Trade invite code: ${res.code} - share it with your trade partner.`, 18200);
   });
 }
 
