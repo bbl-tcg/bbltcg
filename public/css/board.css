@@ -491,16 +491,31 @@
   }
   .player-slot-group {
     gap: 2px;
+    /* Needs a definite width of its own (from the row's flex distribution) for its
+       children's flex-basis below to resolve against - without this, sizing the 3 player
+       slots as a percentage of their .player-slot-group parent is a circular reference
+       (the parent's own width is otherwise derived from its children's content size), which
+       collapsed them down to a couple px instead of their intended size. */
+    flex: 1 1 auto;
+    min-width: 0;
   }
-  /* Desktop sizes these 5 slots off the row's height (aspect-ratio fills in the width),
-     which is fine when the row is short relative to the viewport - but on a narrow phone
-     screen that produces cards wide enough to overflow the sector entirely. Switch to
-     sizing off width instead so all 5 always fit side by side. Coach slots match the
-     player slots' width now (same card size, just anchored to the sector's far edges). */
-  .sector-players .slot {
+  /* Desktop sizes these slots off the row's height (aspect-ratio fills in the width), which
+     is fine when the row is short relative to the viewport - but on a narrow phone screen
+     that produces cards wide enough to overflow the sector entirely. Switch to sizing off
+     width instead so everything always fits side by side. Coach slots (direct children of
+     .sector-players, which has a definite width from the grid) keep a percentage width;
+     the 3 grouped player slots instead flex-grow evenly to fill .player-slot-group's own
+     resolved width, sidestepping the percentage circularity above. */
+  .sector-players > .slot.coach-slot {
     height: auto;
     width: 19%;
     flex: 0 1 19%;
+  }
+  .player-slot-group .slot {
+    height: auto;
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
   }
   .health-pill,
   .attack-pill,

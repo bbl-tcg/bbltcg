@@ -12,8 +12,12 @@
   --bbl-text-inverse: #ffffff;
   --bbl-shadow: rgba(0, 0, 0, 0.35);
   --bbl-radius: 10px;
-  --card-aspect-w: 5;
-  --card-aspect-h: 7;
+  /* Matches the actual card art's real pixel dimensions (590x1000) - card slots/hand cards
+     size themselves off this via aspect-ratio, and card-face images use background-size:
+     cover, so any mismatch here crops the art's top/bottom (if this ratio is too wide) or
+     sides (if too narrow) even at full container size, not just when zoomed in. */
+  --card-aspect-w: 59;
+  --card-aspect-h: 100;
 }
 
 * {
