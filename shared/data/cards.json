@@ -1905,7 +1905,7 @@
     "image": "assets/cards/001-114.png",
     "cost": 4,
     "trigger": "YOUR_TURN",
-    "effect": "If you have 4 or more PLAYERSCORE UP! on the field and at least 1 non-STAR player on the field, you may rest up to 2 active PLAYERSCORE UP! For each PLAYERSCORE UP! you rest, draw 1 card from the top of your Discard Pile."
+    "effect": "If you have 4 or more PLAYERSCORE UP! on the field, you may rest up to 2 additional active PLAYERSCORE UP! For each PLAYERSCORE UP! you rest, draw 1 card from the top of your Discard Pile."
   },
   {
     "id": "001-115",

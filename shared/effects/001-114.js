@@ -2,13 +2,13 @@ import { registerEffect } from "../engine/effectRegistry.js";
 import { TRIGGER } from "../engine/constants.js";
 
 // From 1-5 to Champions, We Are the Ghouls!!! (Event, YOUR_TURN): playable when you have 4
-// or more PLAYERSCORE UP! on the field and at least 1 non-STAR player on the field. "Rest
-// up to 2 active PLAYERSCORE UP! For each PLAYERSCORE UP! you rest, draw 1 card from the
-// top of your Discard Pile."
+// or more PLAYERSCORE UP! on the field, regardless of what the rest of the field looks
+// like. "Rest up to 2 additional active PLAYERSCORE UP! For each one you rest, draw 1 card
+// from the top of your Discard Pile."
 registerEffect("001-114", {
   trigger: TRIGGER.YOUR_TURN,
   canActivate(ctx) {
-    return ctx.player().psField.length >= 4 && ctx.player().playerSlots.some((s) => s && !s.isStarPlayer);
+    return ctx.player().psField.length >= 4;
   },
   *resolve(ctx) {
     const maxCount = Math.min(2, ctx.player().psField.filter((p) => p.isActive && !p.attachedTo).length, ctx.player().discard.length);
