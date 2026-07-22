@@ -59,11 +59,25 @@
   min-height: 0;
   display: flex;
   position: relative;
-  /* Set from render() (localMatch.js/multiplayerMatch.js) per-side from each player's saved
-     playmat (see deckbuilder.js) - background-color is the fallback for a side with none. */
+  overflow: hidden;
+}
+
+/* The playmat image itself - a separate layer behind the field contents (set via
+   background-image from render() in localMatch.js/multiplayerMatch.js, per each player's
+   saved playmat, see deckbuilder.js) rather than a background-image on .opponent-area/
+   .player-area directly, so the opponent's copy alone can be rotated 180deg below without
+   also flipping the field contents on top of it (those get their own, separate 180deg
+   rotation from .field-grid.mirrored). background-color is the fallback for no playmat set. */
+.playmat-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background-color: var(--bbl-bg);
   background-size: cover;
   background-position: center;
+}
+.opponent-playmat-bg {
+  transform: rotate(180deg);
 }
 
 .opponent-hand-fan {
@@ -90,6 +104,8 @@
 }
 
 .field-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr 3fr 1fr;
   grid-template-rows: 2.2fr 0.8fr;

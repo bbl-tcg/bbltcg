@@ -286,10 +286,10 @@ function render() {
  * CSS background) for a side with no playmat set. */
 function applyPlaymats(boardArea, viewerIndex) {
   const opponentIndex = viewerIndex === 0 ? 1 : 0;
-  const opponentArea = boardArea.querySelector(".opponent-area");
-  const playerArea = boardArea.querySelector(".player-area");
-  if (opponentArea) opponentArea.style.backgroundImage = G.playmats[opponentIndex] ? `url(${G.playmats[opponentIndex]})` : "";
-  if (playerArea) playerArea.style.backgroundImage = G.playmats[viewerIndex] ? `url(${G.playmats[viewerIndex]})` : "";
+  const opponentBg = boardArea.querySelector(".opponent-area .playmat-bg");
+  const playerBg = boardArea.querySelector(".player-area .playmat-bg");
+  if (opponentBg) opponentBg.style.backgroundImage = G.playmats[opponentIndex] ? `url(${G.playmats[opponentIndex]})` : "";
+  if (playerBg) playerBg.style.backgroundImage = G.playmats[viewerIndex] ? `url(${G.playmats[viewerIndex]})` : "";
 }
 
 function mkBtn(label, onClick) {

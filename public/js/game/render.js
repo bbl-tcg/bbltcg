@@ -28,6 +28,12 @@ export function renderBoard(container, state, viewerIndex, handlers) {
 
 function renderOpponentArea(state, playerIndex, handlers) {
   const area = el("div", { class: "opponent-area" });
+  // A separate absolutely-positioned layer for the playmat background (set from
+  // applyPlaymats() in localMatch.js/multiplayerMatch.js) rather than a background-image on
+  // .opponent-area itself, so it alone can be rotated 180deg to face the opponent - matching
+  // .field-grid.mirrored's own 180deg rotation - without also flipping the field contents,
+  // which get their rotation independently from that class.
+  area.appendChild(el("div", { class: "playmat-bg opponent-playmat-bg" }));
   const player = state.players[playerIndex];
   // Multiplayer sends a redacted view of the opponent (hand contents hidden, just a
   // count) - `handCount` is present there; local/bot play always has the real array.
@@ -44,6 +50,7 @@ function renderOpponentArea(state, playerIndex, handlers) {
 
 function renderPlayerArea(state, playerIndex, opponentIndex, handlers) {
   const area = el("div", { class: "player-area" });
+  area.appendChild(el("div", { class: "playmat-bg" }));
   area.appendChild(renderFieldGrid(state, playerIndex, handlers, false));
   return area;
 }
