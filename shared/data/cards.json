@@ -86,7 +86,7 @@
     "attack": 2,
     "tier": 2,
     "speed": "FAST",
-    "trigger": "ON_PLAY",
+    "trigger": "YOUR_TURN",
     "effect": "Choose 1 Skuba Doo player already on your field. The chosen player gains +1 Health until your opponent's next End Phase."
   },
   {

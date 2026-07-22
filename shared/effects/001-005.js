@@ -1,10 +1,10 @@
 import { registerEffect } from "../engine/effectRegistry.js";
 import { TRIGGER } from "../engine/constants.js";
 
-// Nerf Miner (Player, ON_PLAY): "Choose 1 Skuba Doo player already on your field. The
+// Nerf Miner (Player, YOUR_TURN): "Choose 1 Skuba Doo player already on your field. The
 // chosen player gains +1 Health until your opponent's next End Phase."
 registerEffect("001-005", {
-  trigger: TRIGGER.ON_PLAY,
+  trigger: TRIGGER.YOUR_TURN,
   canActivate(ctx) {
     return ctx.player().playerSlots.some((s) => s && ctx.card(s.cardId).name === "Skuba Doo");
   },
