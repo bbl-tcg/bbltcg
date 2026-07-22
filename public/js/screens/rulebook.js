@@ -69,7 +69,11 @@ export function renderRulebook() {
     el("p", {}, "Whenever one of your Player or Star Player cards is KOed (not simply discarded), draw a card from your own Score. If you have no Score cards left when this happens, you lose. You also draw from your Score (and can lose the same way) if you end your turn with 0 players on your field."),
 
     el("h2", {}, "The Field"),
-    el("p", {}, "Each side of the board is its own 3x3 grid of sectors, laid out like this (the center column is wider - that's where all the action happens):"),
+    el(
+      "p",
+      {},
+      "Each side of the board is its own 2-row grid of sectors, laid out like this (the center column is wider - that's where all the action happens). The Head Coach and Assistant Coach sit at the left and right edges of the player row, flanking the 3 Player Slots:"
+    ),
     fieldDiagram(),
 
     el("h2", {}, "Tutorial Videos"),
@@ -139,15 +143,12 @@ function phaseTable() {
   ]);
 }
 
-/** Maps out the 3x3 field grid - a plain CSS-grid mock (not an image) so it always matches
+/** Maps out the 2-row field grid - a plain CSS-grid mock (not an image) so it always matches
  * the real board.css proportions and never goes stale as a separately-drawn diagram would. */
 function fieldDiagram() {
   const cells = [
     ["Score", false],
-    ["3 Player Slots", false],
-    ["(empty)", true],
-    ["(empty)", true],
-    ["Head Coach +\nAssistant Coach", false],
+    ["Head Coach, 3 Player Slots,\nAssistant Coach", false],
     ["Deck", false],
     ["PS Deck", false],
     ["8 PLAYERSCORE UP! Slots", false],

@@ -87,7 +87,7 @@
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 3fr 1fr;
-  grid-template-rows: 1.35fr 0.55fr 0.9fr;
+  grid-template-rows: 1.7fr 0.9fr;
   gap: 4px;
   width: 100%;
   height: 100%;
@@ -128,6 +128,7 @@
   white-space: nowrap;
 }
 
+/* Row 1: Score | [Head Coach, 3 Player Slots, Assistant Coach] | Deck */
 .sector-score {
   grid-column: 1;
   grid-row: 1;
@@ -136,34 +137,22 @@
 .sector-players {
   grid-column: 2;
   grid-row: 1;
-  gap: 6px;
-  padding: 4px;
-}
-.sector-topright {
-  grid-column: 3;
-  grid-row: 1;
-}
-.sector-midleft {
-  grid-column: 1;
-  grid-row: 2;
-}
-.sector-coaches {
-  grid-column: 2;
-  grid-row: 2;
-  gap: 6px;
+  gap: 4px;
   padding: 4px;
 }
 .sector-deck {
   grid-column: 3;
-  grid-row: 2;
+  grid-row: 1;
 }
+
+/* Row 2 (unchanged from before): PS Deck | 8 PLAYERSCORE UP! Slots | Discard Pile */
 .sector-psdeck {
   grid-column: 1;
-  grid-row: 3;
+  grid-row: 2;
 }
 .sector-psfield {
   grid-column: 2;
-  grid-row: 3;
+  grid-row: 2;
   gap: 3px;
   padding: 4px 4px 4px 36px;
   flex-wrap: wrap;
@@ -175,7 +164,17 @@
 }
 .sector-discard {
   grid-column: 3;
-  grid-row: 3;
+  grid-row: 2;
+}
+
+/* Head Coach/Assistant Coach flanking the 3 player slots in .sector-players - noticeably
+   smaller than a full player .slot since they're secondary to the players themselves.
+   ".slot.coach-slot" (not just ".coach-slot") so this reliably beats .slot's own
+   height:100% regardless of source order - same specificity otherwise, and .slot happens
+   to be declared later below. */
+.slot.coach-slot {
+  height: 68%;
+  flex: 0 1 auto;
 }
 
 .slot {
@@ -471,6 +470,23 @@
   }
   .sector-psfield {
     padding-left: 30px;
+  }
+  .sector-players {
+    gap: 2px;
+    padding: 2px;
+  }
+  /* Desktop sizes these 5 slots off the row's height (aspect-ratio fills in the width),
+     which is fine when the row is short relative to the viewport - but on a narrow phone
+     screen that produces cards wide enough to overflow the sector entirely. Switch to
+     sizing off width instead so all 5 always fit side by side. */
+  .sector-players .slot {
+    height: auto;
+    width: 19%;
+    flex: 0 1 19%;
+  }
+  .sector-players .slot.coach-slot {
+    width: 13%;
+    flex: 0 1 13%;
   }
   .health-pill,
   .attack-pill,

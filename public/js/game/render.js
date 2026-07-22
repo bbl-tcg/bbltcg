@@ -65,7 +65,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   const player = state.players[playerIndex];
   const grid = el("div", { class: `field-grid${mirrored ? " mirrored" : ""}` });
 
-  // Top-left: Score - shown as a single face-down card (like Deck/PS Deck) with the true
+  // Row 1, left: Score - shown as a single face-down card (like Deck/PS Deck) with the true
   // count on a badge, rather than up to 2 separate slots, so it stays legible at small sizes.
   const scoreSector = el("div", { class: "sector sector-score" });
   scoreSector.appendChild(sectorLabel("Score", mirrored));
@@ -76,45 +76,23 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   }
   grid.appendChild(scoreSector);
 
-  // Top-center: 3 player slots
+  // Row 1, center: Head Coach, then the 3 player slots, then Assistant Coach - flanking the
+  // players rather than sitting in their own row below, now that the field is 2 rows instead
+  // of 3 (see rulebook.js's fieldDiagram(), which must stay in sync with this).
   const playersSector = el("div", { class: "sector sector-players" });
   playersSector.appendChild(sectorLabel("Field", mirrored));
+  playersSector.appendChild(renderCoachSlot(playerIndex, "HEAD_COACH", player.headCoach.cardId, handlers));
   player.playerSlots.forEach((inst, slot) => {
     playersSector.appendChild(renderFieldCardSlot(state, playerIndex, slot, inst, handlers));
   });
+  playersSector.appendChild(
+    player.assistantCoach
+      ? renderCoachSlot(playerIndex, "ASSISTANT_COACH", player.assistantCoach.cardId, handlers)
+      : el("div", { class: "slot coach-slot" })
+  );
   grid.appendChild(playersSector);
 
-  grid.appendChild(el("div", { class: "sector empty-sector sector-topright" }));
-  grid.appendChild(el("div", { class: "sector empty-sector sector-midleft" }));
-
-  // Middle-center: Head Coach + Assistant Coach
-  const coachSector = el("div", { class: "sector sector-coaches" });
-  coachSector.appendChild(sectorLabel("Coaches", mirrored));
-  coachSector.appendChild(
-    el("div", { class: "slot" }, [
-      el("div", {
-        class: "card-face",
-        style: `background-image:url(${cardImg(player.headCoach.cardId)});`,
-        onclick: () => handlers.onCoachClick?.(playerIndex, "HEAD_COACH", player.headCoach.cardId),
-      }),
-    ])
-  );
-  if (player.assistantCoach) {
-    coachSector.appendChild(
-      el("div", { class: "slot" }, [
-        el("div", {
-          class: "card-face",
-          style: `background-image:url(${cardImg(player.assistantCoach.cardId)});`,
-          onclick: () => handlers.onCoachClick?.(playerIndex, "ASSISTANT_COACH", player.assistantCoach.cardId),
-        }),
-      ])
-    );
-  } else {
-    coachSector.appendChild(el("div", { class: "slot" }));
-  }
-  grid.appendChild(coachSector);
-
-  // Middle-right: Deck
+  // Row 1, right: Deck
   const deckSector = el("div", { class: "sector sector-deck" });
   deckSector.appendChild(sectorLabel("Deck", mirrored));
   const deckCount = player.deckCount ?? player.deck.length;
@@ -124,7 +102,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   }
   grid.appendChild(deckSector);
 
-  // Bottom-left: PS Deck
+  // Row 2, left: PS Deck
   const psDeckSector = el("div", { class: "sector sector-psdeck" });
   psDeckSector.appendChild(sectorLabel("PS Deck", mirrored));
   if (player.psDeckCount > 0) {
@@ -133,7 +111,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   }
   grid.appendChild(psDeckSector);
 
-  // Bottom-center: PS Field (8 slots)
+  // Row 2, center: PS Field (8 slots)
   const psFieldSector = el("div", { class: "sector sector-psfield" });
   psFieldSector.appendChild(sectorLabel("PS Field", mirrored));
   for (const psUp of player.psField) {
@@ -146,7 +124,7 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   }
   grid.appendChild(psFieldSector);
 
-  // Bottom-right: Discard - the count badge always shows (even at 0) so both players can
+  // Row 2, right: Discard - the count badge always shows (even at 0) so both players can
   // see it at a glance; the clickable top-card face only appears once there's a card to show.
   const discardSector = el("div", { class: "sector sector-discard" });
   discardSector.appendChild(sectorLabel("Discard", mirrored));
@@ -166,6 +144,18 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   grid.appendChild(discardSector);
 
   return grid;
+}
+
+/** Head Coach/Assistant Coach card face flanking the 3 player slots - a smaller `.coach-slot`
+ * variant of the regular `.slot` (see board.css) since they're secondary to the players. */
+function renderCoachSlot(playerIndex, zone, cardId, handlers) {
+  return el("div", { class: "slot coach-slot" }, [
+    el("div", {
+      class: "card-face",
+      style: `background-image:url(${cardImg(cardId)});`,
+      onclick: () => handlers.onCoachClick?.(playerIndex, zone, cardId),
+    }),
+  ]);
 }
 
 function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
