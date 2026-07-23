@@ -9,6 +9,7 @@ import { showCardZoomWithActions } from "../game/cardZoom.js";
 import { openPlaymatEditor } from "./playmatEditor.js";
 import { renderMenu } from "./menu.js";
 import { nameWithRarity } from "../cardDisplay.js";
+import { deckToText, parseDeckText, entriesToDeck } from "../deckText.js";
 
 let deck = null; // { id?, name, headCoachId, mainDeck: string[], playmatUrl: string|null }
 let filterText = "";
@@ -166,6 +167,8 @@ function renderTopbar() {
     playmatControls,
     el("button", { class: "bbl-btn", onclick: onSaveDeck }, "Save Deck"),
     el("button", { class: "bbl-btn secondary", onclick: onClearDeck }, "Clear"),
+    el("button", { class: "bbl-btn ghost", onclick: onExportDeck }, "Export"),
+    el("button", { class: "bbl-btn ghost", onclick: onImportDeck }, "Import"),
     ...(isLoggedIn() ? [] : [el("span", { style: "color:var(--bbl-red);font-weight:700;font-size:0.85rem;" }, "Not logged in - decks save to this browser only")]),
   ]);
   return topbar;
@@ -188,6 +191,78 @@ async function onClearDeck() {
   if (!(await confirmDialog("Clear the current deck?"))) return;
   deck = newDeck(deck.headCoachId);
   renderAll();
+}
+
+function onExportDeck() {
+  const text = deckToText(deck);
+  const overlay = el("div", { class: "choice-overlay" });
+  const textarea = el("textarea", {
+    readonly: "readonly",
+    style: "width:100%;min-height:120px;font-family:monospace;font-size:0.85rem;padding:8px;box-sizing:border-box;",
+  });
+  textarea.value = text;
+  const panel = el("div", { class: "choice-panel bbl-panel" }, [
+    el("div", { style: "font-weight:800;font-size:1.05rem;color:var(--bbl-blue);" }, "Export Decklist"),
+    el("div", { style: "font-size:0.85rem;" }, "Copy this text to share or back up your decklist."),
+    textarea,
+    el("div", { style: "display:flex;gap:10px;justify-content:center;" }, [
+      el(
+        "button",
+        {
+          class: "bbl-btn",
+          onclick: async () => {
+            try {
+              await navigator.clipboard.writeText(text);
+              toast("Copied to clipboard!");
+            } catch {
+              textarea.select();
+              toast("Couldn't access the clipboard - text is selected, copy it manually.");
+            }
+          },
+        },
+        "Copy to Clipboard"
+      ),
+      el("button", { class: "bbl-btn ghost", onclick: () => overlay.remove() }, "Close"),
+    ]),
+  ]);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  textarea.select();
+}
+
+function onImportDeck() {
+  const overlay = el("div", { class: "choice-overlay" });
+  const textarea = el("textarea", {
+    placeholder: "Paste a decklist, e.g. 1x 001-007, 5x 001-001, 5x 001-005, 3x 001-006",
+    style: "width:100%;min-height:120px;font-family:monospace;font-size:0.85rem;padding:8px;box-sizing:border-box;",
+  });
+  const panel = el("div", { class: "choice-panel bbl-panel" }, [
+    el("div", { style: "font-weight:800;font-size:1.05rem;color:var(--bbl-blue);" }, "Import Decklist"),
+    el("div", { style: "font-size:0.85rem;" }, "You need to already own every card in the list - it won't import anything if you're short on copies."),
+    textarea,
+    el("div", { style: "display:flex;gap:10px;justify-content:center;" }, [
+      el(
+        "button",
+        {
+          class: "bbl-btn",
+          onclick: () => {
+            const { entries, errors } = parseDeckText(textarea.value);
+            if (errors.length > 0) return toast(errors[0]);
+            const { deck: parsedDeck, error } = entriesToDeck(entries, ownedQty);
+            if (error) return toast(error);
+            deck = { ...deck, headCoachId: parsedDeck.headCoachId, mainDeck: parsedDeck.mainDeck };
+            overlay.remove();
+            renderAll();
+            toast("Decklist imported!");
+          },
+        },
+        "Import"
+      ),
+      el("button", { class: "bbl-btn ghost", onclick: () => overlay.remove() }, "Cancel"),
+    ]),
+  ]);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
 }
 
 function eligibleCards() {
