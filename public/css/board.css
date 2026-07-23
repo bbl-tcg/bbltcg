@@ -187,8 +187,13 @@
   align-content: flex-start;
   /* On narrow screens more PS UPs can be on the field than fit in one row - scroll them
      inside their own sector box instead of overflowing past it (which used to render
-     underneath the hand bar below, making anything past the first ~4 hard to see/reach). */
+     underneath the hand bar below, making anything past the first ~4 hard to see/reach).
+     Still scrollable (via wheel/touch/drag), just without the visible scrollbar chrome. */
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.sector-psfield::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
 }
 .sector-discard {
   grid-column: 3;
