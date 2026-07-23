@@ -34,7 +34,25 @@ registerStarPlayerEffect(
 
       let placed = null;
       if (diamondIndexes.length > 0) {
-        const slot = ctx.findEmptySlot(ctx.self);
+        let slot = ctx.findEmptySlot(ctx.self);
+        if (slot === -1) {
+          // Field is full - let the player pick an existing player to swap out for the
+          // Xander Diamond, or decline (it goes to the bottom of the deck with the other
+          // 4 revealed cards, same as an unfound/undesired reveal already does below).
+          const replaceOptions = ctx.player().playerSlots.filter((s) => s).map((s) => s.instanceId);
+          const targetInstanceId = yield {
+            type: "CHOOSE_OWN_PLAYER",
+            prompt: "Your field is full - swap out which player for the Xander Diamond?",
+            options: replaceOptions,
+            allowNone: true,
+            cancelLabel: "Discard the Xander Diamond instead",
+          };
+          if (targetInstanceId) {
+            const replaceSlot = ctx.player().playerSlots.findIndex((s) => s && s.instanceId === targetInstanceId);
+            ctx.discardFieldSlot(ctx.self, replaceSlot);
+            slot = replaceSlot;
+          }
+        }
         if (slot !== -1) {
           const pick = diamondIndexes.length === 1 ? diamondIndexes[0] : yield { type: "CHOOSE_REVEALED_CARD", prompt: "Which Xander Diamond to add to your field?", options: diamondIndexes };
           const inst = ctx.placeCardOnField(ctx.self, revealed[pick.i], slot);

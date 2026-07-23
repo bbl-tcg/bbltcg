@@ -2,7 +2,8 @@ import { registerEffect } from "../engine/effectRegistry.js";
 import { TRIGGER } from "../engine/constants.js";
 
 // Deck Sphera (Player): "If you have a Skuba Doo player in your hand, you may rest 1
-// PLAYERSCORE UP! and add 1 Skuba Doo to your field."
+// PLAYERSCORE UP! and add 1 Skuba Doo to your field." Explicit instruction: doesn't work
+// if a STAR Player is already on the field.
 registerEffect("001-001", {
   trigger: TRIGGER.YOUR_TURN,
   canActivate(ctx) {
@@ -10,7 +11,8 @@ registerEffect("001-001", {
     return (
       hand.some((cardId) => ctx.card(cardId).name === "Skuba Doo") &&
       ctx.canAfford(ctx.self, 1) &&
-      ctx.findEmptySlot(ctx.self) !== -1
+      ctx.findEmptySlot(ctx.self) !== -1 &&
+      !ctx.player().playerSlots.some((s) => s && s.isStarPlayer)
     );
   },
   *resolve(ctx) {
