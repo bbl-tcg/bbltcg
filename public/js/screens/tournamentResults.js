@@ -44,7 +44,7 @@ function renderBody() {
   ]);
 
   if (tournaments.length === 0) {
-    panel.appendChild(el("div", { style: "text-align:center;" }, "No tournaments have been held yet - check back after the first one wraps up!"));
+    panel.appendChild(el("div", { style: "text-align:center;" }, "No tournaments yet"));
     panel.appendChild(el("button", { class: "bbl-btn secondary", onclick: () => { renderMenu(); showScreen("menu-screen"); } }, "← Menu"));
     root.appendChild(panel);
     return;
