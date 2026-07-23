@@ -23,12 +23,14 @@ export function renderMenu() {
     root.appendChild(el("div", { style: "color:var(--bbl-blue);font-weight:700;" }, `Welcome, ${currentUser().username}`));
   }
 
+  // Grid order (2 columns, row-major): row 1 = Play/Online Multiplayer, row 2 =
+  // Deckbuilder/Collection, row 3 = Open a Pack!/Trade Cards, row 4 = Rulebook/Log Out.
   const buttons = el("div", { class: "menu-buttons" }, [
     el("button", { class: "bbl-btn", onclick: () => { renderPlaySetup(); showScreen("game-setup-screen"); } }, "Play"),
+    el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderMultiplayerSetup(); showScreen("game-setup-screen"); }) }, "Online Multiplayer"),
     el("button", { class: "bbl-btn", onclick: () => { renderDeckbuilder(); showScreen("deckbuilder-screen"); } }, "Deckbuilder"),
     el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderCollection(); showScreen("collection-screen"); }) }, "Collection"),
     el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderPacks(); showScreen("packs-screen"); }) }, "Open a Pack!"),
-    el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderMultiplayerSetup(); showScreen("game-setup-screen"); }) }, "Online Multiplayer"),
     el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderTrade(); showScreen("trade-screen"); }) }, "Trade Cards"),
     el("button", { class: "bbl-btn", onclick: () => { renderRulebook(); showScreen("rulebook-screen"); } }, "Rulebook"),
     isLoggedIn()
@@ -42,6 +44,10 @@ export function renderMenu() {
     el("div", { class: "menu-footer-row" }, [
       el("button", { class: "bbl-btn", onclick: () => guardLogin(() => { renderCodes(); showScreen("codes-screen"); }) }, "Community Codes"),
       el("a", { class: "bbl-btn coffee-btn", href: "https://buymeacoffee.com/bbltcg", target: "_blank", rel: "noopener" }, "Buy me a coffee"),
+    ]),
+    el("div", { class: "menu-footer-row" }, [
+      el("a", { class: "bbl-btn discord-btn", href: "https://discord.gg/fBTm5eRD3C", target: "_blank", rel: "noopener" }, "Join the Discord!"),
+      el("a", { class: "bbl-btn instagram-btn", href: "https://www.instagram.com/bigballleague", target: "_blank", rel: "noopener" }, "BBL Instagram"),
     ]),
   ]);
   root.appendChild(footer);

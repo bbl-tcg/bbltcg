@@ -61,6 +61,16 @@
   color: #1a1a1a;
   border-color: var(--bbl-black);
 }
+.discord-btn {
+  background: #5865f2;
+  color: #ffffff;
+  border-color: var(--bbl-black);
+}
+.instagram-btn {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #ffffff;
+  border-color: var(--bbl-black);
+}
 .back-btn-row {
   position: absolute;
   top: 10px;
