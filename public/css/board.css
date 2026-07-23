@@ -123,7 +123,7 @@
      shows through underneath the sectors - see deckbuilder.js/render() background-image
      wiring. Looks effectively identical to the old solid --bbl-slot-bg on the default page
      background (a similarly light gray) when no playmat is set. */
-  background: rgba(217, 220, 226, 0.32);
+  background: rgba(217, 220, 226, 0.18);
   border: 2px solid var(--bbl-black);
   border-radius: 8px;
   display: flex;
@@ -537,5 +537,14 @@
   .attack-pill,
   .cost-pill {
     font-size: 0.55rem;
+  }
+  /* Zooming a field card can offer up to 3-4 action buttons (Attack, Attach PLAYERSCORE
+     UP!, one or more Activate options, Close) alongside the full-size card image - at
+     full desktop button size these wrap to enough rows that Close ends up crowded against
+     (or past) the bottom of a phone-height viewport. Shrink just the buttons here; the
+     card image itself is unaffected. */
+  .card-zoom-overlay .bbl-btn {
+    padding: 0.4em 0.8em;
+    font-size: 0.8rem;
   }
 }
