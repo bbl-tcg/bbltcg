@@ -23,6 +23,13 @@ let selectedIndex = -1;
 let expandedPlace = null;
 
 export async function renderTournamentResults() {
+  // Set synchronously, before the await below - the caller (menu.js) calls showScreen()
+  // right after calling this function, without awaiting it, so that runs while the fetch
+  // is still pending. If className were instead (re)assigned inside renderBody() - which
+  // only runs once the fetch resolves - it would wipe out the "active" class showScreen()
+  // had already added by then, leaving the screen fully rendered but invisible.
+  const root = document.getElementById("tournament-results-screen");
+  root.className = "screen menu-screen";
   try {
     tournaments = await fetch("/shared/data/tournaments.json").then((r) => r.json());
   } catch {
@@ -37,7 +44,6 @@ export async function renderTournamentResults() {
 function renderBody() {
   const root = document.getElementById("tournament-results-screen");
   root.innerHTML = "";
-  root.className = "screen menu-screen";
 
   const panel = el("div", { class: "bbl-panel", style: "padding:24px;max-width:560px;width:92vw;display:flex;flex-direction:column;gap:14px;max-height:85vh;overflow-y:auto;" }, [
     el("div", { class: "menu-title", style: "font-size:1.2rem;" }, "Tournament Results"),
