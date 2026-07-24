@@ -222,7 +222,11 @@ async function openSellModal(pointsLine) {
 
   const overlay = el("div", { class: "choice-overlay" });
   const countLine = el("div", { style: "font-weight:800;color:var(--bbl-blue);" }, `0 / ${SELL_COUNT} selected`);
-  const grid = el("div", { class: "choice-options", style: "max-height:38vh;overflow-y:auto;" });
+  // Reuses .db-pool (the Deckbuilder/Collection thumbnail grid), not .choice-options - the
+  // latter is meant for a handful of large in-game choice cards and leaves .db-card-tile
+  // with no width constraint of its own, which rendered every one of the 150+ owned cards
+  // at its full natural image size instead of a scannable thumbnail.
+  const grid = el("div", { class: "db-pool", style: "max-height:38vh;overflow-y:auto;flex:none;" });
   const pileList = el("div", { class: "db-deck-list", style: "max-height:20vh;overflow-y:auto;" });
   const sellBtn = el("button", { class: "bbl-btn", disabled: "disabled" }, "Sell");
 
