@@ -47,8 +47,8 @@ export function renderMenu() {
       el("a", { class: "bbl-btn coffee-btn", href: "https://buymeacoffee.com/bbltcg", target: "_blank", rel: "noopener" }, "Buy me a coffee"),
     ]),
     el("div", { class: "menu-footer-row" }, [
-      el("button", { class: "bbl-btn", onclick: () => { renderTournamentResults(); showScreen("tournament-results-screen"); } }, "Tournament Results"),
       el("a", { class: "bbl-btn discord-btn", href: "https://discord.gg/fBTm5eRD3C", target: "_blank", rel: "noopener" }, "Join the Discord!"),
+      el("button", { class: "bbl-btn", onclick: () => { renderTournamentResults(); showScreen("tournament-results-screen"); } }, "Tournament Results"),
       el("a", { class: "bbl-btn instagram-btn", href: "https://www.instagram.com/bigballleague", target: "_blank", rel: "noopener" }, "BBL Instagram"),
     ]),
   ]);
