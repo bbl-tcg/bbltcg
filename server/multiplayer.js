@@ -213,6 +213,7 @@ class Room {
           // once the loop notices gameOver, so awarding here too would double-pay.
           this.state.gameOver = true;
           this.state.winner = activeIndex === 0 ? 1 : 0;
+          this.state.winReason = "timeout";
           this.broadcastState();
           finish();
           return;
@@ -251,10 +252,11 @@ class Room {
 
   async awardResults() {
     if (this.state.winner === null || this.state.winner === undefined) return;
-    // A loss by conceding or disconnecting gets 0 Pack Points instead of the normal 2 -
-    // see the "concede" action and the "disconnect" socket handler above, which are the
-    // only two places that set winReason.
-    const loserGained = this.state.winReason === "concede" || this.state.winReason === "disconnect" ? 0 : 2;
+    // A loss by conceding, disconnecting, or being timed out gets 0 Pack Points instead of
+    // the normal 2 - see the "concede" action, the "disconnect" socket handler, and the
+    // 2-consecutive-timeouts branch above, the only three places that set winReason.
+    const noPointsReasons = new Set(["concede", "disconnect", "timeout"]);
+    const loserGained = noPointsReasons.has(this.state.winReason) ? 0 : 2;
     for (let i = 0; i < 2; i++) {
       const userId = this.userIds[i];
       if (!userId) continue;

@@ -7,7 +7,7 @@ import { showCardZoomWithActions } from "./cardZoom.js";
 import { enrichChoiceRequest, windowThreatInfo } from "./choiceEnrich.js";
 import { animateAttackSwipe, animateCardMove } from "./animations.js";
 import { toast, confirmDialog } from "../ui.js";
-import { currentUser, reportGameResult } from "../api.js";
+import { currentUser } from "../api.js";
 import { showScreen } from "../screens.js";
 import { resetChat, addChatMessage, renderChatWidget } from "../chatWidget.js";
 
@@ -447,7 +447,11 @@ function showDiscardViewer(playerIndex) {
 function showGameOver(state, me) {
   clearActiveRoom();
   const youWon = state.winner === me;
-  reportGameResult(youWon ? "win" : "loss").catch(() => {});
+  // Unlike localMatch.js's vsBot games (no server-authoritative state to hook a result
+  // into, so the client self-reports via reportGameResult), a multiplayer result is
+  // already awarded server-side by the room itself (see awardResults() in
+  // server/multiplayer.js), including the concede/disconnect/timeout -> 0 Pack Points
+  // distinction - self-reporting here too would silently double-award every result.
   const overlay = document.createElement("div");
   overlay.className = "card-zoom-overlay";
   overlay.innerHTML = `
