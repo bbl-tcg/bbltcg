@@ -497,10 +497,17 @@
     font-size: 0.48rem;
   }
   .ps-up-slot {
-    width: 32px;
+    /* Shrink to fit the sector's own resolved width instead of a fixed px size, so all 8
+       PLAYERSCORE UP! slots always fit on one row without needing the sector's scroll
+       fallback (which used to hide anything past the first ~5 on a phone-width screen). */
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 32px; /* don't grow oversized when fewer than 8 are on the field */
   }
   .sector-psfield {
     padding-left: 30px;
+    flex-wrap: nowrap;
   }
   .sector-players {
     padding: 2px 4px;
