@@ -6,6 +6,10 @@ import { TRIGGER } from "../engine/constants.js";
 // you activate this effect, discard this card and 1 card from your hand."
 registerEffect("001-029", {
   trigger: TRIGGER.OPPONENTS_TURN,
+  // Bot AI hint (ai.js) - this unconditionally discards its own source card as part of
+  // activating (though it can never actually empty the bot's field by itself, since the
+  // STAR Player it protects always survives).
+  selfSacrifice: true,
   canActivate(ctx, windowCtx) {
     if (!windowCtx || windowCtx.targetPlayerIndex !== ctx.self) return false;
     const target = ctx.player().playerSlots[windowCtx.targetSlot];

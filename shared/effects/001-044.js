@@ -16,6 +16,9 @@ function opponentPlayedReboundLastTurn(ctx) {
 
 registerEffect("001-044", {
   trigger: TRIGGER.YOUR_TURN,
+  // Bot AI hint (ai.js) - this unconditionally discards its own source card as part of
+  // activating, so the bot shouldn't pick it while it's the bot's only field player.
+  selfSacrifice: true,
   canActivate(ctx) {
     return opponentPlayedReboundLastTurn(ctx);
   },

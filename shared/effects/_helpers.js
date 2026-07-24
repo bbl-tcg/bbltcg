@@ -149,6 +149,9 @@ export function extraDamageOnDiscardEffect() {
   }
   return {
     trigger: TRIGGER.YOUR_TURN,
+    // Bot AI hint (ai.js) - this unconditionally discards its own source card as part of
+    // activating, so the bot shouldn't pick it while it's the bot's only field player.
+    selfSacrifice: true,
     canActivate(ctx) {
       const self = ctx.findInstance(ctx.source.instanceId);
       return !!self?.instance.hasAttackedThisTurn && !!lastAttackTargetSlot(ctx);

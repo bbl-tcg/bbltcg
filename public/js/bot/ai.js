@@ -29,7 +29,7 @@ export async function runBotTurn(state, botIndex, render, resolveChoice, decideW
   // 1) Use any obviously-available YOUR_TURN/SACRIFICE effects (coaches first, then field).
   for (let i = 0; i < 6; i++) {
     const sources = [...engine.getActivatableSources(state, botIndex, "YOUR_TURN"), ...engine.getActivatableSources(state, botIndex, "SACRIFICE")];
-    const chosen = pickBestEffectSource(state, sources);
+    const chosen = pickBestEffectSource(state, botIndex, sources);
     if (!chosen) break;
     await engine.activateEffectAction(state, botIndex, chosen, chosen.effectDef.trigger, {}, resolveChoice);
     render();
@@ -62,17 +62,32 @@ export async function runBotTurn(state, botIndex, render, resolveChoice, decideW
     if (!playedSomething) break;
   }
 
-  // 3) Attach any active PLAYERSCORE UP! to non-Star players that can attack this turn,
-  // for the free +1 Attack each, before actually attacking.
-  const attachTargets = state.players[botIndex].playerSlots
+  // 3) Attach active PLAYERSCORE UP! to non-Star players that can attack this turn. First
+  // pass: spend exactly what's needed (and no more) to turn an otherwise-non-lethal attack
+  // into a lethal one against the most valuable reachable target, so PS UP actually secures
+  // kills instead of being spent arbitrarily. Second pass: any PS UP still unattached goes
+  // toward the free +1 Attack each on the remaining attackers, same as before.
+  const attackTargets = state.players[botIndex].playerSlots
     .map((inst, slot) => ({ inst, slot }))
     .filter(({ inst, slot }) => inst && !inst.isStarPlayer && engine.canAttackWith(state, botIndex, slot));
-  for (const { inst } of attachTargets) {
+  let attachedAny = false;
+  for (const { inst, slot } of attackTargets) {
+    const boost = boostNeededForKill(state, botIndex, slot, opponentIndex);
+    if (boost === null) continue;
+    const available = state.players[botIndex].psField.filter((p) => p.isActive && !p.attachedTo);
+    if (boost > available.length) continue; // can't actually secure this kill - don't half-commit
+    for (let i = 0; i < boost; i++) {
+      engine.attachPsUpAction(state, botIndex, available[i].id, inst.instanceId);
+      attachedAny = true;
+    }
+  }
+  for (const { inst } of attackTargets) {
     const psUp = state.players[botIndex].psField.find((p) => p.isActive && !p.attachedTo);
     if (!psUp) break;
     engine.attachPsUpAction(state, botIndex, psUp.id, inst.instanceId);
+    attachedAny = true;
   }
-  if (attachTargets.length) {
+  if (attachedAny) {
     render();
     await sleep(STEP_DELAY_MS);
   }
@@ -96,12 +111,20 @@ export async function runBotTurn(state, botIndex, render, resolveChoice, decideW
   }
 }
 
-function pickBestEffectSource(state, sources) {
+function pickBestEffectSource(state, botIndex, sources) {
   // Cheap heuristic: prefer Head Coach/Assistant Coach utility first, then field effects;
   // skip anything requiring a decision the bot can't meaningfully judge better than "try it".
   if (sources.length === 0) return null;
-  const coachFirst = sources.find((s) => s.zone === "HEAD_COACH" || s.zone === "ASSISTANT_COACH");
-  return coachFirst || sources[0];
+  // Self-preservation: a source flagged `selfSacrifice` (Daisy Hart, Peter Crouch, etc.)
+  // unconditionally discards its own field instance as part of activating - never pick one
+  // of those while it's the bot's only field player, since that's an entirely avoidable way
+  // to end the turn with 0 players and no board presence. If that leaves nothing else
+  // usable, the bot just skips this step rather than force the trade.
+  const fieldCount = state.players[botIndex].playerSlots.filter((s) => s).length;
+  const usable = fieldCount <= 1 ? sources.filter((s) => !s.effectDef.selfSacrifice) : sources;
+  if (usable.length === 0) return null;
+  const coachFirst = usable.find((s) => s.zone === "HEAD_COACH" || s.zone === "ASSISTANT_COACH");
+  return coachFirst || usable[0];
 }
 
 function pickWorstOwnSlot(state, playerIndex) {
@@ -117,6 +140,32 @@ function pickWorstOwnSlot(state, playerIndex) {
     }
   });
   return worst;
+}
+
+/**
+ * How many +1-Attack PLAYERSCORE UP! attachments (each attached PS UP grants +1 Attack,
+ * regardless of card) this attacker would need for its best *not-currently-lethal* target
+ * to become lethal - null if no reachable target both needs and can be brought within
+ * reach of a boost (i.e. it's either already lethal without help, or still wouldn't die
+ * even fully boosted isn't checked here - the caller already caps by PS UP actually
+ * available). Among several boostable targets, prefers securing the most valuable
+ * (highest-Cost) one, same tiebreak spirit as pickBestTarget.
+ */
+function boostNeededForKill(state, attackerIndex, attackerSlot, defenderIndex) {
+  const attacker = state.players[attackerIndex].playerSlots[attackerSlot];
+  const defenderSlots = state.players[defenderIndex].playerSlots;
+  let best = null;
+  defenderSlots.forEach((inst) => {
+    if (!inst) return;
+    const dmg = effectiveAttack(state, attackerIndex, attacker) + speedTriangleBonus(effectiveSpeed(attacker), effectiveSpeed(inst));
+    if (inst.currentHealth <= dmg) return; // already lethal - nothing to secure here
+    const needed = inst.currentHealth - dmg;
+    const value = effectiveCost(inst);
+    if (best === null || value > best.value || (value === best.value && needed < best.needed)) {
+      best = { needed, value };
+    }
+  });
+  return best ? best.needed : null;
 }
 
 /**
