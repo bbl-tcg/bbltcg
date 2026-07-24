@@ -55,10 +55,14 @@ function renderPlayerArea(state, playerIndex, opponentIndex, handlers) {
   return area;
 }
 
-/** Sits directly on top of a Deck/PS Deck/Score/Discard card-back, in the corner - see
- * .count-badge in board.css. */
-function countBadge(count) {
-  return el("div", { class: "bbl-badge count-badge" }, String(count));
+/** Sits directly on top of a Deck/PS Deck/Score/Discard card-back, centered - see
+ * .count-badge in board.css. `styleObj`, when given, overrides the positioning (inline
+ * style always wins over the class) - used by the opponent hand-count badge above, which
+ * has its own fixed spot next to the hand-card-back fan rather than sitting on a card. */
+function countBadge(count, styleObj) {
+  const badge = el("div", { class: "bbl-badge count-badge" }, String(count));
+  if (styleObj) Object.assign(badge.style, styleObj);
+  return badge;
 }
 
 /** A small always-on caption identifying what a sector is (Score, Deck, PS Field, ...) -
