@@ -97,8 +97,15 @@ packsRouter.post("/heartbeat", async (req, res) => {
     const bonusEligible = screen === "deckbuilder" || screen === "game";
     const gained = chunks * (bonusEligible ? 2 : 1);
     await db.addPackPoints(req.session.userId, gained);
+    // Only advance the baseline when a chunk actually accrued - snapping it to `now` on
+    // every 30s ping (even when chunks is 0) meant elapsed time was measured since the
+    // *previous ping* instead of since the last grant, so it could never reach the 5-minute
+    // threshold and no chunk would ever fire. Snapping to `now` here (rather than `last +
+    // FIVE_MIN_MS`) is still intentional: after a long gap (laptop asleep, tab backgrounded
+    // for hours), we don't want the leftover remainder to immediately grant another capped
+    // chunk on the very next ping.
+    req.session.lastAccrualAt = now;
   }
-  req.session.lastAccrualAt = now;
 
   const user = await db.getUserById(req.session.userId);
   res.json({ packPoints: user.packPoints });
