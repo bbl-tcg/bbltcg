@@ -55,10 +55,10 @@ function renderPlayerArea(state, playerIndex, opponentIndex, handlers) {
   return area;
 }
 
-function countBadge(count, styleObj = {}) {
-  const badge = el("div", { class: "bbl-badge" }, String(count));
-  Object.assign(badge.style, { position: "relative", ...styleObj });
-  return badge;
+/** Sits directly on top of a Deck/PS Deck/Score/Discard card-back, in the corner - see
+ * .count-badge in board.css. */
+function countBadge(count) {
+  return el("div", { class: "bbl-badge count-badge" }, String(count));
 }
 
 /** A small always-on caption identifying what a sector is (Score, Deck, PS Field, ...) -
@@ -78,8 +78,9 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   scoreSector.appendChild(sectorLabel("Score", mirrored));
   const totalScore = player.scoreCount ?? player.score.length;
   if (totalScore > 0) {
-    scoreSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
-    scoreSector.appendChild(countBadge(totalScore));
+    scoreSector.appendChild(
+      el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` }), countBadge(totalScore)])
+    );
   }
   grid.appendChild(scoreSector);
 
@@ -106,8 +107,9 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   deckSector.appendChild(sectorLabel("Deck", mirrored));
   const deckCount = player.deckCount ?? player.deck.length;
   if (deckCount > 0) {
-    deckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
-    deckSector.appendChild(countBadge(deckCount));
+    deckSector.appendChild(
+      el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` }), countBadge(deckCount)])
+    );
   }
   grid.appendChild(deckSector);
 
@@ -115,8 +117,9 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
   const psDeckSector = el("div", { class: "sector sector-psdeck" });
   psDeckSector.appendChild(sectorLabel("PS Deck", mirrored));
   if (player.psDeckCount > 0) {
-    psDeckSector.appendChild(el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` })]));
-    psDeckSector.appendChild(countBadge(player.psDeckCount));
+    psDeckSector.appendChild(
+      el("div", { class: "slot" }, [el("div", { class: "card-face", style: `background-image:url(${CARD_BACK});cursor:default;` }), countBadge(player.psDeckCount)])
+    );
   }
   grid.appendChild(psDeckSector);
 
@@ -146,10 +149,14 @@ function renderFieldGrid(state, playerIndex, handlers, mirrored) {
           style: `background-image:url(${cardImg(topCardId)});`,
           onclick: () => handlers.onDiscardClick?.(playerIndex),
         }),
+        countBadge(player.discard.length),
       ])
     );
+  } else {
+    // No card to overlay the badge onto - show the (0) count floating in the empty sector,
+    // same as before, so both players can still see the discard pile is empty at a glance.
+    discardSector.appendChild(countBadge(0));
   }
-  discardSector.appendChild(countBadge(player.discard.length));
   grid.appendChild(discardSector);
 
   return grid;
