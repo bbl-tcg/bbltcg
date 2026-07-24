@@ -86,6 +86,12 @@ export async function reportGameResult(result) {
   return data.packPoints;
 }
 
+export async function sellCards(cardIds) {
+  const data = await request("POST", "/api/packs/sell", { cardIds });
+  cachedUser = cachedUser ? { ...cachedUser, packPoints: data.packPoints } : cachedUser;
+  return data.packPoints;
+}
+
 export async function redeemCode(code) {
   const data = await request("POST", "/api/codes/redeem", { code });
   cachedUser = cachedUser ? { ...cachedUser, packPoints: data.packPoints, godPackPending: data.godPackPending } : cachedUser;

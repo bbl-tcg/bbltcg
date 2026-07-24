@@ -170,6 +170,30 @@ export async function recordPackStats(userId, { altArts = 0, secretRares = 0 } =
   ]);
 }
 
+/** Removes `cardIds.length` individual card copies (one array entry per copy, duplicates
+ * for multiple copies of the same card) from the user's collection and grants `reward`
+ * Pack Points - the "sell 50 cards" feature on the Open a Pack screen. Atomic: throws (and
+ * changes nothing) if the user doesn't actually own enough copies of everything listed. */
+export async function sellCards(userId, cardIds, reward) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    for (const cardId of cardIds) {
+      const { rows } = await client.query("SELECT quantity FROM collections WHERE user_id = $1 AND card_id = $2 FOR UPDATE", [userId, cardId]);
+      if (!rows[0] || rows[0].quantity < 1) throw new Error(`You don't own enough copies of ${cardId}.`);
+      await client.query("UPDATE collections SET quantity = quantity - 1 WHERE user_id = $1 AND card_id = $2", [userId, cardId]);
+    }
+    await client.query("UPDATE users SET pack_points = pack_points + $1 WHERE id = $2", [reward, userId]);
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+  return getUserById(userId);
+}
+
 export async function executeTrade(userAId, userAGives, userBId, userBGives) {
   const client = await pool.connect();
   try {

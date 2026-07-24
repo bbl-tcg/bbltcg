@@ -33,6 +33,28 @@ packsRouter.post("/open", async (req, res) => {
   });
 });
 
+const SELL_COUNT = 50;
+const SELL_REWARD = 3;
+
+/** Sell exactly SELL_COUNT owned cards (any rarity/kind, duplicates fine) for a flat
+ * SELL_REWARD Pack Points - lets a player convert an oversized collection into something
+ * spendable. `cardIds` is a flat array, one entry per copy sold (so 2 copies of the same
+ * card appear twice) - the client is responsible for expanding "N of card X" into that
+ * shape. Atomic via db.sellCards: nothing is removed/granted unless every listed copy is
+ * actually owned. */
+packsRouter.post("/sell", async (req, res) => {
+  const { cardIds } = req.body || {};
+  if (!Array.isArray(cardIds) || cardIds.length !== SELL_COUNT) {
+    return res.status(400).json({ error: `You must sell exactly ${SELL_COUNT} cards.` });
+  }
+  try {
+    const user = await db.sellCards(req.session.userId, cardIds, SELL_REWARD);
+    res.json({ packPoints: user.packPoints });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 /**
  * Single-player games run entirely client-side (no server-authoritative state to hook a
  * win/loss into), so the client self-reports the outcome here to collect the +2 (normal

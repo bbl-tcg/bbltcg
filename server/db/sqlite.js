@@ -177,6 +177,25 @@ export async function recordPackStats(userId, { altArts = 0, secretRares = 0 } =
   );
 }
 
+/** Removes `cardIds.length` individual card copies (one array entry per copy, duplicates
+ * for multiple copies of the same card) from the user's collection and grants `reward`
+ * Pack Points - the "sell 50 cards" feature on the Open a Pack screen. Atomic: throws (and
+ * changes nothing) if the user doesn't actually own enough copies of everything listed. */
+export async function sellCards(userId, cardIds, reward) {
+  db.exec("BEGIN");
+  try {
+    for (const cardId of cardIds) {
+      if (!(await removeFromCollection(userId, cardId, 1))) throw new Error(`You don't own enough copies of ${cardId}.`);
+    }
+    db.prepare("UPDATE users SET pack_points = pack_points + ? WHERE id = ?").run(reward, userId);
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+  return getUserById(userId);
+}
+
 /** Atomically swaps card ownership between two users - used by the trade system. Throws
  * (and changes nothing) if either side doesn't actually own what they offered. */
 export async function executeTrade(userAId, userAGives, userBId, userBGives) {
