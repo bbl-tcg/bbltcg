@@ -13,7 +13,18 @@ const EXCLUDED_RARITIES = new Set(["Alternative Art", "Secret Rare"]);
 // other code here (once per account), this one has a single GLOBAL use across all accounts,
 // and only usernames on this list may redeem it at all - more will be added as later
 // tournaments are run.
-const TOURNAMENT101_ALLOWED_USERNAMES = new Set(["EXDF"]);
+const TOURNAMENT101_ALLOWED_USERNAMES = new Set([
+  "EXDF",
+  "Schmaxel",
+  "EXDF_",
+  "Yossito",
+  "NovemberGM",
+  "StevenGerrard",
+  "BannedBallDude",
+  "busterbomb",
+  "Hetfield",
+  "robes",
+]);
 
 codesRouter.post("/redeem", async (req, res) => {
   const code = (req.body?.code || "").trim().toUpperCase();
