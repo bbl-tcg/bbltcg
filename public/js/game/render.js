@@ -1,9 +1,20 @@
 import { el } from "../screens.js";
 import { getCard } from "/shared/engine/cardDb.js";
 import { effectiveAttack, effectiveHealth, isStarPlayerInPowerUpTurns, isStunned } from "/shared/engine/stats.js";
+import { TRIGGER } from "/shared/engine/constants.js";
 
 const CARD_BACK = "/assets/cards/back.png";
 const PS_UP_FRONT = "/assets/cards/playerscoreup.png";
+const SACRIFICE_TAG = "/assets/icons/sacrifice-tag.png";
+
+/** True while `inst` has a temporarily-granted [SACRIFICE] keyword still active (e.g. from
+ * Silvia Snipes' Main ability or "7 Saves in 1 Game by... Xander Diamond???") - these are
+ * added via ctx.grantEffect() with redirectAttackEffect() (see _helpers.js), which is
+ * tagged TRIGGER.SACRIFICE, and auto-expire/get swept off grantedEffects by
+ * sweepEndOfTurnBuffs() in turn.js, so this is always in sync with the live game state. */
+function hasSacrifice(inst) {
+  return inst.grantedEffects.some((g) => g.effectDef.trigger === TRIGGER.SACRIFICE);
+}
 
 function cardImg(cardId) {
   return `/${getCard(cardId).image}`;
@@ -208,6 +219,7 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
       el("div", { class: "cost-pill" }, String(card.cost)),
       ...(inst.attachedPsUp.length ? [psAttachBadge(inst.attachedPsUp.length)] : []),
       ...(stunned ? [stunBadge()] : []),
+      ...(hasSacrifice(inst) ? [sacrificeTag()] : []),
     ]
   );
   wrap.appendChild(face);
@@ -216,6 +228,10 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
 
 function stunBadge() {
   return el("div", { class: "stun-badge", title: "Cannot attack" }, "\u{1F6AB}");
+}
+
+function sacrificeTag() {
+  return el("img", { class: "sacrifice-tag", src: SACRIFICE_TAG, alt: "SACRIFICE", title: "This player has [SACRIFICE] - it can be attacked in place of another target" });
 }
 
 function psAttachBadge(count) {
