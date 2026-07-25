@@ -9,6 +9,12 @@ codesRouter.use(requireAuth);
 const STARTER_TYPES = new Set(["Player", "StarPlayer", "AssistantCoach"]);
 const EXCLUDED_RARITIES = new Set(["Alternative Art", "Secret Rare"]);
 
+// TOURNAMENT101: grants the tournament-exclusive Coach Romano alt art (101-136). Unlike every
+// other code here (once per account), this one has a single GLOBAL use across all accounts,
+// and only usernames on this list may redeem it at all - more will be added as later
+// tournaments are run.
+const TOURNAMENT101_ALLOWED_USERNAMES = new Set(["EXDF"]);
+
 codesRouter.post("/redeem", async (req, res) => {
   const code = (req.body?.code || "").trim().toUpperCase();
   if (!code) return res.status(400).json({ error: "Enter a code." });
@@ -40,6 +46,12 @@ codesRouter.post("/redeem", async (req, res) => {
     }
     await db.setGodPackPending(user.id, true);
     message = "Your next pack is a GOD PACK! 7 Rares/Alt Arts + a guaranteed Secret Rare!";
+  } else if (code === "TOURNAMENT101") {
+    if (!TOURNAMENT101_ALLOWED_USERNAMES.has(user.username)) return res.status(400).json({ error: "That code isn't valid for your account." });
+    if (await db.isCodeClaimedByAnyone(code)) return res.status(400).json({ error: "This code has already been claimed." });
+    await db.addToCollection(user.id, ["101-136"]);
+    await db.recordCodeRedemption(user.id, code);
+    message = "Added the tournament-exclusive Coach Romano alt art to your collection!";
   } else {
     return res.status(400).json({ error: "That code isn't valid." });
   }

@@ -26,6 +26,7 @@ const ALIASES = [
   ["001-135", "001-054"], // JanJan
   ["001-153", "001-054"],
   ["001-136", "001-055"], // Coach Romano
+  ["101-136", "001-055"], // Coach Romano - tournament-exclusive alt art (TOURNAMENT101 code)
   ["001-137", "001-056"], // Coach Tall
   ["001-138", "001-062"], // Ballex Pereira
   ["001-139", "001-063"], // Coach Ale

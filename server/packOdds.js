@@ -6,9 +6,16 @@ const RARITY_WEIGHTS = [
   { rarity: "Secret Rare", weight: 0.05 },
 ];
 
+// Cards that must never come out of a pack (regular or GOD PACK) despite otherwise having a
+// normal pullable rarity - only obtainable some other way (e.g. a community code).
+const PACK_EXCLUDED_CARD_IDS = new Set([
+  "101-136", // Coach Romano (tournament alt art) - TOURNAMENT101 code only
+]);
+
 function cardsByRarity() {
   const byRarity = {};
   for (const card of allCards()) {
+    if (PACK_EXCLUDED_CARD_IDS.has(card.id)) continue;
     (byRarity[card.rarity] ||= []).push(card);
   }
   return byRarity;

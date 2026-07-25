@@ -2274,6 +2274,20 @@
     "specialty": "Defense"
   },
   {
+    "id": "101-136",
+    "number": null,
+    "name": "Coach Romano",
+    "type": "HeadCoach",
+    "months": [
+      "July"
+    ],
+    "rarity": "Alternative Art",
+    "image": "assets/cards/101-136.png",
+    "trigger": "OPPONENTS_TURN",
+    "effect": "If a JanJan on your field did not attack on your last turn, you may attach 1 rested PLAYERSCORE UP! to the JanJan on your field. JanJan gains +1 Health for each PLAYERSCORE UP! attached in this way.",
+    "specialty": "Defense"
+  },
+  {
     "id": "001-137",
     "number": null,
     "name": "Coach Tall",
