@@ -245,7 +245,7 @@
     "attack": 6,
     "tier": 1,
     "speed": "FAST",
-    "trigger": "OPPONENTS_TURN",
+    "trigger": "YOUR_TURN",
     "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, this player gains [SACRIFICE] until your opponent's End Phase.",
     "starPower": {
       "trigger": "WHILE_ATTACKING",
@@ -1997,7 +1997,7 @@
     "attack": 6,
     "tier": 1,
     "speed": "FAST",
-    "trigger": "OPPONENTS_TURN",
+    "trigger": "YOUR_TURN",
     "effect": "If this player has not yet attacked in this game, you may discard 1 card from your hand. If you do, this player gains [SACRIFICE] until your opponent's End Phase.",
     "starPower": {
       "trigger": "WHILE_ATTACKING",
