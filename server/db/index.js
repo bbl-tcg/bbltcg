@@ -20,7 +20,6 @@ export const {
   executeTrade,
   hasRedeemedCode,
   recordCodeRedemption,
-  isCodeClaimedByAnyone,
   recordPackStats,
 } = impl;
 

@@ -160,14 +160,6 @@ export async function recordCodeRedemption(userId, code) {
   await pool.query("INSERT INTO redeemed_codes (user_id, code) VALUES ($1, $2)", [userId, code]);
 }
 
-/** Whether ANY account has ever redeemed this code, regardless of who - for codes with a
- * fixed global redemption limit (e.g. TOURNAMENT101's single total use) rather than the
- * usual once-per-account limit. */
-export async function isCodeClaimedByAnyone(code) {
-  const { rows } = await pool.query("SELECT 1 FROM redeemed_codes WHERE code = $1", [code]);
-  return rows.length > 0;
-}
-
 /** Lifetime pack-opening stats shown on the Open a Pack screen - incremented once per pack
  * opened, never reset (persists for the account's entire existence). */
 export async function recordPackStats(userId, { altArts = 0, secretRares = 0 } = {}) {
