@@ -15,14 +15,16 @@ registerEffect("001-042", {
   *resolve(ctx, windowCtx) {
     const wantsTo = yield { type: "CHOOSE_YES_NO", forPlayer: ctx.opponent, prompt: "Discard 2 cards from your hand to negate this attack?" };
     if (!wantsTo) return;
+    const options = ctx.player(ctx.opponent).hand.map((cardId, handIndex) => ({ cardId, handIndex }));
     const chosen = yield {
       type: "CHOOSE_CARDS",
       forPlayer: ctx.opponent,
       prompt: "Discard 2 cards from your hand",
+      options,
       min: 2,
       max: 2,
     };
-    for (const cardId of chosen || []) ctx.discardFromHandById(ctx.opponent, cardId);
+    for (const cardId of chosen || []) ctx.discardFromHandById(ctx.opponent, cardId.cardId ?? cardId);
     windowCtx.cancelled = true;
   },
 });
