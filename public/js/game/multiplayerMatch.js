@@ -101,6 +101,7 @@ function connect() {
     });
     ack(chosen || null);
   });
+  socket.on("peer-deciding", setPeerDeciding);
   socket.on("opponent-disconnected", () => toast("Your opponent disconnected."));
   socket.on("room-error", (msg) => toast("Room error: " + msg));
   socket.on("chat-message", ({ text }) => {
@@ -174,6 +175,31 @@ function renderWaitingForOpponent() {
   panel.textContent = "Waiting for opponent...";
   wrap.appendChild(panel);
   container.appendChild(wrap);
+}
+
+// A full-screen blocking overlay shown while the OTHER player is answering a choice/window
+// request (their own turn effect, or a reactive one like Sainz's discard-to-negate) - without
+// this, nothing stopped this player from immediately attacking again with another card while
+// their first attack's reactive window was still awaiting the opponent, sending a second
+// choice-request before the first had answered and stacking overlays out of order on both
+// sides. Reuses .choice-overlay/.choice-panel so it looks consistent with every other choice
+// prompt; has no buttons since there's nothing for this player to do but wait.
+let peerDecidingOverlay = null;
+function setPeerDeciding(isDeciding) {
+  if (isDeciding) {
+    if (peerDecidingOverlay) return;
+    peerDecidingOverlay = document.createElement("div");
+    peerDecidingOverlay.className = "choice-overlay";
+    const panel = document.createElement("div");
+    panel.className = "choice-panel bbl-panel";
+    panel.style.cssText = "text-align:center;font-weight:800;color:var(--bbl-blue);font-size:1.05rem;";
+    panel.textContent = "Waiting for your opponent to make a decision...";
+    peerDecidingOverlay.appendChild(panel);
+    document.body.appendChild(peerDecidingOverlay);
+  } else {
+    peerDecidingOverlay?.remove();
+    peerDecidingOverlay = null;
+  }
 }
 
 function render() {
@@ -446,6 +472,7 @@ function showDiscardViewer(playerIndex) {
 
 function showGameOver(state, me) {
   clearActiveRoom();
+  setPeerDeciding(false); // clear a stuck overlay if the game ended while it was still showing (e.g. opponent disconnected mid-decision)
   const youWon = state.winner === me;
   // Unlike localMatch.js's vsBot games (no server-authoritative state to hook a result
   // into, so the client self-reports via reportGameResult), a multiplayer result is

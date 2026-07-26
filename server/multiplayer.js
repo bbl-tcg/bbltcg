@@ -79,13 +79,23 @@ class Room {
   }
 
   /** Sends a choice request to whichever player actually owns it and awaits their answer
-   * over the socket; falls back to a safe default if that player has disconnected. */
+   * over the socket; falls back to a safe default if that player has disconnected. Also
+   * tells the OTHER player a decision is pending (see peer-deciding below) so their client
+   * can block further actions until it resolves - without this, an attacker could keep
+   * attacking with other players while their first attack's reactive choice (e.g. Sainz's
+   * discard-to-negate) is still awaiting the defender, stacking choice overlays on both
+   * sides as the resulting windows pile up out of order. */
   resolveChoice = (request) => {
     return new Promise((resolve) => {
       const forPlayer = request.forPlayer ?? request.__controllerIndex ?? 0;
       const sock = this.sockets[forPlayer];
       if (!sock) return resolve(null);
-      sock.emit("choice-request", request, (answer) => resolve(answer));
+      const otherSock = this.sockets[forPlayer === 0 ? 1 : 0];
+      otherSock?.emit("peer-deciding", true);
+      sock.emit("choice-request", request, (answer) => {
+        otherSock?.emit("peer-deciding", false);
+        resolve(answer);
+      });
     });
   };
 
@@ -94,8 +104,11 @@ class Room {
     return new Promise((resolve) => {
       const sock = this.sockets[controllerIndex];
       if (!sock) return resolve(null);
+      const otherSock = this.sockets[controllerIndex === 0 ? 1 : 0];
       const options = available.map((s) => ({ cardId: s.cardId, zone: s.zone, instanceId: s.instanceId, handIndex: s.handIndex, label: s.label }));
+      otherSock?.emit("peer-deciding", true);
       sock.emit("window-request", { options, windowCtx }, (chosenOption) => {
+        otherSock?.emit("peer-deciding", false);
         if (!chosenOption) return resolve(null);
         const match = available.find(
           (s) => s.cardId === chosenOption.cardId && s.zone === chosenOption.zone && s.label === chosenOption.label && (s.zone === "HAND" ? s.handIndex === chosenOption.handIndex : s.instanceId === chosenOption.instanceId)
