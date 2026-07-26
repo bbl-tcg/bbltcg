@@ -11,8 +11,14 @@ import { isLoggedIn, listServerDecks } from "./api.js";
  * refuse to start a match with one instead of silently dealing out a too-small deck.
  */
 export async function allDeckOptions() {
-  const starters = starterDeckNames().map((name) => ({ key: `starter:${name}`, label: `${name} (starter)`, legal: true, resolve: () => ({ ...buildStarterDeckList(name), name }) }));
   const savedDecks = isLoggedIn() ? await listServerDecks().catch(() => []) : loadCustomDecks();
+  // Logged-in accounts get the 4 starter decks seeded as real, editable/deletable saved decks
+  // (see ensureStarterDecksSeeded in server/routes/decks.js) - they're already part of
+  // savedDecks above, so listing this hardcoded version too would just duplicate them in
+  // every deck picker. Guests (localStorage-only, never seeded) still need this fallback.
+  const starters = isLoggedIn()
+    ? []
+    : starterDeckNames().map((name) => ({ key: `starter:${name}`, label: `${name} (starter)`, legal: true, resolve: () => ({ ...buildStarterDeckList(name), name }) }));
   const custom = savedDecks.map((d) => {
     const legal = validateDeck({ headCoachId: d.headCoachId, mainDeck: d.mainDeck, psDeckCount: PS_DECK_SIZE }).legal;
     return {

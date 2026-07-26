@@ -47,6 +47,7 @@ for (const [table, column, ddl] of [
   ["users", "alt_arts_pulled", "INTEGER NOT NULL DEFAULT 0"],
   ["users", "secret_rares_pulled", "INTEGER NOT NULL DEFAULT 0"],
   ["users", "god_pack_pending", "INTEGER NOT NULL DEFAULT 0"],
+  ["users", "starter_decks_seeded", "INTEGER NOT NULL DEFAULT 0"],
   ["decks", "playmat_url", "TEXT"],
 ]) {
   try {
@@ -68,6 +69,7 @@ function rowToUser(row) {
     altArtsPulled: row.alt_arts_pulled,
     secretRaresPulled: row.secret_rares_pulled,
     godPackPending: !!row.god_pack_pending,
+    starterDecksSeeded: !!row.starter_decks_seeded,
   };
 }
 
@@ -91,6 +93,10 @@ export async function setPackPoints(userId, points) {
 
 export async function setGodPackPending(userId, pending) {
   db.prepare("UPDATE users SET god_pack_pending = ? WHERE id = ?").run(pending ? 1 : 0, userId);
+}
+
+export async function setStarterDecksSeeded(userId, seeded) {
+  db.prepare("UPDATE users SET starter_decks_seeded = ? WHERE id = ?").run(seeded ? 1 : 0, userId);
 }
 
 export async function addPackPoints(userId, delta) {

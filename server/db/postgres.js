@@ -40,6 +40,7 @@ await pool.query(`
   ALTER TABLE users ADD COLUMN IF NOT EXISTS alt_arts_pulled INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE users ADD COLUMN IF NOT EXISTS secret_rares_pulled INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE users ADD COLUMN IF NOT EXISTS god_pack_pending BOOLEAN NOT NULL DEFAULT FALSE;
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS starter_decks_seeded BOOLEAN NOT NULL DEFAULT FALSE;
   ALTER TABLE decks ADD COLUMN IF NOT EXISTS playmat_url TEXT;
 `);
 
@@ -55,6 +56,7 @@ function rowToUser(row) {
     altArtsPulled: row.alt_arts_pulled,
     secretRaresPulled: row.secret_rares_pulled,
     godPackPending: !!row.god_pack_pending,
+    starterDecksSeeded: !!row.starter_decks_seeded,
   };
 }
 
@@ -91,6 +93,10 @@ export async function setPackPoints(userId, points) {
 
 export async function setGodPackPending(userId, pending) {
   await pool.query("UPDATE users SET god_pack_pending = $1 WHERE id = $2", [!!pending, userId]);
+}
+
+export async function setStarterDecksSeeded(userId, seeded) {
+  await pool.query("UPDATE users SET starter_decks_seeded = $1 WHERE id = $2", [!!seeded, userId]);
 }
 
 export async function addPackPoints(userId, delta) {

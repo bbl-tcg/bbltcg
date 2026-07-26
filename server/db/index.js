@@ -9,6 +9,7 @@ export const {
   getUserById,
   setPackPoints,
   setGodPackPending,
+  setStarterDecksSeeded,
   addPackPoints,
   getCollection,
   addToCollection,
