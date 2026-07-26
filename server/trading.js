@@ -16,6 +16,7 @@ class TradeRoom {
     this.code = code;
     this.sockets = [null, null];
     this.userIds = [null, null];
+    this.usernames = [null, null];
     this.selections = [[], []]; // card ids each side is offering, from their OWN collection
     this.submitted = [false, false];
   }
@@ -29,6 +30,10 @@ class TradeRoom {
         yourSubmitted: this.submitted[i],
         theirSubmitted: this.submitted[other],
         bothPresent: !!(this.sockets[0] && this.sockets[1]),
+        // Always the joiner's (side 1) username, regardless of which side is receiving this -
+        // the client uses it to switch the room-code box to "<name> has joined the room!"
+        // for both players once they're both present, not just relative to "the other guy".
+        joinerUsername: this.usernames[1],
       });
     }
   }
@@ -50,25 +55,29 @@ export function attachTrading(io) {
   const ns = io.of("/trade");
 
   ns.on("connection", (socket) => {
-    socket.on("create-trade", ({ userId }, ack) => {
+    socket.on("create-trade", async ({ userId }, ack) => {
       if (!userId) return ack?.({ ok: false, reason: "You must be logged in to trade." });
+      const user = await db.getUserById(userId);
       const code = generateInviteCode();
       const room = new TradeRoom(code);
       room.sockets[0] = socket;
       room.userIds[0] = userId;
+      room.usernames[0] = user?.username ?? null;
       tradeRooms.set(code, room);
       socket.data.tradeCode = code;
       socket.data.tradeSide = 0;
       ack?.({ ok: true, code });
     });
 
-    socket.on("join-trade", ({ code, userId }, ack) => {
+    socket.on("join-trade", async ({ code, userId }, ack) => {
       if (!userId) return ack?.({ ok: false, reason: "You must be logged in to trade." });
       const room = tradeRooms.get(code);
       if (!room) return ack?.({ ok: false, reason: "No trade with that invite code." });
       if (room.sockets[1]) return ack?.({ ok: false, reason: "That trade already has two players." });
+      const user = await db.getUserById(userId);
       room.sockets[1] = socket;
       room.userIds[1] = userId;
+      room.usernames[1] = user?.username ?? null;
       socket.data.tradeCode = code;
       socket.data.tradeSide = 1;
       ack?.({ ok: true, code });

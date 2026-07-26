@@ -14,6 +14,39 @@ let theirSelection = [];
 let mySubmitted = false;
 let theirSubmitted = false;
 
+// A persistent version of the black bottom-of-screen toast() box (which auto-dismisses after
+// a few seconds - too short-lived to still be showing whenever the other player actually
+// joins) - holds the invite code until someone joins, then switches to naming them instead.
+let roomStatusBox = null;
+function setRoomStatus(text) {
+  if (!text) {
+    roomStatusBox?.remove();
+    roomStatusBox = null;
+    return;
+  }
+  if (!roomStatusBox) {
+    roomStatusBox = el("div", {}, text);
+    Object.assign(roomStatusBox.style, {
+      position: "fixed",
+      bottom: "24px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "var(--bbl-black)",
+      color: "white",
+      padding: "10px 18px",
+      borderRadius: "8px",
+      zIndex: 300,
+      fontWeight: "700",
+      maxWidth: "80vw",
+      textAlign: "center",
+      boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+    });
+    document.body.appendChild(roomStatusBox);
+  } else {
+    roomStatusBox.textContent = text;
+  }
+}
+
 function connect() {
   if (socket) return socket;
   socket = io("/trade", { withCredentials: true });
@@ -21,9 +54,11 @@ function connect() {
     theirSelection = data.theirSelection;
     mySubmitted = data.yourSubmitted;
     theirSubmitted = data.theirSubmitted;
+    if (data.bothPresent && data.joinerUsername) setRoomStatus(`${data.joinerUsername} has joined the room!`);
     renderBody();
   });
   socket.on("trade-complete", (data) => {
+    setRoomStatus(null);
     if (data.ok) {
       toast("Trade complete! Cards have been swapped.");
     } else {
@@ -32,7 +67,10 @@ function connect() {
     renderMenu();
     showScreen("menu-screen");
   });
-  socket.on("opponent-disconnected", () => toast("Your trade partner disconnected."));
+  socket.on("opponent-disconnected", () => {
+    setRoomStatus(null);
+    toast("Your trade partner disconnected.");
+  });
   socket.on("chat-message", ({ text }) => {
     addChatMessage("them", text);
     renderBody();
@@ -48,6 +86,7 @@ export async function renderTrade() {
   theirSelection = [];
   mySubmitted = false;
   theirSubmitted = false;
+  setRoomStatus(null);
   resetChat();
 
   try {
@@ -180,9 +219,9 @@ function broadcastSelection() {
 function onCreateTrade() {
   connect().emit("create-trade", { userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason);
-    // Longer than the default 3.2s - the player needs time to actually read/copy/share the
-    // code with their trade partner before it disappears.
-    toast(`Trade invite code: ${res.code} - share it with your trade partner.`, 18200);
+    // Persistent (not the usual auto-dismissing toast) - stays up holding the code until the
+    // "trade-update" handler above switches it to naming whoever joins.
+    setRoomStatus(`Trade invite code: ${res.code} - share it with your trade partner.`);
   });
 }
 
@@ -190,7 +229,8 @@ function onJoinTrade(code) {
   if (code.length !== 6) return toast("Enter the 6-character invite code.");
   connect().emit("join-trade", { code, userId: currentUser()?.id }, (res) => {
     if (!res.ok) return toast(res.reason);
-    toast("Joined the trade!");
+    // No toast here - the "trade-update" handler above shows the persistent "<name> has
+    // joined the room!" box for both sides as soon as the join is broadcast.
   });
 }
 
