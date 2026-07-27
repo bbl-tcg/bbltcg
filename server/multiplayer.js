@@ -84,13 +84,23 @@ class Room {
    * can block further actions until it resolves - without this, an attacker could keep
    * attacking with other players while their first attack's reactive choice (e.g. Sainz's
    * discard-to-negate) is still awaiting the defender, stacking choice overlays on both
-   * sides as the resulting windows pile up out of order. */
+   * sides as the resulting windows pile up out of order.
+   *
+   * broadcastState() right before asking is deliberate: the client computes things like
+   * "incoming damage" and each candidate's current Health itself, off its own last-received
+   * state - normally fine, but a reactive window opens *mid-attack*, after the attacker's own
+   * WHILE_ATTACKING effects (e.g. Stun's -2 Health, Assist's Attack boost) have already
+   * mutated the authoritative state here on the server. Without this, the defender's client
+   * would render its choice off the stale pre-Stun/pre-Assist snapshot from the last regular
+   * broadcastState() call (only sent once a whole action finishes), silently showing the
+   * wrong incoming damage/Health for exactly the decision that most needs it right. */
   resolveChoice = (request) => {
     return new Promise((resolve) => {
       const forPlayer = request.forPlayer ?? request.__controllerIndex ?? 0;
       const sock = this.sockets[forPlayer];
       if (!sock) return resolve(null);
       const otherSock = this.sockets[forPlayer === 0 ? 1 : 0];
+      this.broadcastState();
       otherSock?.emit("peer-deciding", true);
       sock.emit("choice-request", request, (answer) => {
         otherSock?.emit("peer-deciding", false);
@@ -106,6 +116,7 @@ class Room {
       if (!sock) return resolve(null);
       const otherSock = this.sockets[controllerIndex === 0 ? 1 : 0];
       const options = available.map((s) => ({ cardId: s.cardId, zone: s.zone, instanceId: s.instanceId, handIndex: s.handIndex, label: s.label }));
+      this.broadcastState();
       otherSock?.emit("peer-deciding", true);
       sock.emit("window-request", { options, windowCtx }, (chosenOption) => {
         otherSock?.emit("peer-deciding", false);
