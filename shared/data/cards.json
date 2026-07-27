@@ -1942,7 +1942,7 @@
     "rarity": "Alternative Art",
     "image": "assets/cards/001-117.png",
     "cost": 8,
-    "health": 5,
+    "health": 6,
     "attack": 7,
     "tier": 1,
     "speed": "MIDSPEED",
