@@ -150,7 +150,7 @@
     ],
     "rarity": "Common",
     "image": "assets/cards/001-009.png",
-    "cost": 4,
+    "cost": 6,
     "health": 7,
     "attack": 1,
     "tier": 2,
