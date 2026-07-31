@@ -2,6 +2,94 @@ import { el, showScreen } from "../screens.js";
 import { renderMenu } from "./menu.js";
 import { toast } from "../ui.js";
 
+// Fixed per-month colors, as specified for the Head Coach Month Usage pie chart - not a
+// generated/validated categorical palette, since these are deliberately chosen to match each
+// month's own branding rather than an accessible hue sequence. Text/legend labels always pair
+// the swatch with the month name and percentage, so identity is never color-alone.
+const MONTH_COLORS = {
+  January: "orange",
+  February: "purple",
+  March: "teal",
+  April: "silver",
+  May: "darkgreen",
+  June: "lightpink",
+  July: "red",
+  August: "lime",
+  September: "darkblue",
+  October: "hotpink",
+  November: "yellow",
+  December: "lightblue",
+};
+
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(angleRad), y: cy + r * Math.sin(angleRad) };
+}
+
+function pieSlicePath(cx, cy, r, startAngle, endAngle) {
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
+}
+
+/** Renders `monthUsage` (see the data-shape comment below) as an SVG pie chart with a
+ * swatch+name+percentage legend for every month, including the 0% ones (so a month's absence
+ * is as visible as its presence, and identity never depends on color alone).
+ *
+ * Built via an HTML string rather than screens.js's el() helper - el() creates elements with
+ * document.createElement, which puts them in the HTML namespace; SVG tags created that way
+ * silently fail to render (wrong namespace), so raw markup + innerHTML is used for the SVG
+ * part specifically (the legend below it still uses el() as normal, since that's plain HTML). */
+function buildMonthUsagePieChart(monthUsage) {
+  const entries = Object.entries(monthUsage);
+  const total = entries.reduce((sum, [, count]) => sum + count, 0);
+
+  const cx = 110;
+  const cy = 110;
+  const r = 90;
+  let angle = 0;
+  let shapesSvg = "";
+  if (total > 0) {
+    for (const [month, count] of entries) {
+      if (count <= 0) continue;
+      const pct = count / total;
+      const startAngle = angle;
+      const endAngle = angle + pct * 360;
+      const color = MONTH_COLORS[month] || "gray";
+      shapesSvg += `<path d="${pieSlicePath(cx, cy, r, startAngle, endAngle)}" fill="${color}" stroke="var(--bbl-black)" stroke-width="1.5" />`;
+      // Direct label on slices big enough to hold one (>=8%), placed at the slice's own
+      // midpoint radius/angle - selective direct labeling instead of one on every slice.
+      if (pct >= 0.08) {
+        const mid = polarToCartesian(cx, cy, r * 0.65, (startAngle + endAngle) / 2);
+        shapesSvg += `<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="800" fill="var(--bbl-black)">${(pct * 100).toFixed(2)}%</text>`;
+      }
+      angle = endAngle;
+    }
+  } else {
+    shapesSvg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bbl-black)" stroke-width="1.5" stroke-dasharray="4 4" />`;
+  }
+  const svgWrap = el("div", { style: "width:180px;height:180px;flex:0 0 auto;" });
+  svgWrap.innerHTML = `<svg viewBox="0 0 220 220" style="width:100%;height:100%;">${shapesSvg}</svg>`;
+  const svg = svgWrap.firstElementChild;
+
+  const legend = el(
+    "div",
+    { style: "display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:0.85rem;width:100%;max-width:320px;" },
+    entries.map(([month, count]) =>
+      el("div", { style: "display:flex;align-items:center;gap:6px;" }, [
+        el("span", { style: `width:12px;height:12px;border-radius:3px;border:1.5px solid var(--bbl-black);background:${MONTH_COLORS[month] || "gray"};flex:0 0 auto;` }),
+        el("span", {}, `${month} - ${total > 0 ? `${((count / total) * 100).toFixed(2)}%` : "0.00%"}`),
+      ])
+    )
+  );
+
+  // Always stacked (chart above legend), never side-by-side - at this panel's width, a
+  // side-by-side legend has too little room for month names + percentages and wraps into an
+  // unreadable narrow column.
+  return el("div", { style: "display:flex;flex-direction:column;align-items:center;gap:12px;" }, [svg, legend]);
+}
+
 /**
  * Data shape (shared/data/tournaments.json), an array of:
  * {
@@ -109,15 +197,7 @@ function renderBody() {
 
     if (tournament.monthUsage) {
       panel.appendChild(el("div", { style: "font-weight:700;margin-top:6px;" }, "Head Coach Month Usage"));
-      const table = el(
-        "div",
-        { style: "display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:0.9rem;" },
-        Object.entries(tournament.monthUsage).flatMap(([month, count]) => [
-          el("span", {}, month),
-          el("span", { style: "font-weight:700;" }, String(count)),
-        ])
-      );
-      panel.appendChild(table);
+      panel.appendChild(buildMonthUsagePieChart(tournament.monthUsage));
     }
   }
 
