@@ -62,6 +62,12 @@ codesRouter.post("/redeem", async (req, res) => {
     await db.addToCollection(user.id, ["101-136"]);
     await db.recordCodeRedemption(user.id, code);
     message = "Added the tournament-exclusive Coach Romano alt art to your collection!";
+  } else if (code === "101CHAMP") {
+    if (user.username !== "Schmaxel") return res.status(400).json({ error: "That code isn't valid for your account." });
+    if (await db.hasRedeemedCode(user.id, code)) return res.status(400).json({ error: "You've already redeemed this code." });
+    await db.addPackPoints(user.id, 175);
+    await db.recordCodeRedemption(user.id, code);
+    message = "+175 Pack Points!";
   } else {
     return res.status(400).json({ error: "That code isn't valid." });
   }
