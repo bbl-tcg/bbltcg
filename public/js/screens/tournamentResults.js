@@ -62,14 +62,14 @@ function buildMonthUsagePieChart(monthUsage) {
       // midpoint radius/angle - selective direct labeling instead of one on every slice.
       if (pct >= 0.08) {
         const mid = polarToCartesian(cx, cy, r * 0.65, (startAngle + endAngle) / 2);
-        shapesSvg += `<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="var(--bbl-black)">${(pct * 100).toFixed(2)}%</text>`;
+        shapesSvg += `<text x="${mid.x}" y="${mid.y}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="var(--bbl-black)">${count}/${total}</text>`;
       }
       angle = endAngle;
     }
   } else {
     shapesSvg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bbl-black)" stroke-width="1.5" stroke-dasharray="4 4" />`;
   }
-  const svgWrap = el("div", { style: "width:100px;height:100px;flex:0 0 auto;" });
+  const svgWrap = el("div", { style: "width:130px;height:130px;flex:0 0 auto;" });
   svgWrap.innerHTML = `<svg viewBox="0 0 220 220" style="width:100%;height:100%;">${shapesSvg}</svg>`;
 
   const legend = el(
@@ -78,7 +78,7 @@ function buildMonthUsagePieChart(monthUsage) {
     entries.map(([month, count]) =>
       el("div", { style: "display:flex;align-items:center;gap:6px;" }, [
         el("span", { style: `width:12px;height:12px;border-radius:3px;border:1.5px solid var(--bbl-black);background:${MONTH_COLORS[month] || "gray"};flex:0 0 auto;` }),
-        el("span", {}, `${month} - ${total > 0 ? `${((count / total) * 100).toFixed(2)}%` : "0.00%"}`),
+        el("span", {}, `${month} - ${total > 0 ? `${count}/${total}` : "0/0"}`),
       ])
     )
   );
