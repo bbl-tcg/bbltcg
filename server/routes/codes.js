@@ -25,6 +25,10 @@ const TOURNAMENT101_ALLOWED_USERNAMES = new Set([
   "robes",
 ]);
 
+// TOURNAMENT201: grants the Promo Rare Viktor Krill (201-060), once per account - only
+// usernames on this list may redeem it at all, and more will be added over time.
+const TOURNAMENT201_ALLOWED_USERNAMES = new Set(["EXDF", "EXDF_"]);
+
 codesRouter.post("/redeem", async (req, res) => {
   const code = (req.body?.code || "").trim().toUpperCase();
   if (!code) return res.status(400).json({ error: "Enter a code." });
@@ -68,6 +72,12 @@ codesRouter.post("/redeem", async (req, res) => {
     await db.addPackPoints(user.id, 175);
     await db.recordCodeRedemption(user.id, code);
     message = "+175 Pack Points!";
+  } else if (code === "TOURNAMENT201") {
+    if (!TOURNAMENT201_ALLOWED_USERNAMES.has(user.username)) return res.status(400).json({ error: "That code isn't valid for your account." });
+    if (await db.hasRedeemedCode(user.id, code)) return res.status(400).json({ error: "You've already redeemed this code." });
+    await db.addToCollection(user.id, ["201-060"]);
+    await db.recordCodeRedemption(user.id, code);
+    message = "Added the Promo Rare Viktor Krill to your collection!";
   } else {
     return res.status(400).json({ error: "That code isn't valid." });
   }
