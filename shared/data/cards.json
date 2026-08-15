@@ -1059,6 +1059,24 @@
     "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
   },
   {
+    "id": "201-060",
+    "number": 20,
+    "name": "Viktor Krill",
+    "type": "Player",
+    "months": [
+      "August"
+    ],
+    "rarity": "Promo Rare",
+    "image": "assets/cards/201-060.png",
+    "cost": 4,
+    "health": 3,
+    "attack": 4,
+    "tier": 2,
+    "speed": "FAST",
+    "trigger": "SACRIFICE",
+    "effect": "If your opponent uses an attack on one of your other players, you may redirect that attack to this player."
+  },
+  {
     "id": "001-061",
     "number": 24,
     "name": "Alex Ramirez",
@@ -2281,7 +2299,7 @@
     "months": [
       "July"
     ],
-    "rarity": "Alternative Art",
+    "rarity": "Promo Rare",
     "image": "assets/cards/101-136.png",
     "trigger": "OPPONENTS_TURN",
     "effect": "If a JanJan on your field did not attack on your last turn, you may attach 1 rested PLAYERSCORE UP! to the JanJan on your field. JanJan gains +1 Health for each PLAYERSCORE UP! attached in this way.",

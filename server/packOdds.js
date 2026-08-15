@@ -6,10 +6,14 @@ const RARITY_WEIGHTS = [
   { rarity: "Secret Rare", weight: 0.05 },
 ];
 
-// Cards that must never come out of a pack (regular or GOD PACK) despite otherwise having a
-// normal pullable rarity - only obtainable some other way (e.g. a community code).
+// Cards that must never come out of a pack (regular or GOD PACK) - only obtainable some other
+// way (e.g. a community code). Rarity "Promo Rare" is already absent from RARITY_WEIGHTS above
+// (and openGodPack's own explicit rarity lookups), so these wouldn't be drawn either way -
+// this set is a deliberate second line of defense against a future rarity-table change
+// accidentally starting to include them.
 const PACK_EXCLUDED_CARD_IDS = new Set([
-  "101-136", // Coach Romano (tournament alt art) - TOURNAMENT101 code only
+  "101-136", // Coach Romano (tournament alt art, Promo Rare) - TOURNAMENT101 code only
+  "201-060", // Viktor Krill (Promo Rare) - not obtainable via any code yet
 ]);
 
 function cardsByRarity() {

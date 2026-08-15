@@ -7,7 +7,7 @@ export const codesRouter = express.Router();
 codesRouter.use(requireAuth);
 
 const STARTER_TYPES = new Set(["Player", "StarPlayer", "AssistantCoach"]);
-const EXCLUDED_RARITIES = new Set(["Alternative Art", "Secret Rare"]);
+const EXCLUDED_RARITIES = new Set(["Alternative Art", "Secret Rare", "Promo Rare"]);
 
 // TOURNAMENT101: grants the tournament-exclusive Coach Romano alt art (101-136), once per
 // account like every other code here - only usernames on this list may redeem it at all,
