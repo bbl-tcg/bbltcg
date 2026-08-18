@@ -1,6 +1,6 @@
 import { el } from "../screens.js";
 import { getCard } from "/shared/engine/cardDb.js";
-import { effectiveAttack, effectiveHealth, isStarPlayerInPowerUpTurns, isStunned } from "/shared/engine/stats.js";
+import { effectiveAttack, effectiveHealth, effectiveCost, isStarPlayerInPowerUpTurns, isStunned } from "/shared/engine/stats.js";
 import { TRIGGER } from "/shared/engine/constants.js";
 
 const CARD_BACK = "/assets/cards/back.png";
@@ -195,6 +195,7 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
   const card = getCard(inst.cardId);
   const attack = effectiveAttack(state, playerIndex, inst);
   const health = effectiveHealth(inst);
+  const cost = effectiveCost(inst);
   const isPowerUp = isStarPlayerInPowerUpTurns(inst, state.turnNumber);
   const stunned = isStunned(inst);
 
@@ -216,7 +217,7 @@ function renderFieldCardSlot(state, playerIndex, slot, inst, handlers) {
     [
       el("div", { class: "health-pill" }, String(health)),
       el("div", { class: "attack-pill" }, String(attack)),
-      el("div", { class: "cost-pill" }, String(card.cost)),
+      el("div", { class: "cost-pill" }, String(cost)),
       ...(inst.attachedPsUp.length ? [psAttachBadge(inst.attachedPsUp.length)] : []),
       ...(stunned ? [stunBadge()] : []),
       ...(hasSacrifice(inst) ? [sacrificeTag()] : []),
