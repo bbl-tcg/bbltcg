@@ -181,6 +181,10 @@ function pickBestTarget(state, attackerIndex, attackerSlot, defenderIndex) {
   let bestScore = -Infinity;
   defenderSlots.forEach((inst, slot) => {
     if (!inst) return;
+    // Skip targets immune to this attacker (e.g. Ricky Covey Jr.'s "cannot be attacked by
+    // players with a Cost of N or less") - without this the bot could pick an immune target
+    // as its "best" one, wasting the attack on a hit that's guaranteed to be rejected.
+    if (engine.isAttackBlocked(state, defenderIndex, slot, attacker)) return;
     const dmg = effectiveAttack(state, attackerIndex, attacker) + speedTriangleBonus(effectiveSpeed(attacker), effectiveSpeed(inst));
     const lethal = inst.currentHealth <= dmg;
     const value = effectiveCost(inst);

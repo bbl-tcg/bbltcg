@@ -257,8 +257,13 @@ function render() {
   }
   if (armedSlot !== null) {
     const oppIndex = me === 0 ? 1 : 0;
-    state.players[oppIndex].playerSlots.forEach((inst) => {
-      if (inst) targetable.add(inst.instanceId);
+    const attackerInst = state.players[me].playerSlots[armedSlot];
+    state.players[oppIndex].playerSlots.forEach((inst, slot) => {
+      // Skip targets immune to THIS specific attacker (e.g. Ricky Covey Jr.'s "cannot be
+      // attacked by players with a Cost of N or less") - without this, an immune target was
+      // still shown as a valid attack target, only to have the attack silently rejected by
+      // the server after clicking it.
+      if (inst && !engine.isAttackBlocked(state, oppIndex, slot, attackerInst)) targetable.add(inst.instanceId);
     });
   }
 

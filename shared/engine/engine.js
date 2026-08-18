@@ -306,6 +306,27 @@ export function canAttackWith(state, playerIndex, slot) {
 
 const defaultDecideWindow = async (controllerIndex, available) => (available.length ? available[0] : null);
 
+/** True if `targetInst` (belonging to targetPlayerIndex/targetSlot) has a static
+ * "blocksAttackFrom" immunity (e.g. Ricky Covey Jr.'s "cannot be attacked by players with a
+ * Cost of N or less until this player has attacked") that rules out `attackerInst` as an
+ * attacker right now. Shared by attack() below and by UI/bot code that needs to know which
+ * targets are actually legal *before* an attack is declared - without this, a target immune
+ * to the chosen attacker could still be highlighted/picked as if it were attackable, only to
+ * have the attack silently rejected after the fact. */
+export function isAttackBlocked(state, targetPlayerIndex, targetSlot, attackerInst) {
+  const targetInst = state.players[targetPlayerIndex]?.playerSlots[targetSlot];
+  if (!targetInst) return false;
+  const blocksAttack = getEffect(targetInst.cardId);
+  const targetStatic = blocksAttack?.main ? [blocksAttack.main, blocksAttack.starPower] : [blocksAttack];
+  for (const def of targetStatic) {
+    if (def?.trigger === null && def.staticEffect?.blocksAttackFrom) {
+      const targetCtx = makeEffectContext(state, { controllerIndex: targetPlayerIndex, source: { cardId: targetInst.cardId, zone: "FIELD", instanceId: targetInst.instanceId, slot: targetSlot } });
+      if (def.staticEffect.blocksAttackFrom(targetCtx, attackerInst)) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * `windowCtx` is mutable and passed by reference through every window: a SACRIFICE-triggered
  * redirect effect (e.g. Rafael Murray) can rewrite `windowCtx.targetSlot` mid-flow, and the
@@ -321,17 +342,7 @@ export async function attack(state, { attackerPlayerIndex, attackerSlot, targetP
   if (!canAttackWith(state, attackerPlayerIndex, attackerSlot)) return { ok: false, reason: "CANNOT_ATTACK" };
 
   const attackerInst = state.players[attackerPlayerIndex].playerSlots[attackerSlot];
-  const targetInst = state.players[targetPlayerIndex].playerSlots[targetSlot];
-  if (targetInst) {
-    const blocksAttack = getEffect(targetInst.cardId);
-    const targetStatic = blocksAttack?.main ? [blocksAttack.main, blocksAttack.starPower] : [blocksAttack];
-    for (const def of targetStatic) {
-      if (def?.trigger === null && def.staticEffect?.blocksAttackFrom) {
-        const targetCtx = makeEffectContext(state, { controllerIndex: targetPlayerIndex, source: { cardId: targetInst.cardId, zone: "FIELD", instanceId: targetInst.instanceId, slot: targetSlot } });
-        if (def.staticEffect.blocksAttackFrom(targetCtx, attackerInst)) return { ok: false, reason: "TARGET_IMMUNE" };
-      }
-    }
-  }
+  if (isAttackBlocked(state, targetPlayerIndex, targetSlot, attackerInst)) return { ok: false, reason: "TARGET_IMMUNE" };
 
   const windowCtx = { attackerPlayerIndex, attackerSlot, targetPlayerIndex, targetSlot, attackerInstanceId: attackerInst.instanceId };
   const defenderIndex = opponentIndex(attackerPlayerIndex);
