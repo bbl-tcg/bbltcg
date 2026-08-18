@@ -669,7 +669,7 @@
     "tier": 2,
     "speed": "SLOW",
     "trigger": null,
-    "effect": "If this player has not yet attacked in this game, it cannot be attacked by players with a Cost of 3 or less.",
+    "effect": "If this player has not yet attacked in this game, it cannot be attacked by players with a Cost of 4 or less.",
     "starPower": {
       "trigger": "WHILE_ATTACKING",
       "effect": "GREATER GOOD: Choose 1 of the players on your field, and attack it instead. If it falls to 0 Health, it is discarded instead of KOed. If it is discarded as a result of this attack, choose 1 player on your opponent's field to be put at the bottom of their deck."
@@ -2169,7 +2169,7 @@
     "tier": 2,
     "speed": "SLOW",
     "trigger": null,
-    "effect": "If this player has not yet attacked in this game, it cannot be attacked by players with a Cost of 3 or less.",
+    "effect": "If this player has not yet attacked in this game, it cannot be attacked by players with a Cost of 4 or less.",
     "starPower": {
       "trigger": "WHILE_ATTACKING",
       "effect": "GREATER GOOD: Choose 1 of the players on your field, and attack it instead. If it falls to 0 Health, it is discarded instead of KOed. If it is discarded as a result of this attack, choose 1 player on your opponent's field to be put at the bottom of their deck."

@@ -4,7 +4,7 @@ import { effectiveCost } from "../engine/stats.js";
 
 // Ricky Covey Jr. (Star Player, May) - the card explicitly called out for teammate-targeting attacks.
 // Main (static): "If this player has not yet attacked in this game, it cannot be attacked
-// by players with a Cost of 3 or less."
+// by players with a Cost of 4 or less."
 // Star Power (GREATER GOOD, WHILE_ATTACKING): "Choose 1 of the players on your field, and
 // attack it instead. If it falls to 0 Health, it is discarded instead of KOed. If it is
 // discarded as a result of this attack, choose 1 player on your opponent's field to be put
@@ -16,7 +16,7 @@ registerStarPlayerEffect(
     staticEffect: {
       blocksAttackFrom(ctx, attackerInstance) {
         if (ctx.state.turnFlags.attackedThisGameByInstance[ctx.source.instanceId]) return false;
-        return effectiveCost(attackerInstance) <= 3;
+        return effectiveCost(attackerInstance) <= 4;
       },
     },
   },
