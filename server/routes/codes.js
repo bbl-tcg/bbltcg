@@ -27,7 +27,7 @@ const TOURNAMENT101_ALLOWED_USERNAMES = new Set([
 
 // TOURNAMENT201: grants the Promo Rare Viktor Krill (201-060), once per account - only
 // usernames on this list may redeem it at all, and more will be added over time.
-const TOURNAMENT201_ALLOWED_USERNAMES = new Set(["EXDF", "EXDF_"]);
+const TOURNAMENT201_ALLOWED_USERNAMES = new Set(["EXDF", "EXDF_", "StevenGerrard", "Yossito", "busterbomb", "Schmaxel"]);
 
 codesRouter.post("/redeem", async (req, res) => {
   const code = (req.body?.code || "").trim().toUpperCase();
